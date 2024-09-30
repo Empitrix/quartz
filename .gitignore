@@ -1,5 +1,9 @@
 /dist/
 /build/
 /.vscode/
+/.clangd
 *.out
 *.exe
+/test.qz
+/run.ps1
+/run.sh
