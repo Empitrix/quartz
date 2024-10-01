@@ -1,9 +1,22 @@
+# Build
 /dist/
 /build/
-/.vscode/
-/.clangd
 *.out
 *.exe
+
+# LSP & Editor
+/.clangd
+/.vscode/
+
+# Test source file
 /test.qz
+
+# Test files (For running tests)
 /run.ps1
 /run.sh
+
+# Quartz & Quartz compiler
+/quartz
+/qtzc
+/qtz
+
