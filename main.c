@@ -6,11 +6,16 @@
 int main(int argc, char *argv[]){
 	GFLAG gflag;
 	update_glfag(&gflag, argc, argv);
-	printf("INPUT  >%s<\n", gflag.input);
-	printf("OUTPUT >%s<\n", gflag.input);
-	char *buff;
-	buff = read_file(gflag.input);
-	printf(">%s<\n", buff);
+	char *buff = read_file(gflag.input);
+
+	int count = 0;
+	Token *tokes = tokenize(buff, &count);
+
+	for(int i = 0; i < count; ++i){
+		printf(">%s< %20d, %d\n", tokes[i].word, tokes[i].col, tokes[i].row);
+	}
+
+	// FREE
 	free(buff);
 	free_gflag(&gflag);
 	return 0;

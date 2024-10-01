@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -74,3 +75,121 @@ char *read_file(char *path){
 	return buff;
 }
 
+
+/*
+Token* tokenize(char *inpt, int *count){
+	int size = 10;
+	Token *tokens = (Token*)calloc(size, sizeof(Token));
+
+	int i = 0;
+	int row = 1;
+	int col = 1;
+
+	while(inpt[i]){
+		int scol = col;
+		int idx = i;
+		if(isspace(inpt[i])){
+			while(isspace(inpt[i])){
+				if(inpt[i] == '\n'){ row++; col = 1; } else { col++;}
+				i++;
+			}
+		} else if(isalnum(inpt[i]) || inpt[i] == '_'){
+			while(isalnum(inpt[i]) || inpt[i] == '_'){
+				i++;
+				col++;
+			}
+		} else {
+			i++;
+			col++;
+		}
+
+		int len = i - idx;
+		char *word = (char *)calloc(len + 1, sizeof(char));
+		strncpy(word, &inpt[idx], len);
+
+		if(*count >= size){
+			size *= 2;
+			tokens = (Token*)realloc(tokens, size * sizeof(Token));
+		}
+		tokens[*count].word = word;
+		tokens[*count].row = row;
+		tokens[*count].col = scol;
+		*count = *count + 1;
+	}
+	return tokens;
+}
+*/
+
+
+Token* tokenize(char *inpt, int *count){
+	int size = 10;
+	Token *tokens = (Token*)calloc(size, sizeof(Token));
+
+	int i = 0;
+	int row = 1;
+	int col = 1;
+
+	while(inpt[i]){
+		int scol = col;
+		int idx = i;
+		char *word = NULL;
+
+
+
+		if(inpt[i] == '\t'){
+			word = (char*)calloc(3, sizeof(char));
+			strcpy(word, "  ");
+			i++;
+			col++;
+
+		} else if(inpt[i] == '\n'){
+			word = (char*)calloc(2, sizeof(char));
+			strcpy(word, "\n");
+			i++;
+			row++;
+			col = 1;
+
+		} else if(inpt[i] == ' '){
+			while(inpt[i] == ' '){
+				i++;
+				col++;
+			}
+			int len = i - idx;
+			word = (char*)calloc(len + 1, sizeof(char));
+			strncpy(word, &inpt[idx], len);
+			word[len] = '\0';
+
+		} else if(isalnum(inpt[i]) || inpt[i] == '_'){
+			while(isalnum(inpt[i]) || inpt[i] == '_'){
+				i++;
+				col++;
+			}
+			int len = i - idx;
+			word = (char*)calloc(len + 1, sizeof(char));
+			strncpy(word, &inpt[idx], len);
+			word[len] = '\0';
+
+		} else {
+			word = (char*)calloc(2, sizeof(char));
+			word[0] = inpt[i];
+			word[1] = '\0';
+			i++;
+			col++;
+		}
+
+		// int len = i - idx;
+		// char *word = (char *)calloc(len + 1, sizeof(char));
+		// strncpy(word, &inpt[idx], len);
+
+		if(*count >= size){
+			size *= 2;
+			tokens = (Token*)realloc(tokens, size * sizeof(Token));
+		}
+
+		tokens[*count].word = word;
+		tokens[*count].row = row;
+		tokens[*count].col = scol;
+		*count = *count + 1;
+	}
+	return tokens;
+}
