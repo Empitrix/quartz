@@ -77,8 +77,86 @@ void skip_white_space(TOKEN *tokens, int *i){
 }
 
 
-VAR_ASGMT var_asgmt(TOKEN *tokens, int max, int *cidx){
-	VAR_ASGMT ae;
+/* start's from [... => ] = "..."; */
+int str_var_asgmt(TOKEN *tokens, int max, int i, char *value){
+	// string
+	++i;
+	skip_white_space(tokens, &i);
+
+	if(tokens[i].type == BRAKET_CLS){
+		++i;
+	} else {
+		throw_err(tokens, max, i, "Invalid syntax", "]");
+		exit(0);
+	}
+
+	skip_white_space(tokens, &i);
+
+	if(tokens[i].type == EQUAL_SIGN){
+		++i;
+	} else {
+		throw_err(tokens, max, i, "Invalid syntax", "=");
+		exit(0);
+	}
+
+
+	skip_white_space(tokens, &i);
+
+	if(get_string(tokens, max, i, value, &i) == 0){
+		++i;
+	} else {
+		throw_err(tokens, max, i, "Invalid syntax", NULL);
+		exit(0);
+	}
+
+	skip_white_space(tokens, &i);
+
+	if(tokens[i].type == END_SIGN){
+		++i;
+		return i;
+	} else {
+		throw_err(tokens, max, i, "Invalid syntax", ";");
+		exit(0);
+	}
+}
+
+int u8_var_asgmt(TOKEN *tokens, int max, int i, int *value, variable_t type){
+
+	if(tokens[i].type == EQUAL_SIGN){
+		i++;
+	} else {
+		throw_err(tokens, max, i, "Invalid symbol", "="); exit(0);
+	}
+
+	skip_white_space(tokens, &i);
+
+	if(type == INT_TYPE){
+		if(tokens[i].type == IDENTIFIER && get_literal_value(tokens[i].word, value) == 0){
+			++i;
+		} else {
+			throw_err(tokens, max, i, "invalid value", "literal value"); exit(0);
+		}
+	} else {
+		i = get_char_value(tokens, max, i, value);
+	}
+
+	skip_white_space(tokens, &i);
+
+	if(tokens[i].type == END_SIGN){
+		++i;
+		return i;
+	} else {
+		throw_err(tokens, max, i, "syntax error", ";");
+		exit(0);
+	}
+}
+
+
+
+ASGMT var_asgmt(TOKEN *tokens, int max, int *cidx){
+	ASGMT ae;
+	ae.is_str = 0;
+	ae.is_func = 0;
 	int i = *cidx;
 	ae.type = INVALID_TYPE;
 	ae.name = NULL;
@@ -102,39 +180,26 @@ VAR_ASGMT var_asgmt(TOKEN *tokens, int max, int *cidx){
 
 	skip_white_space(tokens, &i);
 
-	// equal sign
-	if(tokens[i].type == EQUAL_SIGN){
-		i++;
-	} else {
-		throw_err(tokens, max, i, "Invalid symbol", "="); exit(0);
-	}
-
-	skip_white_space(tokens, &i);
-
-
-	int value = 0;
-	if(tokens[i].type == IDENTIFIER && get_literal_value(tokens[i].word, &value) == 0){
-		ae.value = value;
-		++i;
-	} else {
-		throw_err(tokens, max, i, "invalid value", "literal value"); exit(0);
-	}
-
-	skip_white_space(tokens, &i);
-
-	if(tokens[i].type == END_SIGN){
-		printf("Line: %s\n", get_token_line(tokens, max, i));
-		printf("Type: %s\n", (ae.type == INT_TYPE ? "int" : "char"));
-		printf("Name: %s\n", ae.name);
-		printf("Value: %d\n", ae.value);
-		*cidx = i;
+	if(tokens[i].type == BRAKET_OPN){
+		ae.str = (char *)calloc(MAXSIZ, sizeof(char));
+		i = str_var_asgmt(tokens, max, i, ae.str);
+		ae.is_str = 1;
+		printf("VALUE: >%s<\n", ae.str);
 		return ae;
+
+	} else if(strcmp(tokens[i].word, "(") == 0){
+		// function
+
+	} else if(strcmp(tokens[i].word, "=") == 0){
+		// normal variable
+		i = u8_var_asgmt(tokens, max, i, &ae.value, ae.type);
+		printf("VALUE: >%d<\n", ae.value);
+		return ae;
+
 	} else {
-		throw_err(tokens, max, i, "syntax error", ";");
+		throw_err(tokens, max, i, "Invalid symbol", NULL);
 		exit(0);
 	}
-
-
 
 	return ae;
 }

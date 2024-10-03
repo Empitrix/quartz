@@ -154,6 +154,9 @@ TOKEN* tokenize(char *inpt, int *count){
 			col++;
 			ttype = WHITESPACE;
 
+		} else if(inpt[i] == '\r'){
+			continue;
+
 		} else if(inpt[i] == '\n'){
 			word = (char*)calloc(2, sizeof(char));
 			strcpy(word, "\n");
@@ -206,6 +209,10 @@ TOKEN* tokenize(char *inpt, int *count){
 				ttype = BRACE_CLS;
 			} else if(strcmp(word, ";") == 0){
 				ttype = END_SIGN;
+			} else if(strcmp(word, "'") == 0){
+				ttype = SINGLE_QUOTE;
+			} else if(strcmp(word, "\"") == 0){
+				ttype = DOUBLE_QUOTE;
 			} else {
 				ttype = UNKNOWN;
 			}
@@ -227,9 +234,16 @@ TOKEN* tokenize(char *inpt, int *count){
 
 
 /* get_token_line: get the whole line that invalid token was found in */
-char *get_token_line(TOKEN *tokens, int max, int occurred){
+char *get_token_line(TOKEN *tokens, int max, int occurred, int *new_start){
 	char *line = (char *)calloc(MAXSIZ, sizeof(char));
+
+	while(tokens[occurred].type == NEWLINE && occurred > 0){
+		occurred--;
+	}
+
 	int tmp = tokens[occurred].row;
+	if(new_start != NULL){ *new_start = occurred; }
+
 	do {
 		occurred--;
 		if(occurred < 0){
@@ -239,7 +253,9 @@ char *get_token_line(TOKEN *tokens, int max, int occurred){
 
 	do {
 		if((occurred++) >= max){ break; }
-		strcat(line, tokens[occurred].word);
+		if(strcmp(tokens[occurred].word, "\n") != 0){
+			strcat(line, tokens[occurred].word);
+		}
 	} while(tokens[occurred].row == tmp);
 	return line;
 }
@@ -247,10 +263,12 @@ char *get_token_line(TOKEN *tokens, int max, int occurred){
 
 /* throw_err: show error message with line/line number and underlined invalid token */
 void throw_err(TOKEN *tokens, int max, int occurred, char *msg, char *expected){
-	char *line = get_token_line(tokens, max, occurred);
+	int new_start = 0;
+	char *line = get_token_line(tokens, max, occurred, &new_start);
 	char *obj = (char *)calloc(MAXSIZ, sizeof(char));
 	char *output = (char *)calloc(MAXSIZ, sizeof(char));
 	int i;
+	occurred = new_start;
 	int tok_len = tokens[occurred].col;
 	strcat(obj, "\e[38;2;230;81;0m");
 	for(i = 0; i < tok_len; ++i){
@@ -289,5 +307,91 @@ int get_literal_value(char *word, int *number){
 		}
 	}
 	return 1;  // failed
+}
+
+
+
+int get_string(TOKEN *tokens, int max, int occurred, char *src, int *idx){
+	char *output = (char *)calloc(MAXSIZ, sizeof(char));
+	int i = occurred;
+
+	if(tokens[i].type == WHITESPACE){ ++i; }
+
+	if(tokens[i].type == DOUBLE_QUOTE){
+		++i;
+	} else {
+		throw_err(tokens, max, i, "Invalid syntax", "\"");
+		exit(0);
+	}
+
+	do {
+		if(tokens[i].type == DOUBLE_QUOTE){
+			strcpy(src, output);
+			free(output);
+			*idx = i;
+			return 0;
+		}
+		strcat(output, tokens[i].word);
+		++i;
+		if(tokens[i].type == NEWLINE){
+			throw_err(tokens, max, i, "Invalid syntax", "\"");
+			exit(0);
+		}
+	} while(1);
+
+	return 1;
+}
+
+
+
+
+int get_char_value(TOKEN *tokens, int max, int i, int *value){
+	if(tokens[i].type == WHITESPACE){ ++i; }
+
+	if(tokens[i].type == SINGLE_QUOTE){
+		++i;
+	} else {
+		throw_err(tokens, max, i, "Invalid syntax", "'");
+		exit(0);
+	}
+
+	int escape = 0;
+	char letter = 0;
+
+	if(strcmp(tokens[i].word, "\\") == 0){
+		escape = 1;
+		++i;
+	} else {
+		letter = tokens[i].word[0];
+		++i;
+	}
+
+	if(escape){
+		if(strcmp(tokens[i].word, "n") == 0){
+			letter = '\n';
+			++i;
+		} else if(strcmp(tokens[i].word, "t") == 0){
+			letter = '\t';
+			++i;
+		} else if(strcmp(tokens[i].word, "\\") == 0){
+			letter = '\\';
+			++i;
+		} else {
+			throw_err(tokens, max, i, "Invalid escape letter", "\\n, \\t, \\\\");
+			exit(0);
+		}
+	}
+
+
+	if(tokens[i].type == SINGLE_QUOTE){
+		*value = (int)letter;
+		++i;
+		return i;
+	} else {
+		throw_err(tokens, max, i, "Invalid syntax", "'");
+		exit(0);
+	}
+
+	return i;
 }
 
