@@ -1,6 +1,10 @@
+#include "rules.h"
+#include <limits.h>
+
+
 typedef struct GFLAG {
-	char *output;
-	char *input;
+	char output[PATH_MAX];
+	char input[PATH_MAX];
 } GFLAG;
 
 
@@ -31,12 +35,20 @@ typedef enum token_t {
 	TYPE_KEYWORDS,     // 'int', 'char', 'string'
 } token_t;
 
+
 typedef struct {
 	int row;
 	int col;
-	char *word;
+	char word[32];
 	token_t type;
 } TOKEN;
+
+
+typedef struct {
+	TOKEN tokens[MAXTOKENS];
+	int max;
+	int idx;
+} Tokens;
 
 
 typedef struct LINES {

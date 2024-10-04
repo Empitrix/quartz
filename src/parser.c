@@ -8,6 +8,7 @@ void parser(TOKEN *tokens, int tlen){
 
 		if(tokens[i].type == WHITESPACE || tokens[i].type == NEWLINE){ continue; }
 
+		// Check for varialbe assignments
 		if(strcmp(tokens[i].word, "int") == 0 || strcmp(tokens[i].word, "char") == 0){
 			var_asgmt(tokens, tlen, &i);
 		} else {
