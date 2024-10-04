@@ -1,11 +1,10 @@
-#include "types.h"
 #include "utility.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 
-variable_t get_type(char *type){
+variable_t get_type(char type[]){
 	if(strcmp(type, "int") == 0){
 		return INT_TYPE;
 	} else if (strcmp(type, "char") == 0){
@@ -16,188 +15,133 @@ variable_t get_type(char *type){
 }
 
 
-// ASSIGNMENT_EXP get_assignment_exp(Token *tokens, int max, int cidx){
-// 	ASSIGNMENT_EXP ae;
-// 	int i;
-// 	ae.type = INVALID_EXP;
-// 	ae.name = NULL;
-// 	for(i = cidx; i < max; ++i){
-// 		if(tokens[i].type == WHITESPACE_TOK){ continue; }
-// 
-// 		if(i == cidx){
-// 			ae.type = get_type(tokens[i].word);
-// 			if(ae.type == INVALID_EXP){
-// 				printf("Invalid Type\n");
-// 				exit(0);
-// 			}
-// 			continue;
-// 		}
-// 
-// 		// printf("%s\n", tokens[i].word);
-// 
-// 		if(ae.type != INVALID_EXP && tokens[i].type == IDENTIFIER_TOK && ae.name == NULL){
-// 			ae.name = (char *)calloc((int)strlen(tokens[i].word) + 1, sizeof(char));
-// 			strcpy(ae.name, tokens[i].word);
-// 			printf("name: %s\n", ae.name);
-// 			get_err_line(tokens, max, i);
-// 			continue;
-// 		}
-// 
-// 
-// 		int eq_symbol = 0;
-// 		int end_symbol = 0;
-// 		if(ae.name != NULL && ae.type != INVALID_EXP){
-// 			while(i < max){
-// 				if(tokens[i].type == WHITESPACE_TOK){ ++i; continue; }
-// 				if(eq_symbol == 0){
-// 					if(strcmp(tokens[i].word, "=") && tokens[i].type == SYMBOL_TOK){
-// 						eq_symbol = 1;
-// 					}
-// 					++i;
-// 					continue;
-// 				}
-// 
-// 				if(eq_symbol && tokens[i].type == IDENTIFIER_TOK){
-// 					ae.value = atoi(tokens[i].word);
-// 					printf("value: %d\n", ae.value);
-// 				}
-// 
-// 				++i;
-// 			}
-// 		}
-// 
-// 
-// 	}
-// 	return ae;
-// }
-
-
-void skip_white_space(TOKEN *tokens, int *i){
-	if(tokens[*i].type == WHITESPACE){ *i = *i + 1; }
+void skip_white_space(TKNS *tkns){
+	if(tkns->tokens[tkns->idx].type == WHITESPACE){ tkns->idx++; }
 }
 
 
 /* start's from [... => ] = "..."; */
-int str_var_asgmt(TOKEN *tokens, int max, int i, char *value){
+void str_var_asgmt(TKNS *tkns, char *value){
 	// string
-	++i;
-	skip_white_space(tokens, &i);
+	tkns->idx++;
+	skip_white_space(tkns);
 
-	if(tokens[i].type == BRAKET_CLS){
-		++i;
+	if(tkns->tokens[tkns->idx].type == BRAKET_CLS){
+		tkns->idx++;
 	} else {
-		throw_err(tokens, max, i, "Invalid syntax", "]");
+		throw_err(tkns, "Invalid syntax", "]");
 		exit(0);
 	}
 
-	skip_white_space(tokens, &i);
+	skip_white_space(tkns);
 
-	if(tokens[i].type == EQUAL_SIGN){
-		++i;
+	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
+		tkns->idx++;
 	} else {
-		throw_err(tokens, max, i, "Invalid syntax", "=");
+		throw_err(tkns, "Invalid syntax", "=");
 		exit(0);
 	}
 
 
-	skip_white_space(tokens, &i);
+	skip_white_space(tkns);
 
-	if(get_string(tokens, max, i, value, &i) == 0){
-		++i;
+	if(get_string(tkns, value) == 0){
+		tkns->idx++;
 	} else {
-		throw_err(tokens, max, i, "Invalid syntax", NULL);
+		throw_err(tkns, "Invalid syntax", NULL);
 		exit(0);
 	}
 
-	skip_white_space(tokens, &i);
+	skip_white_space(tkns);
 
-	if(tokens[i].type == END_SIGN){
-		++i;
-		return i;
+	if(tkns->tokens[tkns->idx].type == END_SIGN){
+		++tkns->idx;
+		return;
 	} else {
-		throw_err(tokens, max, i, "Invalid syntax", ";");
+		throw_err(tkns, "Invalid syntax", ";");
 		exit(0);
 	}
 }
 
-int u8_var_asgmt(TOKEN *tokens, int max, int i, int *value, variable_t type){
 
-	if(tokens[i].type == EQUAL_SIGN){
-		i++;
+
+/* start's from =... => = <int>; */
+void u8_var_asgmt(TKNS *tkns, int *value, variable_t type){
+
+	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
+		tkns->idx++;
 	} else {
-		throw_err(tokens, max, i, "Invalid symbol", "="); exit(0);
+		throw_err(tkns, "Invalid symbol", "="); exit(0);
 	}
 
-	skip_white_space(tokens, &i);
+	skip_white_space(tkns);
 
 	if(type == INT_TYPE){
-		if(tokens[i].type == IDENTIFIER && get_literal_value(tokens[i].word, value) == 0){
-			++i;
+		if(tkns->tokens[tkns->idx].type == IDENTIFIER && get_literal_value(tkns->tokens[tkns->idx].word, value) == 0){
+			tkns->idx++;
 		} else {
-			throw_err(tokens, max, i, "invalid value", "literal value"); exit(0);
+			throw_err(tkns, "invalid value", "literal value"); exit(0);
 		}
 	} else {
-		i = get_char_value(tokens, max, i, value);
+		get_char_value(tkns, value);
 	}
 
-	skip_white_space(tokens, &i);
+	skip_white_space(tkns);
 
-	if(tokens[i].type == END_SIGN){
-		++i;
-		return i;
+	if(tkns->tokens[tkns->idx].type == END_SIGN){
+		tkns->idx++;
+		return;
 	} else {
-		throw_err(tokens, max, i, "syntax error", ";");
+		throw_err(tkns, "syntax error", ";");
 		exit(0);
 	}
 }
 
 
-
-ASGMT var_asgmt(TOKEN *tokens, int max, int *cidx){
+/* var_asgmt: return structure for 'int', 'char', 'char[]' or function assignment */
+ASGMT var_asgmt(TKNS *tkns){
 	ASGMT ae;
 	ae.is_str = 0;
 	ae.is_func = 0;
-	int i = *cidx;
 	ae.type = INVALID_TYPE;
-	ae.name = NULL;
 
-	if((ae.type = get_type(tokens[i].word)) != INVALID_TYPE){
-		++i;
+	if((ae.type = get_type(tkns->tokens[tkns->idx].word)) != INVALID_TYPE){
+		tkns->idx++;
 	} else {
-		throw_err(tokens, max, i, "Invalid type", "int, char, char[]"); exit(0);
+		throw_err(tkns, "Invalid type", "int, char, char[]"); exit(0);
 	}
  
-	skip_white_space(tokens, &i);
+	skip_white_space(tkns);
 
 	// get varialbe name
-	if(tokens[i].type == IDENTIFIER){
-		ae.name = (char *)calloc((int)strlen(tokens[i].word) + 1, sizeof(char));
-		strcpy(ae.name, tokens[i].word);
-		++i;
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		strcpy(ae.name, tkns->tokens[tkns->idx].word);
+		tkns->idx++;
 	} else {
-		throw_err(tokens, max, i, "Invalid varialbe name", NULL); exit(0);
+		throw_err(tkns, "Invalid varialbe name", NULL); exit(0);
 	}
 
-	skip_white_space(tokens, &i);
+	skip_white_space(tkns);
 
-	if(tokens[i].type == BRAKET_OPN){
-		ae.str = (char *)calloc(MAXSIZ, sizeof(char));
-		i = str_var_asgmt(tokens, max, i, ae.str);
+	if(tkns->tokens[tkns->idx].type == BRAKET_OPN){
+		// String detected
+		str_var_asgmt(tkns, ae.str);
 		ae.is_str = 1;
 		printf("VALUE: >%s<\n", ae.str);
 		return ae;
 
-	} else if(strcmp(tokens[i].word, "(") == 0){
-		// function
+	} else if(strcmp(tkns->tokens[tkns->idx].word, "(") == 0){
+		// Function detected
 
-	} else if(strcmp(tokens[i].word, "=") == 0){
-		// normal variable
-		i = u8_var_asgmt(tokens, max, i, &ae.value, ae.type);
+	} else if(strcmp(tkns->tokens[tkns->idx].word, "=") == 0){
+		// Variable detected
+		u8_var_asgmt(tkns, &ae.value, ae.type);
 		printf("VALUE: >%d<\n", ae.value);
 		return ae;
 
 	} else {
-		throw_err(tokens, max, i, "Invalid symbol", NULL);
+		// Variable detected
+		throw_err(tkns, "Invalid symbol", NULL);
 		exit(0);
 	}
 

@@ -1,5 +1,6 @@
 #include "src/utility.h"
 #include "src/tokenizer.h"
+#include "src/parser.h"
 
 
 int main(int argc, char *argv[]){
@@ -9,10 +10,10 @@ int main(int argc, char *argv[]){
 	char buff[MAXFILE];
 	read_file(gflag.input, buff);
 
-	Tokens tokens;
-	tokenizer(buff, &tokens);
+	TKNS tkns;
+	tokenizer(buff, &tkns);
 
-	// parser(tokens, tlen);
+	parser(&tkns);
 
 	return 0;
 }

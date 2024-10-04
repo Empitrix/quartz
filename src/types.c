@@ -8,15 +8,9 @@ typedef struct GFLAG {
 } GFLAG;
 
 
-typedef enum diagnostics {
-	TERMINATE_DIAG,
-	WARNING_DIAG
-} diags;
-
-
 typedef enum token_t {
 	INT_KEYWORD,       // int
-	IDENTIFIER,        // word, name, y2k, ...
+	IDENTIFIER,        // word, name, y2k, another_compiler ...
 	INTEGER_VALUE,     // 255, 19, ... 
 	EQUAL_SIGN,        // =
 	SEMICOLON_SIGN,    // ;
@@ -48,7 +42,7 @@ typedef struct {
 	TOKEN tokens[MAXTOKENS];
 	int max;
 	int idx;
-} Tokens;
+} TKNS;
 
 
 typedef struct LINES {
@@ -70,47 +64,21 @@ typedef struct {
 	variable_t *types;
 } ARGS;
 
+
 typedef struct{
-	char *name;
+	char name[32];
 	ARGS args;
 	variable_t return_type;
 } function_t;
 
+
 typedef struct {
-	char *name;
-	char *str;
-	int value;
-	int is_func;
-	int is_str;
-	function_t func;
-	variable_t type;
+	char name[32];     // name
+	char str[256];     // string value
+	int value;         // int/char value
+	int is_func;       // is function
+	int is_str;        // is string
+	function_t func;   // function's object
+	variable_t type;   // vairlabes type
 } ASGMT;
-
-
-// typedef struct {
-// 	token_t *rules;
-// 	int len;
-// } RULE;
-// 
-// 
-// RULE get_rule(EXPR expr){
-// 	RULE rule;
-// 
-// 	switch(expr){
-// 		case VARIABLE_ASSIGNEMNT:
-// 			rule.len = 5;
-// 			rule.rules = (token_t *)calloc(rule.len, sizeof(token_t));
-// 			rule.rules[0] = INT_KEYWORD;
-// 			rule.rules[0] = TYPE_KEYWORDS;
-// 			rule.rules[1] = IDENTIFIER;
-// 			rule.rules[2] = EQUAL_SIGN;
-// 			rule.rules[3] = INTEGER_VALUE;
-// 			rule.rules[4] = END_SIGN;
-// 			return rule;
-// 		default:
-// 			break;
-// 	}
-// 
-// 	return rule;
-// }
 

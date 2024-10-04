@@ -3,14 +3,14 @@
 #include "helper.h"
 
 
-void parser(TOKEN *tokens, int tlen){
-	for(int i = 0; i < tlen; ++i){
+void parser(TKNS *tkns){
+	for(tkns->idx = 0; tkns->idx < tkns->max; tkns->idx++){
 
-		if(tokens[i].type == WHITESPACE || tokens[i].type == NEWLINE){ continue; }
+		if(tkns->tokens[tkns->idx].type == WHITESPACE || tkns->tokens[tkns->idx].type == NEWLINE){ continue; }
 
 		// Check for varialbe assignments
-		if(strcmp(tokens[i].word, "int") == 0 || strcmp(tokens[i].word, "char") == 0){
-			var_asgmt(tokens, tlen, &i);
+		if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0 || strcmp(tkns->tokens[tkns->idx].word, "char") == 0){
+			var_asgmt(tkns);
 		} else {
 		}
 	}

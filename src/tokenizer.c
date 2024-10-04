@@ -5,7 +5,7 @@
 
 
 /* tokenizer: Make tokens form given string */
-void tokenizer(char inpt[], Tokens *tokens){
+void tokenizer(char inpt[], TKNS *tokens){
 	int i = 0;
 	int row = 1;
 	int col = 1;
