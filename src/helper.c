@@ -5,6 +5,15 @@
 
 
 
+void pass_by_type(TKNS *tkns, token_t type, const char *msg, const char *exp){
+	if(tkns->tokens[tkns->idx].type == type){
+		tkns->idx++;
+	} else {
+		throw_err(tkns, msg, exp);
+		exit(0);
+	}
+}
+
 
 variable_t get_type(char type[]){
 	if(strcmp(type, "int") == 0){
@@ -20,6 +29,50 @@ variable_t get_type(char type[]){
 void skip_white_space(TKNS *tkns){
 	if(tkns->tokens[tkns->idx].type == WHITESPACE){ tkns->idx++; }
 }
+
+void skip_gap(TKNS *tkns){
+	while (tkns->tokens[tkns->idx].type == WHITESPACE || tkns->tokens[tkns->idx].type == NEWLINE) {
+		tkns->idx++;
+	}
+}
+
+
+void save_until_brace(TKNS *tkns, TKNS *save){
+	int open = 0;
+	save->idx = 0;
+	save->max = 0;
+	while(1){
+		if(tkns->tokens[tkns->idx].type == BRACE_CLS && open == 0){ break; }
+
+		if(tkns->tokens[tkns->idx].type == BRACE_OPN){ open++; }
+		if(tkns->tokens[tkns->idx].type == BRACE_CLS){ open--; }
+
+		tkns->idx++;
+
+		if(tkns->idx >= tkns->max){
+			throw_err(tkns, "syntax error", "'}' or closed brace at end of the file");
+			exit(0);
+		} else {
+			save->tokens[save->max] = tkns->tokens[tkns->idx];
+			save->max++;
+		}
+	}
+}
+
+// void save_until(TKNS *tkns, token_t type, TKNS *save){
+// 	save->idx = 0;
+// 	save->max = 0;
+// 	while (tkns->tokens[tkns->idx].type != type){
+// 		tkns->idx++;
+// 		if(tkns->idx >= tkns->max){
+// 			throw_err(tkns, "syntax error", "'}' or closed brace at end of the file");
+// 			exit(0);
+// 		} else {
+// 			save->tokens[save->max] = tkns->tokens[tkns->idx];
+// 			save->max++;
+// 		}
+// 	}
+// }
 
 
 
@@ -163,16 +216,17 @@ ASGMT var_asgmt(TKNS *tkns){
 		printf("VALUE: >%s<\n", ae.str);
 		return ae;
 
-	} else if(strcmp(tkns->tokens[tkns->idx].word, "(") == 0){
+	} else if(tkns->tokens[tkns->idx].type == PAREN_OPN){
 		// Function detected
 
-	} else if(strcmp(tkns->tokens[tkns->idx].word, "=") == 0){
+	} else if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 		// Variable detected
 		u8_var_asgmt(tkns, &ae.value, ae.type);
 		printf("VALUE: >%d<\n", ae.value);
 		return ae;
 
 	} else {
+		printf("%s - %d\n", tkns->tokens[tkns->idx].word, tkns->tokens[tkns->idx].type);
 		// Invalid
 		throw_err(tkns, "Invalid symbol", NULL);
 		exit(0);
@@ -224,3 +278,167 @@ MACRO macro_asgmt(TKNS *tkns){
 
 	return mcro;
 }
+
+
+operator set_double_op(TKNS *tkns, token_t tok, operator s, operator d){
+	if(tkns->tokens[tkns->idx + 1].type == tok){
+		return d;
+	} else {
+		return s;
+	}
+}
+
+operator get_operator(TKNS *tkns){
+	operator op = NO_OP;
+	switch(tkns->tokens[tkns->idx].type){
+		case PLUS_SIGN:
+			op = set_double_op(tkns, PLUS_SIGN, ADD_OP, INCREMENT_OP);
+			break;
+
+		case MINUS_SIGN:
+			op = set_double_op(tkns, MINUS_SIGN, MINUS_OP, DECREMENT_OP);
+			break;
+
+		case EQUAL_SIGN:
+			op = set_double_op(tkns, EQUAL_SIGN, ASSIGN_OP, EQUAL_OP);
+			break;
+
+		case LEFT_SIGN:
+			if(tkns->tokens[tkns->idx + 1].type == EQUAL_SIGN){
+				op = SMALLER_EQ_OP;
+			} else {
+				op = set_double_op(tkns, LEFT_SIGN, SMALLER_OP, SHIFT_LEFT_OP);
+			}
+			break;
+
+
+		case RIGHT_SIGN:
+			if(tkns->tokens[tkns->idx + 1].type == EQUAL_SIGN){
+				op = GREATOR_EQ_OP;
+			} else {
+				op = set_double_op(tkns, RIGHT_SIGN, GREATOR_EQ_OP, SHIFT_RIGHT_OP);
+			}
+			break;
+
+		case TILDE_SIGN:
+			op = COMPLEMENT_OP;
+			break;
+		default:
+			op = INVALID_OP;
+	}
+	// if(op != INVALID_OP){ tkns->idx ++; }
+	return op;
+}
+
+
+void skip_double_op(TKNS *tkns, operator op){
+	if(op == INCREMENT_OP ||
+			op == DECREMENT_OP ||
+			op == EQUAL_OP ||
+			op == SMALLER_EQ_OP ||
+			op == GREATOR_EQ_OP ||
+			op == SHIFT_RIGHT_OP ||
+			op == SHIFT_LEFT_OP){
+		tkns->idx++;
+	}
+}
+
+STMT get_statement(TKNS *tkns){
+	STMT st;
+
+	skip_white_space(tkns);
+
+
+	if(tkns->tokens[tkns->idx].type == END_SIGN){
+		st.op = NO_OP;
+		return st;
+	}
+
+	st.op = get_operator(tkns);
+
+	// TODO: variable name
+	pass_by_type(tkns, IDENTIFIER, "Invalid syntax", NULL);
+	strcpy(st.left, tkns->tokens[tkns->idx - 1].word);
+
+	skip_white_space(tkns);
+
+	if(st.op == COMPLEMENT_OP){ return st; }
+
+	st.op = get_operator(tkns);
+	if(st.op == INVALID_OP || st.op == COMPLEMENT_OP){
+		throw_err(tkns, "Invalid operator", NULL);
+		exit(0);
+	} else {
+
+		st.op = get_operator(tkns);
+		// tkns->idx++;
+		// skip_double_op(tkns, st.op);
+
+		if(st.op == INVALID_OP || st.op == NO_OP){
+			throw_err(tkns, "Invalid operator", NULL);
+			exit(0);
+		} else if(st.op == INCREMENT_OP || st.op == DECREMENT_OP){
+			tkns->idx += 2;
+			return st;
+		} else {
+			tkns->idx++;
+		}
+
+		skip_double_op(tkns, st.op);
+		skip_white_space(tkns);
+		pass_by_type(tkns, INTEGER_VALUE, "Invalid syntax", "integer");
+		strcpy(st.right, tkns->tokens[tkns->idx - 1].word);
+	}
+
+	return st;
+}
+
+
+
+FOR_ASGMT for_asgmt(TKNS *tkns){
+	FOR_ASGMT fr;
+	tkns->idx++;
+	skip_white_space(tkns);
+
+	// initial
+	pass_by_type(tkns, PAREN_OPN, "Invalid character", "'('");
+	skip_white_space(tkns);
+	fr.init = get_statement(tkns);
+
+	skip_white_space(tkns);
+
+	// condition
+	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
+	skip_white_space(tkns);
+	fr.cond = get_statement(tkns);
+
+	skip_white_space(tkns);
+
+	// iterator
+	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
+	skip_white_space(tkns);
+	fr.iter = get_statement(tkns);
+
+	skip_white_space(tkns);
+
+
+	// end )
+	pass_by_type(tkns, PAREN_CLS, "Invalid character", "')'");
+
+	skip_white_space(tkns);
+
+	pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
+	// skip_gap(tkns)
+
+	save_until_brace(tkns, &fr.tkns);  // get everything in for loop as tokens
+
+	for(int i = 0; i < fr.tkns.max; i++){
+		printf("%s\n", fr.tkns.tokens[i].word);
+	}
+
+
+	pass_by_type(tkns, BRACE_CLS, "Invalid character", "'}'");
+	
+	return fr;
+}
+

@@ -29,6 +29,13 @@ typedef enum token_t {
 	TYPE_KEYWORDS,     // 'int', 'char', 'string'
 	INCLUDE_KEWORD,    // include keyword
 	DEFINE_KEWORD,     // define keyword
+	FOR_KEWORD,        // for keyword
+	WHILE_KEWORD,      // while keyword
+	LEFT_SIGN,         // <
+	RIGHT_SIGN,        // >
+	PLUS_SIGN,         // +
+	MINUS_SIGN,        // -
+	TILDE_SIGN,        // ~
 	UNKNOWN,           // Unknown
 } token_t;
 
@@ -108,3 +115,36 @@ typedef struct {
 	CNST_VAR value;
 } MACRO;
 
+
+// expression action
+typedef enum {
+	EQUAL_OP,           // ==
+	ASSIGN_OP,          // =
+	SMALLER_OP,         // <
+	GREATOR_OP,         // >
+	SMALLER_EQ_OP,      // <=
+	GREATOR_EQ_OP,      // >=
+	ADD_OP,             // +
+	MINUS_OP,           // -
+	INCREMENT_OP,       // ++
+	DECREMENT_OP,       // --
+	SHIFT_RIGHT_OP,     // >>
+	SHIFT_LEFT_OP,      // <<
+	COMPLEMENT_OP,      // ~
+	NO_OP,              // No operator
+	INVALID_OP          // invalid(err) operator
+} operator;
+
+typedef struct {
+	char left[STR_MAX];
+	char right[STR_MAX];
+	operator op;
+} STMT;
+
+
+typedef struct{
+	STMT init;
+	STMT cond;
+	STMT iter;
+	TKNS tkns;
+} FOR_ASGMT;

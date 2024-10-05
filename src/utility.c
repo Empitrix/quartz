@@ -88,7 +88,7 @@ void get_token_line(TKNS *tkns, int *new_start, char line[]){
 
 
 /* throw_err: show error message with line/line number and underlined invalid token */
-void throw_err(TKNS *tkns, char *msg, const char *expected){
+void throw_err(TKNS *tkns, const char *msg, const char *expected){
 	int new_start = 0;
 	char line[MAXSIZ];
 	char obj[MAXSIZ];

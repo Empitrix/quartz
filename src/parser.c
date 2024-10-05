@@ -13,6 +13,8 @@ void parser(TKNS *tkns){
 			var_asgmt(tkns);
 		} else if(tkns->tokens[tkns->idx].type == HASHTAG){
 			macro_asgmt(tkns);
+		} else if(tkns->tokens[tkns->idx].type == FOR_KEWORD){
+			for_asgmt(tkns);
 		} else {
 		}
 	}

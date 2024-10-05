@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include "types.h"
@@ -49,9 +50,7 @@ void tokenizer(char inpt[], TKNS *tokens){
 			ttype = WHITESPACE;
 
 		} else if(isdigit(inpt[i])){
-			int got_x = 0;
-			while(isdigit(inpt[i]) || (inpt[i] >= 'A' && inpt[i] <= 'F' || ((inpt[i] == 'x' && got_x == 0)))){
-				if(inpt[i] == 'x'){ got_x = 1; }
+			while(isdigit(inpt[i]) || ((inpt[i] >= 'A' && inpt[i] <= 'F') || inpt[i] == 'x')){
 				i++;
 				col++;
 			}
@@ -72,6 +71,10 @@ void tokenizer(char inpt[], TKNS *tokens){
 				ttype = DEFINE_KEWORD;
 			} else if(strcmp(word, "include") == 0){
 				ttype = INCLUDE_KEWORD;
+			} else if(strcmp(word, "for") == 0){
+				ttype = FOR_KEWORD;
+			} else if(strcmp(word, "while") == 0){
+				ttype = WHILE_KEWORD;
 			} else {
 				ttype = IDENTIFIER;
 			}
@@ -81,30 +84,58 @@ void tokenizer(char inpt[], TKNS *tokens){
 			word[1] = '\0';
 			i++;
 			col++;
-			if(strcmp(word, "=") == 0){
-				ttype = EQUAL_SIGN;
-			} else if(strcmp(word, "[") == 0){
-				ttype = BRAKET_OPN;
-			} else if(strcmp(word, "]") == 0){
-				ttype = BRAKET_CLS;
-			} else if(strcmp(word, "(") == 0){
-				ttype = PAREN_OPN;
-			} else if(strcmp(word, ")") == 0){
-				ttype = PAREN_CLS;
-			} else if(strcmp(word, "{") == 0){
-				ttype = BRACE_OPN;
-			} else if(strcmp(word, "}") == 0){
-				ttype = BRACE_CLS;
-			} else if(strcmp(word, ";") == 0){
-				ttype = END_SIGN;
-			} else if(strcmp(word, "'") == 0){
-				ttype = SINGLE_QUOTE;
-			} else if(strcmp(word, "\"") == 0){
-				ttype = DOUBLE_QUOTE;
-			} else if(strcmp(word, "#") == 0){
-				ttype = HASHTAG;
-			} else {
-				ttype = UNKNOWN;
+			switch (word[0]) {
+				case '=':
+					ttype = EQUAL_SIGN;
+					break;
+				case '[':
+					ttype = BRAKET_OPN;
+					break;
+				case ']':
+					ttype = BRAKET_CLS;
+					break;
+				case '(':
+					ttype = PAREN_OPN;
+					break;
+				case ')':
+					ttype = PAREN_CLS;
+					break;
+				case '{':
+					ttype = BRACE_OPN;
+					break;
+				case '}':
+					ttype = BRACE_CLS;
+					break;
+				case ';':
+					ttype = END_SIGN;
+					break;
+				case '\'':
+					ttype = SINGLE_QUOTE;
+					break;
+				case '"':
+					ttype = DOUBLE_QUOTE;
+					break;
+				case '#':
+					ttype = HASHTAG;
+					break;
+				case '<':
+					ttype = LEFT_SIGN;
+					break;
+				case '>':
+					ttype = RIGHT_SIGN;
+					break;
+				case '+':
+					ttype = PLUS_SIGN;
+					break;
+				case '-':
+					ttype = PLUS_SIGN;
+					break;
+				case '~':
+					ttype = TILDE_SIGN;
+					break;
+				default:
+					ttype = UNKNOWN;
+					break;
 			}
 		}
 
