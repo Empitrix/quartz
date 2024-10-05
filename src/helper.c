@@ -4,6 +4,8 @@
 #include <stdlib.h>
 
 
+
+
 variable_t get_type(char type[]){
 	if(strcmp(type, "int") == 0){
 		return INT_TYPE;
@@ -17,6 +19,37 @@ variable_t get_type(char type[]){
 
 void skip_white_space(TKNS *tkns){
 	if(tkns->tokens[tkns->idx].type == WHITESPACE){ tkns->idx++; }
+}
+
+
+
+CNST_VAR const_var(TKNS *tkns){
+	CNST_VAR cvar;
+	cvar.type = INT_CONST;
+
+	if(tkns->tokens[tkns->idx].type == INTEGER_VALUE){
+		if(get_literal_value(tkns->tokens[tkns->idx].word, &cvar.int_value) == 0){
+			tkns->idx++;
+		} else {
+			throw_err(tkns, "Invalid value", "literal value"); exit(0);
+		}
+	} else if (tkns->tokens[tkns->idx].type == SINGLE_QUOTE){
+		if(get_char_value(tkns, &cvar.char_value) == 0){
+			tkns->idx++;
+		} else {
+			throw_err(tkns, "Invalid character", NULL); exit(0);
+		}
+
+	} else if (tkns->tokens[tkns->idx].type == DOUBLE_QUOTE){
+		if(get_string(tkns, cvar.str_value) == 0){
+			tkns->idx++;
+		} else {
+			throw_err(tkns, "Invalid string constant", NULL); exit(0);
+		}
+	} else {
+		throw_err(tkns, "Invalid constant", NULL); exit(0);
+	}
+	return cvar;
 }
 
 
@@ -77,13 +110,13 @@ void u8_var_asgmt(TKNS *tkns, int *value, variable_t type){
 	skip_white_space(tkns);
 
 	if(type == INT_TYPE){
-		if(tkns->tokens[tkns->idx].type == IDENTIFIER && get_literal_value(tkns->tokens[tkns->idx].word, value) == 0){
+		if(tkns->tokens[tkns->idx].type == INTEGER_VALUE && get_literal_value(tkns->tokens[tkns->idx].word, value) == 0){
 			tkns->idx++;
 		} else {
 			throw_err(tkns, "invalid value", "literal value"); exit(0);
 		}
 	} else {
-		get_char_value(tkns, value);
+		get_char_value(tkns, (char *)value);
 	}
 
 	skip_white_space(tkns);
@@ -140,10 +173,54 @@ ASGMT var_asgmt(TKNS *tkns){
 		return ae;
 
 	} else {
-		// Variable detected
+		// Invalid
 		throw_err(tkns, "Invalid symbol", NULL);
 		exit(0);
 	}
 
 	return ae;
+}
+
+
+
+MACRO macro_asgmt(TKNS *tkns){
+	MACRO mcro;
+	mcro.value.type = INT_CONST;
+
+	tkns->idx++;
+
+	if(tkns->tokens[tkns->idx].type == INCLUDE_KEWORD || tkns->tokens[tkns->idx].type == DEFINE_KEWORD){
+		tkns->idx++;
+	} else {
+		throw_err(tkns, "Invalid preprocessor directive", "include or define");
+		exit(0);
+	}
+
+	skip_white_space(tkns);
+
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		strcpy(mcro.name, tkns->tokens[tkns->idx].word);
+		tkns->idx++;
+	} else {
+		throw_err(tkns, "A name required", NULL);
+		exit(0);
+	}
+
+
+	skip_white_space(tkns);
+
+	mcro.value = const_var(tkns);
+
+	skip_white_space(tkns);
+
+
+	if(tkns->tokens[tkns->idx].type == NEWLINE){
+		printf("MACRO: %s\n", mcro.name);
+		return mcro;
+	} else {
+		throw_err(tkns, "Invalid macro", NULL);
+		exit(0);
+	}
+
+	return mcro;
 }

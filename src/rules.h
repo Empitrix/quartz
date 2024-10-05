@@ -6,5 +6,8 @@
 
 #define MAXTOKENS 1024
 
+#define STR_MAX 1024
+#define NAME_MAX 1024
+
 #endif
 

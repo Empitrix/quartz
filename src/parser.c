@@ -11,6 +11,8 @@ void parser(TKNS *tkns){
 		// Check for varialbe assignments
 		if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0 || strcmp(tkns->tokens[tkns->idx].word, "char") == 0){
 			var_asgmt(tkns);
+		} else if(tkns->tokens[tkns->idx].type == HASHTAG){
+			macro_asgmt(tkns);
 		} else {
 		}
 	}

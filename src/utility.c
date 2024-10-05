@@ -88,10 +88,11 @@ void get_token_line(TKNS *tkns, int *new_start, char line[]){
 
 
 /* throw_err: show error message with line/line number and underlined invalid token */
-void throw_err(TKNS *tkns, char *msg, char *expected){
+void throw_err(TKNS *tkns, char *msg, const char *expected){
 	int new_start = 0;
 	char line[MAXSIZ];
 	char obj[MAXSIZ];
+	memset(obj, '\0', sizeof(obj));
 	char output[MAXSIZ];
 	get_token_line(tkns, &new_start, line);
 
@@ -108,7 +109,7 @@ void throw_err(TKNS *tkns, char *msg, char *expected){
 	}
 	strcat(obj, "\033[0m");
 	if(expected != NULL && strcmp(expected, "") != 0){
-		sprintf(output, "%s, expexted (%s) in", msg, expected);
+		sprintf(output, "%s, expected (%s) in", msg, expected);
 	} else {
 		sprintf(output, "%s", msg);
 	}
@@ -164,7 +165,7 @@ int get_string(TKNS *tkns, char src[]){
 
 
 
-void get_char_value(TKNS *tkns, int *value){
+int get_char_value(TKNS *tkns, char *value){
 	if(tkns->tokens[tkns->idx].type == WHITESPACE){ tkns->idx++; }
 
 	if(tkns->tokens[tkns->idx].type == SINGLE_QUOTE){
@@ -205,9 +206,11 @@ void get_char_value(TKNS *tkns, int *value){
 	if(tkns->tokens[tkns->idx].type == SINGLE_QUOTE){
 		*value = (int)letter;
 		tkns->idx++;
+		return 0;
 	} else {
 		throw_err(tkns, "Invalid syntax", "'");
 		exit(0);
 	}
+	return 1;
 }
 

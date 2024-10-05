@@ -48,6 +48,18 @@ void tokenizer(char inpt[], TKNS *tokens){
 			word[len] = '\0';
 			ttype = WHITESPACE;
 
+		} else if(isdigit(inpt[i])){
+			int got_x = 0;
+			while(isdigit(inpt[i]) || (inpt[i] >= 'A' && inpt[i] <= 'F' || ((inpt[i] == 'x' && got_x == 0)))){
+				if(inpt[i] == 'x'){ got_x = 1; }
+				i++;
+				col++;
+			}
+			int len = i - idx;
+			strncpy(word, &inpt[idx], len);
+			word[len] = '\0';
+			ttype = INTEGER_VALUE;
+
 		} else if(isalnum(inpt[i]) || inpt[i] == '_'){
 			while(isalnum(inpt[i]) || inpt[i] == '_'){
 				i++;
@@ -56,7 +68,13 @@ void tokenizer(char inpt[], TKNS *tokens){
 			int len = i - idx;
 			strncpy(word, &inpt[idx], len);
 			word[len] = '\0';
-			ttype = IDENTIFIER;
+			if(strcmp(word, "define") == 0){
+				ttype = DEFINE_KEWORD;
+			} else if(strcmp(word, "include") == 0){
+				ttype = INCLUDE_KEWORD;
+			} else {
+				ttype = IDENTIFIER;
+			}
 
 		} else {
 			word[0] = inpt[i];
@@ -83,6 +101,8 @@ void tokenizer(char inpt[], TKNS *tokens){
 				ttype = SINGLE_QUOTE;
 			} else if(strcmp(word, "\"") == 0){
 				ttype = DOUBLE_QUOTE;
+			} else if(strcmp(word, "#") == 0){
+				ttype = HASHTAG;
 			} else {
 				ttype = UNKNOWN;
 			}
