@@ -93,3 +93,17 @@ to define a global constant use `#define`
 #define MAX 1000
 ```
 
+
+
+
+### Numbers:
+- `int`: `0` to `255`
+- `hex`: `0x00` to `0xFF`
+- `binary`: `00000000B` to `11111111B`
+
+
+### Allowed Escape Sequences
+- `\n`
+- `\t`
+- `\\`
+

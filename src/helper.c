@@ -1,3 +1,4 @@
+#include "types.h"
 #include "utility.h"
 #include <string.h>
 #include <stdio.h>
@@ -37,38 +38,119 @@ void skip_gap(TKNS *tkns){
 }
 
 
-void get_brace_content(TKNS *tkns, TKNS *save){
-	int open = 0;
-	save->idx = 0;
-	save->max = 0;
-	int sidx = tkns->idx;
+int get_var_arg(TKNS *tkns, char name[], var_t *type){
 
-	while(tkns->tokens[tkns->idx].type != BRACE_CLS){
+	skip_white_space(tkns);
 
-		if(tkns->tokens[tkns->idx].type == BRACE_OPN){ open++; }
-		if(tkns->tokens[tkns->idx].type == BRACE_CLS){ open--; }
+	if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
+		// tkns->idx++;
+		return 0;
+	}
 
+
+	if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0 ||
+		strcmp(tkns->tokens[tkns->idx].word, "char") == 0){
 
 		tkns->idx++;
-		if(tkns->tokens[tkns->idx].type == BRACE_CLS && open == 0){ break; }
-
 		
-		if(tkns->idx >= tkns->max){
-			if(open != 0){
-				tkns->idx = sidx;
-				throw_err(tkns, "syntax error", "'}' or closed brace at end of the file");
-				exit(0);
-			} else {
-				return;
-			}
+		if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0){
+			*type = INT_VAR;
 		} else {
-			save->tokens[save->max] = tkns->tokens[tkns->idx];
-			save->max++;
+			*type = CHAR_VAR;
+		}
+
+
+		skip_white_space(tkns);
+
+		if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+			strcpy(name, tkns->tokens[tkns->idx].word);  // update name
+			tkns->idx++;
+		} else {
+			throw_err(tkns, "Invalid varialbe name", NULL);
+			exit(0);
+		}
+
+		skip_white_space(tkns);
+
+
+		if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
+			return 0;
+		}
+
+		if(tkns->tokens[tkns->idx].type == BRAKET_OPN){
+			tkns->idx++;
+			skip_white_space(tkns);
+			pass_by_type(tkns, BRAKET_CLS, "Invalid syntax", "']'");
+			skip_white_space(tkns);
+			*type = STR_VAR;
+		}
+
+		if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
+			tkns->idx++;
+		}
+
+		return 0;
+
+	} else {
+		return 1;
+	}
+
+	return 1;
+}
+
+
+
+void get_arg(TKNS *tkns, ARG args[], int *arg_len){
+	char name[STR_MAX];
+	var_t type;
+	*arg_len = 0;
+	while(tkns->tokens[tkns->idx].type != PAREN_CLS){
+		if(get_var_arg(tkns, name, &type) == 0){
+
+			if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
+				tkns->idx++;
+				continue;
+			}
+
+			skip_white_space(tkns);
+
+			ARG arg;
+			strcpy(arg.name, name);
+			arg.type = type;
+			args[*arg_len++] = arg;
+
+		} else {
+			throw_err(tkns, "Invalid argument", NULL);
+			exit(0);
 		}
 	}
 }
 
 
+void get_brace_content(TKNS *tkns, TKNS *save){
+	int open;
+	open = 0;
+	save->idx = 0;
+	save->max = 0;
+	int sidx = tkns->idx;
+
+	while(tkns->tokens[tkns->idx].type != BRACE_CLS || open != 0){
+
+		if(tkns->tokens[tkns->idx].type == BRACE_OPN){ open++; }
+		if(tkns->tokens[tkns->idx].type == BRACE_CLS){ open--; }
+
+		if(tkns->idx >= tkns->max){
+			tkns->idx = sidx;
+			throw_err(tkns, "syntax error", "'}' or closed brace at end of the file");
+			exit(0);
+
+		} else {
+			save->tokens[save->max] = tkns->tokens[tkns->idx];
+			save->max++;
+			tkns->idx++;
+		}
+	}
+}
 
 
 CNST_VAR const_var(TKNS *tkns){
@@ -212,7 +294,31 @@ ASGMT var_asgmt(TKNS *tkns){
 		return ae;
 
 	} else if(tkns->tokens[tkns->idx].type == PAREN_OPN){
+		ae.is_func = 1;
 		// Function detected
+		tkns->idx++;
+	
+		get_arg(tkns, ae.func.args, &ae.func.arg_len);
+
+		pass_by_type(tkns, PAREN_CLS, "Invalid character", "')'");
+		pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
+		
+		get_brace_content(tkns, &ae.func.body);  // update function's body
+
+		// skip_white_space(tkns);
+		skip_gap(tkns);
+		// tkns->idx++;
+
+		pass_by_type(tkns, BRACE_CLS, "Invalid character", "'}'");
+
+		// **DEBUG**
+		// printf("FUNC BODY-------------------------------------->\n");
+		// for(int i = 0; i < ae.func.body.max; i++){
+		// 	printf("%s\n", ae.func.body.tokens[i].word);
+		// }
+		// printf("<--------------------------------------FUNC BODY\n");
+
+
 
 	} else if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 		// Variable detected
@@ -427,12 +533,12 @@ FOR_ASGMT for_asgmt(TKNS *tkns){
 
 	get_brace_content(tkns, &fr.body);  // get everything in for loop as tokens
 
-	// for(int i = 0; i < fr.tkns.max; i++){
-	// 	printf("%s\n", fr.tkns.tokens[i].word);
+	// for(int i = 0; i < fr.body.max; i++){
+	// 	printf("%s\n", fr.body.tokens[i].word);
 	// }
 
-
 	pass_by_type(tkns, BRACE_CLS, "Invalid character", "'}'");
+	tkns->idx++;  // ?
 	
 	return fr;
 }
@@ -455,8 +561,16 @@ BODY_ASGMT body_asgmt(TKNS *tkns, body_t type){
 
 	// body of the loop
 	pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
+
 	get_brace_content(tkns, &wa.body);
 	pass_by_type(tkns, BRACE_CLS, "Invalid character", "'}'");
+
+	// **DEBUG**
+	// printf("BODY-------------------------------------->\n");
+	// for(int i = 0; i < wa.body.max; i++){
+	// 	printf("%s\n", wa.body.tokens[i].word);
+	// }
+	// printf("<--------------------------------------BODY\n");
 
 	return wa;
 }

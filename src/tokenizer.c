@@ -13,6 +13,8 @@ void tokenizer(char inpt[], TKNS *tokens){
 	tokens->max = 0;
 	tokens->idx = 0;
 
+	int prot = 0;  // protected? (" or ')
+
 	while(inpt[i]){
 		int scol = col;
 		int idx = i;
@@ -29,6 +31,17 @@ void tokenizer(char inpt[], TKNS *tokens){
 
 		} else if(inpt[i] == '\r'){
 			continue;
+
+
+		} else if(inpt[i + 1] && inpt[i] == '/' && inpt[i + 1] == '/' && prot == 0){
+			while(inpt[i] != '\n'){
+				i++;
+				col++;
+			}
+			int len = i - idx;
+			strncpy(word, &inpt[idx], len);
+			word[len] = '\0';
+			ttype = COMMENT_TOK;
 
 		} else if(inpt[i] == '\n'){
 			word[0] = '\n';
@@ -93,6 +106,9 @@ void tokenizer(char inpt[], TKNS *tokens){
 				case '=':
 					ttype = EQUAL_SIGN;
 					break;
+				case ',':
+					ttype = COMMA_SIGN;
+					break;
 				case '[':
 					ttype = BRAKET_OPN;
 					break;
@@ -116,8 +132,10 @@ void tokenizer(char inpt[], TKNS *tokens){
 					break;
 				case '\'':
 					ttype = SINGLE_QUOTE;
+					prot = ~prot;
 					break;
 				case '"':
+					prot = ~prot;
 					ttype = DOUBLE_QUOTE;
 					break;
 				case '#':

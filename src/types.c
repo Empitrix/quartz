@@ -35,11 +35,13 @@ typedef enum token_t {
 	GOTO_KEWORD,       // return keyword
 	FOR_KEWORD,        // for keyword
 	WHILE_KEWORD,      // while keyword
+	COMMENT_TOK,       // comment token
 	LEFT_SIGN,         // <
 	RIGHT_SIGN,        // >
 	PLUS_SIGN,         // +
 	MINUS_SIGN,        // -
 	TILDE_SIGN,        // ~
+	COMMA_SIGN,        // ,
 	UNKNOWN,           // Unknown
 } token_t;
 
@@ -59,11 +61,6 @@ typedef struct {
 } TKNS;
 
 
-typedef struct LINES {
-	char **lines;
-	int len;
-} LINES;
-
 
 typedef enum {
 	INT_TYPE,
@@ -72,17 +69,26 @@ typedef enum {
 } variable_t;
 
 
+
+
+typedef enum {
+	INT_VAR,
+	CHAR_VAR,
+	STR_VAR,
+} var_t;
+
+
 typedef struct {
-	int len;
-	char **names;
-	variable_t *types;
-} ARGS;
+	char name[NAME_MAX];
+	var_t type;
+} ARG;
 
 
 typedef struct{
-	char name[NAME_MAX];
-	ARGS args;
-	variable_t return_type;
+	ARG args[MAX_ARG];
+	int arg_len;
+	TKNS body;
+	var_t return_type;
 } function_t;
 
 
@@ -164,3 +170,11 @@ typedef struct{
 	TKNS body;
 	body_t type;
 } BODY_ASGMT;
+
+
+typedef struct {
+	int value;
+	char str_value[STR_MAX];
+	var_t type;
+} VAR;
+

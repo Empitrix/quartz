@@ -13,6 +13,10 @@ int main(int argc, char *argv[]){
 	TKNS tkns;
 	tokenizer(buff, &tkns);
 
+	// for(int i = 0; i < tkns.max; ++i){
+	// 	printf("%s\n", tkns.tokens[i].word);
+	// }
+
 	parser(&tkns);
 
 	return 0;
