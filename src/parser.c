@@ -15,6 +15,14 @@ void parser(TKNS *tkns){
 			macro_asgmt(tkns);
 		} else if(tkns->tokens[tkns->idx].type == FOR_KEWORD){
 			for_asgmt(tkns);
+		} else if(tkns->tokens[tkns->idx].type == WHILE_KEWORD){
+			body_asgmt(tkns, WHILE_BODY);
+		} else if(tkns->tokens[tkns->idx].type == IF_KEWORD){
+			body_asgmt(tkns, IF_BODY);
+		} else if(tkns->tokens[tkns->idx].type == ELSE_KEWORD){
+			else_asgmt(tkns);
+		} else if(tkns->tokens[tkns->idx].type == RETURN_KEWORD){
+			return_asgmt(tkns);
 		} else {
 		}
 	}

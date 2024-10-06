@@ -93,6 +93,7 @@ void throw_err(TKNS *tkns, const char *msg, const char *expected){
 	char line[MAXSIZ];
 	char obj[MAXSIZ];
 	memset(obj, '\0', sizeof(obj));
+	memset(line, '\0', sizeof(line));
 	char output[MAXSIZ];
 	get_token_line(tkns, &new_start, line);
 

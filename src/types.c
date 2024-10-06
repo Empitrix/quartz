@@ -29,6 +29,10 @@ typedef enum token_t {
 	TYPE_KEYWORDS,     // 'int', 'char', 'string'
 	INCLUDE_KEWORD,    // include keyword
 	DEFINE_KEWORD,     // define keyword
+	IF_KEWORD,         // if keyword
+	ELSE_KEWORD,       // else keyword
+	RETURN_KEWORD,       // return keyword
+	GOTO_KEWORD,       // return keyword
 	FOR_KEWORD,        // for keyword
 	WHILE_KEWORD,      // while keyword
 	LEFT_SIGN,         // <
@@ -146,5 +150,17 @@ typedef struct{
 	STMT init;
 	STMT cond;
 	STMT iter;
-	TKNS tkns;
+	TKNS body;
 } FOR_ASGMT;
+
+typedef enum {
+	IF_BODY,
+	ELSE_BODY,
+	WHILE_BODY,
+} body_t;
+
+typedef struct{
+	STMT cond;
+	TKNS body;
+	body_t type;
+} BODY_ASGMT;

@@ -1,5 +1,4 @@
 #include <ctype.h>
-#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include "types.h"
@@ -71,10 +70,16 @@ void tokenizer(char inpt[], TKNS *tokens){
 				ttype = DEFINE_KEWORD;
 			} else if(strcmp(word, "include") == 0){
 				ttype = INCLUDE_KEWORD;
+			} else if(strcmp(word, "if") == 0){
+				ttype = IF_KEWORD;
+			} else if(strcmp(word, "else") == 0){
+				ttype = ELSE_KEWORD;
 			} else if(strcmp(word, "for") == 0){
 				ttype = FOR_KEWORD;
 			} else if(strcmp(word, "while") == 0){
 				ttype = WHILE_KEWORD;
+			} else if(strcmp(word, "return") == 0){
+				ttype = RETURN_KEWORD;
 			} else {
 				ttype = IDENTIFIER;
 			}
