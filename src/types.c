@@ -10,6 +10,7 @@ typedef struct GFLAG {
 
 typedef enum token_t {
 	INT_KEYWORD,       // int
+	CHAR_KEYWORD,      // char
 	IDENTIFIER,        // word, name, y2k, another_compiler ...
 	INTEGER_VALUE,     // 255, 19, ... 
 	EQUAL_SIGN,        // =
@@ -62,11 +63,11 @@ typedef struct {
 
 
 
-typedef enum {
-	INT_TYPE,
-	CHAR_TYPE,
-	INVALID_TYPE
-} variable_t;
+// typedef enum {
+// 	INT_TYPE,
+// 	CHAR_TYPE,
+// 	INVALID_TYPE
+// } variable_t;
 
 
 
@@ -75,6 +76,7 @@ typedef enum {
 	INT_VAR,
 	CHAR_VAR,
 	STR_VAR,
+	// UNRECOGNIZED_VAR,
 } var_t;
 
 
@@ -89,7 +91,7 @@ typedef struct{
 	int arg_len;
 	TKNS body;
 	var_t return_type;
-} function_t;
+} func_t;
 
 
 typedef struct {
@@ -98,8 +100,8 @@ typedef struct {
 	int value;             // int/char value
 	int is_func;           // is function
 	int is_str;            // is string
-	function_t func;       // function's object
-	variable_t type;       // vairlabes type
+	func_t func;       // function's object
+	var_t type;       // vairlabes type
 } ASGMT;
 
 
@@ -120,9 +122,15 @@ typedef struct {
 } CNST_VAR;
 
 
+typedef enum {
+	INCLUDE_MACRO,
+	DEFINE_MACRO,
+} mcro_t;
+
 typedef struct {
 	char name[NAME_MAX];
 	CNST_VAR value;
+	mcro_t type;
 } MACRO;
 
 

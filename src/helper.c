@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 
-
+/* pass_by_type: Check if the token has the given type; if it does, move to the next one; otherwise, throw an error. */
 void pass_by_type(TKNS *tkns, token_t type, const char *msg, const char *exp){
 	if(tkns->tokens[tkns->idx].type == type){
 		tkns->idx++;
@@ -16,21 +16,12 @@ void pass_by_type(TKNS *tkns, token_t type, const char *msg, const char *exp){
 }
 
 
-variable_t get_type(char type[]){
-	if(strcmp(type, "int") == 0){
-		return INT_TYPE;
-	} else if (strcmp(type, "char") == 0){
-		return CHAR_TYPE;
-	} else {
-		return INVALID_TYPE;
-	}
-}
-
-
+/* skip_white_space: skip white space */
 void skip_white_space(TKNS *tkns){
 	if(tkns->tokens[tkns->idx].type == WHITESPACE){ tkns->idx++; }
 }
 
+/* skip_white_space: skip white space + Newline */
 void skip_gap(TKNS *tkns){
 	while (tkns->tokens[tkns->idx].type == WHITESPACE || tkns->tokens[tkns->idx].type == NEWLINE) {
 		tkns->idx++;
@@ -38,14 +29,12 @@ void skip_gap(TKNS *tkns){
 }
 
 
+/* get_var_arg: get function arguments */
 int get_var_arg(TKNS *tkns, char name[], var_t *type){
 
 	skip_white_space(tkns);
 
-	if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
-		// tkns->idx++;
-		return 0;
-	}
+	if(tkns->tokens[tkns->idx].type == COMMA_SIGN){ return 0; }
 
 
 	if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0 ||
@@ -99,7 +88,7 @@ int get_var_arg(TKNS *tkns, char name[], var_t *type){
 }
 
 
-
+/* set function arguments using 'get_var_arg' */
 void get_arg(TKNS *tkns, ARG args[], int *arg_len){
 	char name[STR_MAX];
 	var_t type;
@@ -127,6 +116,7 @@ void get_arg(TKNS *tkns, ARG args[], int *arg_len){
 }
 
 
+/* get_brace_content: get everything between two '{' and '}' (braces are not part of the extraction)*/
 void get_brace_content(TKNS *tkns, TKNS *save){
 	int open;
 	open = 0;
@@ -153,9 +143,12 @@ void get_brace_content(TKNS *tkns, TKNS *save){
 }
 
 
+/* const_var: get a constant variable (dynamic type) for macro (#define) */
 CNST_VAR const_var(TKNS *tkns){
 	CNST_VAR cvar;
 	cvar.type = INT_CONST;
+	cvar.int_value = 0;
+	cvar.char_value = '\0';
 
 	if(tkns->tokens[tkns->idx].type == INTEGER_VALUE){
 		if(get_literal_value(tkns->tokens[tkns->idx].word, &cvar.int_value) == 0){
@@ -229,7 +222,7 @@ void str_var_asgmt(TKNS *tkns, char *value){
 
 
 /* start's from =... => = <int>; */
-void u8_var_asgmt(TKNS *tkns, int *value, variable_t type){
+void u8_var_asgmt(TKNS *tkns, int *value, var_t type){
 
 	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 		tkns->idx++;
@@ -239,13 +232,14 @@ void u8_var_asgmt(TKNS *tkns, int *value, variable_t type){
 
 	skip_white_space(tkns);
 
-	if(type == INT_TYPE){
+	if(type == INT_VAR){
 		if(tkns->tokens[tkns->idx].type == INTEGER_VALUE && get_literal_value(tkns->tokens[tkns->idx].word, value) == 0){
 			tkns->idx++;
 		} else {
 			throw_err(tkns, "invalid value", "literal value"); exit(0);
 		}
 	} else {
+		// printf("SHOULD OF BEEN CHAR\n");
 		get_char_value(tkns, (char *)value);
 	}
 
@@ -266,13 +260,29 @@ ASGMT var_asgmt(TKNS *tkns){
 	ASGMT ae;
 	ae.is_str = 0;
 	ae.is_func = 0;
-	ae.type = INVALID_TYPE;
+	ae.value = 0;
+	ae.type = INT_VAR;
 
-	if((ae.type = get_type(tkns->tokens[tkns->idx].word)) != INVALID_TYPE){
-		tkns->idx++;
+	ae.func.arg_len = 0;
+	ae.func.return_type = INT_VAR;
+
+	// ae.type = INVALID_TYPE;
+	// ae.type = INT_VAR;
+
+	// if((ae.type = get_type(tkns->tokens[tkns->idx].word)) != INVALID_TYPE){
+	// if((ae.type = tkns->tokens[tkns->idx].word != INVALID_TYPE){
+	// 	tkns->idx++;
+	// } else {
+	// 	throw_err(tkns, "Invalid type", "int, char, char[]"); exit(0);
+	// }
+
+	if(tkns->tokens[tkns->idx].type == INT_KEYWORD){
+		ae.type = INT_VAR;
 	} else {
-		throw_err(tkns, "Invalid type", "int, char, char[]"); exit(0);
+		ae.type = CHAR_VAR;
 	}
+	tkns->idx++;
+
  
 	skip_white_space(tkns);
 
@@ -318,8 +328,6 @@ ASGMT var_asgmt(TKNS *tkns){
 		// }
 		// printf("<--------------------------------------FUNC BODY\n");
 
-
-
 	} else if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 		// Variable detected
 		u8_var_asgmt(tkns, &ae.value, ae.type);
@@ -337,12 +345,14 @@ ASGMT var_asgmt(TKNS *tkns){
 }
 
 
-
+/* macro_asgmt: assignment for #include and #define */
 MACRO macro_asgmt(TKNS *tkns){
 	MACRO mcro;
 	mcro.value.type = INT_CONST;
+	mcro.type = DEFINE_MACRO;
 
 	tkns->idx++;
+
 
 	if(tkns->tokens[tkns->idx].type == INCLUDE_KEWORD || tkns->tokens[tkns->idx].type == DEFINE_KEWORD){
 		tkns->idx++;
@@ -351,26 +361,49 @@ MACRO macro_asgmt(TKNS *tkns){
 		exit(0);
 	}
 
+	int is_include = tkns->tokens[tkns->idx - 1].type == INCLUDE_KEWORD;
+
 	skip_white_space(tkns);
 
-	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
-		strcpy(mcro.name, tkns->tokens[tkns->idx].word);
-		tkns->idx++;
+	printf("M-TYPE: %s\n", is_include ? "INCLUDE" : "DEFINE");
+
+	if(is_include){
+		mcro.type = INCLUDE_MACRO;
+
+
+		if (tkns->tokens[tkns->idx].type == DOUBLE_QUOTE){
+			if(get_string(tkns, mcro.name) == 0){
+				tkns->idx++;
+			} else {
+				throw_err(tkns, "Invalid string constant", NULL);
+				exit(0);
+			}
+		} else {
+			throw_err(tkns, "Invalid constant", NULL);
+			exit(0);
+		}
+
+		printf("INCLUDE: \"%s\"\n", mcro.name);
+
 	} else {
-		throw_err(tkns, "A name required", NULL);
-		exit(0);
+
+		if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+			strcpy(mcro.name, tkns->tokens[tkns->idx].word);
+			tkns->idx++;
+		} else {
+			throw_err(tkns, "A name required", NULL);
+			exit(0);
+		}
+
+		skip_white_space(tkns);
+		mcro.value = const_var(tkns);
 	}
 
-
 	skip_white_space(tkns);
-
-	mcro.value = const_var(tkns);
-
-	skip_white_space(tkns);
-
 
 	if(tkns->tokens[tkns->idx].type == NEWLINE){
 		printf("MACRO: %s\n", mcro.name);
+		// tkns->idx++;
 		return mcro;
 	} else {
 		throw_err(tkns, "Invalid macro", NULL);
@@ -381,6 +414,7 @@ MACRO macro_asgmt(TKNS *tkns){
 }
 
 
+/* get_operator: get operator: a == 1 as EQUAL or a = 1 as ASSIGN and so on... */
 operator set_double_op(TKNS *tkns, token_t tok, operator s, operator d){
 	if(tkns->tokens[tkns->idx + 1].type == tok){
 		return d;
@@ -389,6 +423,7 @@ operator set_double_op(TKNS *tkns, token_t tok, operator s, operator d){
 	}
 }
 
+/* get_operator: get operator: a == 1 as EQUAL or a = 1 as ASSIGN and so on... */
 operator get_operator(TKNS *tkns){
 	operator op = NO_OP;
 	switch(tkns->tokens[tkns->idx].type){
@@ -424,14 +459,14 @@ operator get_operator(TKNS *tkns){
 		case TILDE_SIGN:
 			op = COMPLEMENT_OP;
 			break;
+
 		default:
 			op = INVALID_OP;
 	}
-	// if(op != INVALID_OP){ tkns->idx ++; }
 	return op;
 }
 
-
+/* skip_double_op: skip double operators like ++, --, >=, ...*/
 void skip_double_op(TKNS *tkns, operator op){
 	if(op == INCREMENT_OP ||
 			op == DECREMENT_OP ||
@@ -444,6 +479,7 @@ void skip_double_op(TKNS *tkns, operator op){
 	}
 }
 
+/* get_statement: detect: ...int a = 0;... in for loop*/
 STMT get_statement(TKNS *tkns){
 	STMT st;
 
@@ -470,11 +506,7 @@ STMT get_statement(TKNS *tkns){
 		throw_err(tkns, "Invalid operator", NULL);
 		exit(0);
 	} else {
-
 		st.op = get_operator(tkns);
-		// tkns->idx++;
-		// skip_double_op(tkns, st.op);
-
 		if(st.op == INVALID_OP || st.op == NO_OP){
 			throw_err(tkns, "Invalid operator", NULL);
 			exit(0);
@@ -484,7 +516,6 @@ STMT get_statement(TKNS *tkns){
 		} else {
 			tkns->idx++;
 		}
-
 		skip_double_op(tkns, st.op);
 		skip_white_space(tkns);
 		pass_by_type(tkns, INTEGER_VALUE, "Invalid syntax", "integer");
@@ -519,27 +550,22 @@ FOR_ASGMT for_asgmt(TKNS *tkns){
 	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
 	skip_white_space(tkns);
 	fr.iter = get_statement(tkns);
-
 	skip_white_space(tkns);
 
-
-	// end )
+	// end ')'
 	pass_by_type(tkns, PAREN_CLS, "Invalid character", "')'");
-
 	skip_white_space(tkns);
-
+	// body
 	pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
-	// skip_gap(tkns)
-
 	get_brace_content(tkns, &fr.body);  // get everything in for loop as tokens
+	pass_by_type(tkns, BRACE_CLS, "Invalid character", "'}'");
 
+	// **DEBUG**
 	// for(int i = 0; i < fr.body.max; i++){
 	// 	printf("%s\n", fr.body.tokens[i].word);
 	// }
 
-	pass_by_type(tkns, BRACE_CLS, "Invalid character", "'}'");
-	tkns->idx++;  // ?
-	
+	// tkns->idx++;  // ?
 	return fr;
 }
 
@@ -547,6 +573,7 @@ FOR_ASGMT for_asgmt(TKNS *tkns){
 BODY_ASGMT body_asgmt(TKNS *tkns, body_t type){
 	BODY_ASGMT wa;
 	wa.type = type;
+	// wa.cond.op = NO_OP;
 	tkns->idx++;
 	skip_white_space(tkns);
 
@@ -579,6 +606,7 @@ BODY_ASGMT body_asgmt(TKNS *tkns, body_t type){
 BODY_ASGMT else_asgmt(TKNS *tkns){
 	BODY_ASGMT wa;
 	wa.type = ELSE_BODY;
+	wa.cond.op = NO_OP;
 	tkns->idx++;
 
 	skip_white_space(tkns);

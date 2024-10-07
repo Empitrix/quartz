@@ -93,6 +93,10 @@ void tokenizer(char inpt[], TKNS *tokens){
 				ttype = WHILE_KEWORD;
 			} else if(strcmp(word, "return") == 0){
 				ttype = RETURN_KEWORD;
+			} else if(strcmp(word, "int") == 0){
+				ttype = INT_KEYWORD;
+			} else if(strcmp(word, "char") == 0){
+				ttype = CHAR_KEYWORD;
 			} else {
 				ttype = IDENTIFIER;
 			}
