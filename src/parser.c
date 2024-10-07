@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include "types.h"
 #include "helper.h"
@@ -16,7 +17,21 @@ void parser(TKNS *tkns){
 
 		// Check for varialbe assignments
 		if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0 || strcmp(tkns->tokens[tkns->idx].word, "char") == 0){
-			var_asgmt(tkns);
+			ASGMT asgmt = var_asgmt(tkns);
+
+			if(asgmt.is_func){
+			} else {
+				// printf("VARIABLE: %s\n", asgmt.name);
+				VAR v;
+				v.type = asgmt.type;
+				strcpy(v.name, asgmt.name);
+				if(asgmt.type == INT_VAR || asgmt.type == CHAR_VAR){
+					v.value = asgmt.value;
+				} else {
+					strcpy(v.str_value, asgmt.str);
+				}
+				save_global_variable(v);
+			}
 
 		// Check for #include "..." & #define ... ...
 		} else if(tkns->tokens[tkns->idx].type == HASHTAG){

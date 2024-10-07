@@ -298,9 +298,12 @@ ASGMT var_asgmt(TKNS *tkns){
 
 	if(tkns->tokens[tkns->idx].type == BRAKET_OPN){
 		// String detected
+		ae.type = STR_VAR;
 		str_var_asgmt(tkns, ae.str);
 		ae.is_str = 1;
-		printf("VALUE: >%s<\n", ae.str);
+
+		// **DEBUG**
+		// printf("VALUE: >%s<\n", ae.str);
 		return ae;
 
 	} else if(tkns->tokens[tkns->idx].type == PAREN_OPN){
@@ -331,11 +334,11 @@ ASGMT var_asgmt(TKNS *tkns){
 	} else if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 		// Variable detected
 		u8_var_asgmt(tkns, &ae.value, ae.type);
-		printf("VALUE: >%d<\n", ae.value);
+		// **DEBUG**
+		// printf("VALUE: >%d<\n", ae.value);
 		return ae;
 
 	} else {
-		printf("%s - %d\n", tkns->tokens[tkns->idx].word, tkns->tokens[tkns->idx].type);
 		// Invalid
 		throw_err(tkns, "Invalid symbol", NULL);
 		exit(0);
@@ -365,7 +368,7 @@ MACRO macro_asgmt(TKNS *tkns){
 
 	skip_white_space(tkns);
 
-	printf("M-TYPE: %s\n", is_include ? "INCLUDE" : "DEFINE");
+	// printf("M-TYPE: %s\n", is_include ? "INCLUDE" : "DEFINE");
 
 	if(is_include){
 		mcro.type = INCLUDE_MACRO;
@@ -383,7 +386,7 @@ MACRO macro_asgmt(TKNS *tkns){
 			exit(0);
 		}
 
-		printf("INCLUDE: \"%s\"\n", mcro.name);
+		// printf("INCLUDE: \"%s\"\n", mcro.name);
 
 	} else {
 
@@ -402,7 +405,7 @@ MACRO macro_asgmt(TKNS *tkns){
 	skip_white_space(tkns);
 
 	if(tkns->tokens[tkns->idx].type == NEWLINE){
-		printf("MACRO: %s\n", mcro.name);
+		// printf("MACRO: %s\n", mcro.name);
 		// tkns->idx++;
 		return mcro;
 	} else {

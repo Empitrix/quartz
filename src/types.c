@@ -181,6 +181,7 @@ typedef struct{
 
 
 typedef struct {
+	char name[NAME_MAX];
 	int value;
 	char str_value[STR_MAX];
 	var_t type;

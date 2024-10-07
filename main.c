@@ -19,6 +19,8 @@ int main(int argc, char *argv[]){
 
 	parser(&tkns);
 
+
+	show_global_variables();
 	return 0;
 }
 
