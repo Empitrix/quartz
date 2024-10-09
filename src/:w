@@ -54,7 +54,6 @@ int get_var_arg(TKNS *tkns, char name[], var_t *type){
 
 		if(tkns->tokens[tkns->idx].type == IDENTIFIER){
 			strcpy(name, tkns->tokens[tkns->idx].word);  // update name
-			update_name_state(tkns, name, 1);
 			tkns->idx++;
 		} else {
 			throw_err(tkns, "Invalid varialbe name", NULL);
@@ -115,7 +114,6 @@ void get_arg(TKNS *tkns, ARG args[], int *arg_len){
 			exit(0);
 		}
 	}
-	clear_scoop_names();
 }
 
 
@@ -282,8 +280,6 @@ ASGMT var_asgmt(TKNS *tkns){
 	// get varialbe name
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
 		strcpy(ae.name, tkns->tokens[tkns->idx].word);
-
-		update_name_state(tkns, ae.name, 0);
 		tkns->idx++;
 	} else {
 		throw_err(tkns, "Invalid varialbe name", NULL); exit(0);
@@ -367,6 +363,11 @@ MACRO macro_asgmt(TKNS *tkns){
 
 		if (tkns->tokens[tkns->idx].type == DOUBLE_QUOTE){
 			if(get_string(tkns, mcro.name) == 0){
+				if(save_name(mcro.name)){
+					throw_err(tkns, "This name already been used", NULL);
+					exit(0);
+				}
+				printf("SAVED (%s)\n", mcro.name);
 				tkns->idx++;
 			} else {
 				throw_err(tkns, "Invalid string constant", NULL);
@@ -382,8 +383,12 @@ MACRO macro_asgmt(TKNS *tkns){
 		if(tkns->tokens[tkns->idx].type == IDENTIFIER){
 			strcpy(mcro.name, tkns->tokens[tkns->idx].word);
 
-			update_name_state(tkns, mcro.name, 0);
-
+			if(identifier_exists(mcro.name, ID_MACRO_NAME)){
+				throw_err(tkns, "Macro name already exists", NULL);
+				exit(0);
+			} else {
+				// !IMPORTANT
+			}
 			tkns->idx++;
 		} else {
 			throw_err(tkns, "A name required", NULL);
@@ -491,7 +496,6 @@ STMT get_statement(TKNS *tkns){
 	// TODO: variable name
 	pass_by_type(tkns, IDENTIFIER, "Invalid syntax", NULL);
 	strcpy(st.left, tkns->tokens[tkns->idx - 1].word);
-	check_name(tkns, st.left, 1);
 
 	skip_white_space(tkns);
 
@@ -516,7 +520,6 @@ STMT get_statement(TKNS *tkns){
 		skip_white_space(tkns);
 		pass_by_type(tkns, INTEGER_VALUE, "Invalid syntax", "integer");
 		strcpy(st.right, tkns->tokens[tkns->idx - 1].word);
-		// **IMPORTANT**: check for different kind of names
 	}
 
 	return st;

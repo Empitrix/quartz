@@ -21,8 +21,8 @@ void parser(TKNS *tkns){
 
 			if(asgmt.is_func){
 			} else {
-				// printf("VARIABLE: %s\n", asgmt.name);
 				VAR v;
+				v.value = 0;
 				v.type = asgmt.type;
 				strcpy(v.name, asgmt.name);
 				if(asgmt.type == INT_VAR || asgmt.type == CHAR_VAR){

@@ -187,3 +187,11 @@ typedef struct {
 	var_t type;
 } VAR;
 
+
+typedef enum {
+	ID_FUNCTION_NAME,
+	ID_VARIABLE_NAME,
+	ID_SCOOP_NAME,
+	ID_MACRO_NAME,
+} id_type;
+
