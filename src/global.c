@@ -16,6 +16,17 @@ static VAR macro_var[MAX_VAR_SZIE];
 static int mvar_idx = 0;
 
 
+static func_t functions[MAX_VAR_SZIE];
+static int func_idx = 0;
+
+
+static target_t save_target = GLOBAL_TARGET;
+
+void save_func_global(func_t func){
+	functions[func_idx++] = func;
+}
+
+
 
 /* ---------------------- ALL OF THE NAMES ---------------------- */
 
@@ -91,10 +102,11 @@ void clear_scoop_names(void){
 
 /* ---------------------- ALL OF THE NAMES ---------------------- */
 
-int name_exists(char name[], VAR scoop[], int size){
+/* check if name exits if exitst return 1 otherwise return 0 */
+int name_exists(char name[], VAR variables[], int size){
 	int i;
 	for(i = 0; i < size; ++i){
-		if(strcmp(name, scoop[i].name) == 0){
+		if(strcmp(name, variables[i].name) == 0){
 			return 1;
 		}
 	}
@@ -154,13 +166,79 @@ int save_identifier(VAR v, id_type id){
 
 
 
-/* ---------------------- GLOBAL VARIABLES ---------------------- */
+/* ---------------------- VARIABLES ---------------------- */
 
 int save_global_variable(VAR v){
 	if(name_exists(v.name, global_var, gvar_idx)){
 		return 1;
 	}
 	global_var[gvar_idx++] = v;
+	return 0;
+}
+
+
+int save_scoop_variable(VAR v){
+	if(name_exists(v.name, scoop_var, svar_idx)){
+		return 1;
+	}
+	scoop_var[svar_idx++] = v;
+	return 0;
+}
+
+
+void set_variable_target(target_t target){ save_target = target; }
+
+int save_variable(VAR v){
+	if(save_target == GLOBAL_TARGET){
+		return save_global_variable(v);
+	} else {
+		return save_scoop_variable(v);
+	}
+	return 0;
+}
+
+int get_variable(char name[], target_t t, VAR *var){
+	int max = t == GLOBAL_TARGET ? gvar_idx : svar_idx;
+	for(int i = 0; i < max; ++i){
+		if(strcmp((t == GLOBAL_TARGET ? global_var : scoop_var)[i].name, name) == 0){
+			*var = (t == GLOBAL_TARGET ? global_var : scoop_var)[i];
+			return 1;
+		}
+	}
+	return 0;
+}
+
+
+/* for scoop and global (usable variables) */
+int variable_exits(char name[], CNST_VAR *var){
+
+	VAR v;
+	
+	if(get_variable(name, SCOOP_TARGET, &v)){
+		convert_var_to_const(&v, var);
+		return 1;
+	}
+
+	if(get_variable(name, GLOBAL_TARGET, &v)){
+		convert_var_to_const(&v, var);
+		return 1;
+	}
+
+	// if (name_exists(name, scoop_var, svar_idx)){
+	// 	VAR v;
+	// 	if(get_variable(name, SCOOP_TARGET, &v)){
+	// 		convert_var_to_const(&v, var);
+	// 		return 1;
+	// 	}
+	// }
+	// if (name_exists(name, global_var, gvar_idx)){
+	// 	VAR v;
+	// 	if(get_variable(name, GLOBAL_TARGET, &v)){
+	// 		convert_var_to_const(&v, var);
+	// 		return 1;
+	// 	}
+	// }
+
 	return 0;
 }
 
@@ -176,18 +254,22 @@ int save_macro_variable(VAR v){
 }
 
 
-/* ---------------------- SCROOP ---------------------- */
 
-int save_scoop_variable(VAR v){
-	if(name_exists(v.name, scoop_var, svar_idx)){
-		return 1;
+
+
+
+int func_exists(const char name[], int force){
+	for(int i = 0; i < func_idx; ++i){
+		if(strcmp(functions[i].name, name) == 0){
+			return 1;
+		}
 	}
-	scoop_var[svar_idx++] = v;
+	if(force){
+		printf("Function '%s' not found\n", name);
+		exit(0);
+	}
 	return 0;
 }
-
-
-
 
 
 /* ---------------------- DEBUG ---------------------- */
@@ -212,6 +294,24 @@ void show_global_variables(void){
 				printf("%4s\"%s\"\n", "", global_var[i].str_value);
 				break;
 		}
+	}
+	putchar('\n');
+}
+
+
+void show_functions(void){
+	printf("FUNCTIONS:\n");
+	for(int i = 0; i < func_idx; ++i){
+		printf("  %d. ", i + 1);
+		printf("%s -> ", functions[i].name);
+		char type[20];
+		type_to_str(functions[i].return_type, type);
+		printf("%s: ", type);
+		for(int j = 0; j < functions[i].arg_len; ++j){
+			type_to_str(functions[i].args[j].type, type);
+			printf("%s:%s%s", functions[i].args[j].name, type, j == functions[i].arg_len - 1 ? "" : ", ");
+		}
+		putchar('\n');
 	}
 	putchar('\n');
 }

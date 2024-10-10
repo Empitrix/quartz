@@ -43,7 +43,7 @@ typedef enum token_t {
 	MINUS_SIGN,        // -
 	TILDE_SIGN,        // ~
 	COMMA_SIGN,        // ,
-	UNKNOWN,           // Unknown
+	UNKNOWN,           // Unknown `, ! ...
 } token_t;
 
 
@@ -88,6 +88,7 @@ typedef struct {
 
 typedef struct{
 	ARG args[MAX_ARG];
+	char name[NAME_MAX];
 	int arg_len;
 	TKNS body;
 	var_t return_type;
@@ -96,29 +97,29 @@ typedef struct{
 
 typedef struct {
 	char name[NAME_MAX];   // name
-	char str[STR_MAX];         // string value
+	char str[STR_MAX];     // string value
 	int value;             // int/char value
 	int is_func;           // is function
 	int is_str;            // is string
-	func_t func;       // function's object
-	var_t type;       // vairlabes type
+	func_t func;           // function's object
+	var_t type;            // vairlabes type
 } ASGMT;
 
 
 
 
-typedef enum {
-	INT_CONST,
-	CHAR_CONST,
-	STRING_CONST,
-} cvar_t;
+// typedef enum {
+// 	INT_CONST,
+// 	CHAR_CONST,
+// 	STRING_CONST,
+// } cvar_t;
 
 
 typedef struct {
 	char str_value[STR_MAX];
 	int int_value;
 	char char_value;
-	cvar_t type;
+	var_t type;
 } CNST_VAR;
 
 
@@ -134,7 +135,7 @@ typedef struct {
 } MACRO;
 
 
-// expression action
+// expressions
 typedef enum {
 	EQUAL_OP,           // ==
 	ASSIGN_OP,          // =
@@ -194,4 +195,39 @@ typedef enum {
 	ID_SCOOP_NAME,
 	ID_MACRO_NAME,
 } id_type;
+
+
+typedef enum {
+	GLOBAL_TARGET,
+	SCOOP_TARGET,
+} target_t;
+
+
+typedef struct {
+	int complement;
+	int value;
+} EXPR;
+
+
+
+/* Abstract Syntax Tree */
+typedef enum {
+	AST_VARIABLE_ASSIGNEMNT,
+	AST_FUNCTION_ASSIGNEMNT,
+	AST_FOOR_LOOP_ASSIGNEMNT,
+	AST_WHILE_LOOP_ASSIGNEMNT,
+	AST_IF_STATEMENT,
+	AST_ELSE_STATEMENT,
+	AST_RETURN_STATEMENT,
+	AST_STATEMENT,
+} ast_t;
+
+
+typedef struct {
+	func_t func;
+	VAR var;
+	ast_t type;
+	EXPR expr;
+} AST;
+
 

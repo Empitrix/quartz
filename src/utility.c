@@ -115,6 +115,7 @@ void throw_err(TKNS *tkns, const char *msg, const char *expected){
 		sprintf(output, "%s", msg);
 	}
 	printf("Err: %s:\n\n%-3d|%s\n   |%s\n   |\n\n", output, tkns->tokens[occurred].row, line, obj);
+	exit(0);
 }
 
 
@@ -130,6 +131,8 @@ int get_literal_value(char *word, int *number){
 		rt = strtol(word, &leftover, diff[i]);
 		if(strcmp(leftover, left[i]) == 0){
 			*number = rt;
+
+			if(rt > 255){ return 1; }  // check if the number is 8-bit
 			return 0;  // fine
 		}
 	}
@@ -215,3 +218,35 @@ int get_char_value(TKNS *tkns, char *value){
 	return 1;
 }
 
+
+
+
+void type_to_str(var_t type, char dst[]){
+	switch (type) {
+		case INT_VAR: strcpy(dst, "int"); break;
+		case CHAR_VAR: strcpy(dst, "char"); break;
+		case STR_VAR: strcpy(dst, "char[]"); break;
+	}
+}
+
+
+
+
+void convert_var_to_const(VAR *var, CNST_VAR *cnst){
+	cnst->type = var->type;
+
+	switch(var->type){
+		case INT_VAR:
+			cnst->int_value = var->value;
+			break;
+
+		case CHAR_VAR:
+			cnst->char_value = var->value;
+			break;
+
+		case STR_VAR:
+			strcpy(cnst->str_value, var->str_value);
+			break;
+	}
+
+}

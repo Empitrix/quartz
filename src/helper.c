@@ -30,91 +30,148 @@ void skip_gap(TKNS *tkns){
 }
 
 
-/* get_var_arg: get function arguments */
-int get_var_arg(TKNS *tkns, char name[], var_t *type){
-
+var_t get_type(TKNS *tkns){
+	var_t v;
 	skip_white_space(tkns);
 
-	if(tkns->tokens[tkns->idx].type == COMMA_SIGN){ return 0; }
-
-
-	if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0 ||
-		strcmp(tkns->tokens[tkns->idx].word, "char") == 0){
-
+	if(tkns->tokens[tkns->idx].type == INT_KEYWORD){
 		tkns->idx++;
-		
-		if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0){
-			*type = INT_VAR;
-		} else {
-			*type = CHAR_VAR;
-		}
+		v = INT_VAR;
+		// int
+		return v;
+	}
 
-
+	if(tkns->tokens[tkns->idx].type == CHAR_KEYWORD){
+		tkns->idx++;
+		v = CHAR_VAR;
 		skip_white_space(tkns);
-
-		if(tkns->tokens[tkns->idx].type == IDENTIFIER){
-			strcpy(name, tkns->tokens[tkns->idx].word);  // update name
-			update_name_state(tkns, name, 1);
-			tkns->idx++;
-		} else {
-			throw_err(tkns, "Invalid varialbe name", NULL);
-			exit(0);
-		}
-
-		skip_white_space(tkns);
-
-
-		if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
-			return 0;
-		}
 
 		if(tkns->tokens[tkns->idx].type == BRAKET_OPN){
 			tkns->idx++;
 			skip_white_space(tkns);
 			pass_by_type(tkns, BRAKET_CLS, "Invalid syntax", "']'");
-			skip_white_space(tkns);
-			*type = STR_VAR;
+			v = STR_VAR;
+			// str
+			return v;
+		} else {
+			// char
+			return v;
 		}
-
-		if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
-			tkns->idx++;
-		}
-
-		return 0;
-
+		
 	} else {
-		return 1;
+		throw_err(tkns, "Invalid type", "int, char, char[]");
+		exit(0);
 	}
 
-	return 1;
+	return v;
 }
+
+
+int contains_str_type(TKNS *tkns, var_t *type){
+	if(tkns->tokens[tkns->idx].type == BRAKET_OPN){
+		tkns->idx++;
+		skip_white_space(tkns);
+		pass_by_type(tkns, BRAKET_CLS, "Invalid syntax", "']'");
+		skip_white_space(tkns);
+		*type = STR_VAR;
+		return 1;
+	}
+	return 0;
+}
+
+
+// /* cet_var_arg: get function arguments */
+// int get_var_arg(TKNS *tkns, char name[], var_t *type){
+// 
+// 	skip_white_space(tkns);
+// 
+// 	if(tkns->tokens[tkns->idx].type == COMMA_SIGN){ return 0; }
+// 
+// 
+// 	if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0 ||
+// 		strcmp(tkns->tokens[tkns->idx].word, "char") == 0){
+// 
+// 		tkns->idx++;
+// 		
+// 		if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0){
+// 			*type = INT_VAR;
+// 		} else {
+// 			*type = CHAR_VAR;
+// 		}
+// 
+// 
+// 		skip_white_space(tkns);
+// 
+// 		if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+// 			strcpy(name, tkns->tokens[tkns->idx].word);  // update name
+// 			update_name_state(tkns, name, 1);
+// 			tkns->idx++;
+// 		} else {
+// 			throw_err(tkns, "Invalid varialbe name", NULL);
+// 			exit(0);
+// 		}
+// 
+// 		skip_white_space(tkns);
+// 
+// 
+// 		if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
+// 			return 0;
+// 		}
+// 
+// 		if(tkns->tokens[tkns->idx].type == BRAKET_OPN){
+// 			tkns->idx++;
+// 			skip_white_space(tkns);
+// 			pass_by_type(tkns, BRAKET_CLS, "Invalid syntax", "']'");
+// 			skip_white_space(tkns);
+// 			*type = STR_VAR;
+// 		}
+// 
+// 		if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
+// 			tkns->idx++;
+// 		}
+// 
+// 		return 0;
+// 
+// 	} else {
+// 		return 1;
+// 	}
+// 
+// 	return 1;
+// }
 
 
 /* set function arguments using 'get_var_arg' */
 void get_arg(TKNS *tkns, ARG args[], int *arg_len){
-	char name[STR_MAX];
-	var_t type;
 	*arg_len = 0;
+
 	while(tkns->tokens[tkns->idx].type != PAREN_CLS){
-		if(get_var_arg(tkns, name, &type) == 0){
 
-			if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
-				tkns->idx++;
-				continue;
-			}
+		skip_white_space(tkns);
 
-			skip_white_space(tkns);
+		args[*arg_len].type = get_type(tkns);
+		skip_white_space(tkns);
 
-			ARG arg;
-			strcpy(arg.name, name);
-			arg.type = type;
-			args[*arg_len++] = arg;
+		pass_by_type(tkns, IDENTIFIER, "Invalid name", NULL);
+		strcpy(args[*arg_len].name, tkns->tokens[tkns->idx - 1].word);
+		update_name_state(tkns, args[*arg_len].name, 1);
+		skip_white_space(tkns);
 
+		contains_str_type(tkns, &args[*arg_len].type);
+
+		*arg_len = *arg_len + 1;
+
+		if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
+			tkns->idx++;
+			continue;
+		} else if (tkns->tokens[tkns->idx].type == PAREN_CLS){
+			break;
 		} else {
-			throw_err(tkns, "Invalid argument", NULL);
+			throw_err(tkns, "Invalid syntax", ", or )");
 			exit(0);
 		}
+
 	}
+
 	clear_scoop_names();
 }
 
@@ -146,27 +203,73 @@ void get_brace_content(TKNS *tkns, TKNS *save){
 }
 
 
+
+
+int check_const_var(TKNS *tkns, CNST_VAR *cvar, int force){
+	cvar->int_value = 0;
+	cvar->char_value = '\0';
+
+	if(tkns->tokens[tkns->idx].type == INTEGER_VALUE){
+		cvar->type = INT_VAR;
+		if(get_literal_value(tkns->tokens[tkns->idx].word, &cvar->int_value) == 0){
+			tkns->idx++;
+			return 1;
+		} else {
+			if(force){
+				throw_err(tkns, "Invalid value", "literal value"); exit(0);
+			}
+			return -1;
+		}
+	} else if (tkns->tokens[tkns->idx].type == SINGLE_QUOTE){
+		cvar->type = CHAR_VAR;
+		if(get_char_value(tkns, &cvar->char_value)){
+			return -1;
+			if(force){
+				throw_err(tkns, "Invalid character", NULL); exit(0);
+			}
+		}
+	} else if (tkns->tokens[tkns->idx].type == DOUBLE_QUOTE){
+		cvar->type = STR_VAR;
+		if(get_string(tkns, cvar->str_value) == 0){
+			tkns->idx++;
+			return 1;
+		} else {
+			if(force){
+				throw_err(tkns, "Invalid string constant", NULL); exit(0);
+			}
+			return -1;
+		}
+	} else {
+		if(force){
+			throw_err(tkns, "Invalid constant", NULL);
+			exit(0);
+		}
+		return 0;
+	}
+	return 0;
+}
+
+
 /* const_var: get a constant variable (dynamic type) for macro (#define) */
 CNST_VAR const_var(TKNS *tkns){
 	CNST_VAR cvar;
-	cvar.type = INT_CONST;
 	cvar.int_value = 0;
 	cvar.char_value = '\0';
 
 	if(tkns->tokens[tkns->idx].type == INTEGER_VALUE){
+		cvar.type = INT_VAR;
 		if(get_literal_value(tkns->tokens[tkns->idx].word, &cvar.int_value) == 0){
 			tkns->idx++;
 		} else {
 			throw_err(tkns, "Invalid value", "literal value"); exit(0);
 		}
 	} else if (tkns->tokens[tkns->idx].type == SINGLE_QUOTE){
-		if(get_char_value(tkns, &cvar.char_value) == 0){
-			tkns->idx++;
-		} else {
+		cvar.type = CHAR_VAR;
+		if(get_char_value(tkns, &cvar.char_value)){
 			throw_err(tkns, "Invalid character", NULL); exit(0);
 		}
-
 	} else if (tkns->tokens[tkns->idx].type == DOUBLE_QUOTE){
+		cvar.type = STR_VAR;
 		if(get_string(tkns, cvar.str_value) == 0){
 			tkns->idx++;
 		} else {
@@ -265,24 +368,16 @@ ASGMT var_asgmt(TKNS *tkns){
 	ae.is_func = 0;
 	ae.value = 0;
 	ae.type = INT_VAR;
-
 	ae.func.arg_len = 0;
 	ae.func.return_type = INT_VAR;
 
-	if(tkns->tokens[tkns->idx].type == INT_KEYWORD){
-		ae.type = INT_VAR;
-	} else {
-		ae.type = CHAR_VAR;
-	}
-	tkns->idx++;
-
- 
+	skip_white_space(tkns);
+	ae.type = get_type(tkns);
 	skip_white_space(tkns);
 
 	// get varialbe name
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
 		strcpy(ae.name, tkns->tokens[tkns->idx].word);
-
 		update_name_state(tkns, ae.name, 0);
 		tkns->idx++;
 	} else {
@@ -291,48 +386,31 @@ ASGMT var_asgmt(TKNS *tkns){
 
 	skip_white_space(tkns);
 
-	if(tkns->tokens[tkns->idx].type == BRAKET_OPN){
-		// String detected
+	if(tkns->tokens[tkns->idx].type == BRAKET_OPN){  // String detected
 		ae.type = STR_VAR;
 		str_var_asgmt(tkns, ae.str);
 		ae.is_str = 1;
-
-		// **DEBUG**
-		// printf("VALUE: >%s<\n", ae.str);
 		return ae;
 
-	} else if(tkns->tokens[tkns->idx].type == PAREN_OPN){
+	} else if(tkns->tokens[tkns->idx].type == PAREN_OPN){ // Function detected
 		ae.is_func = 1;
-		// Function detected
 		tkns->idx++;
-	
 		get_arg(tkns, ae.func.args, &ae.func.arg_len);
-
 		pass_by_type(tkns, PAREN_CLS, "Invalid character", "')'");
+		skip_white_space(tkns);
 		pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
-		
 		get_brace_content(tkns, &ae.func.body);  // update function's body
-
 		skip_gap(tkns);
-
 		pass_by_type(tkns, BRACE_CLS, "Invalid character", "'}'");
-
-		// **DEBUG**
-		// printf("FUNC BODY-------------------------------------->\n");
-		// for(int i = 0; i < ae.func.body.max; i++){
-		// 	printf("%s\n", ae.func.body.tokens[i].word);
-		// }
-		// printf("<--------------------------------------FUNC BODY\n");
-
-	} else if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
-		// Variable detected
-		u8_var_asgmt(tkns, &ae.value, ae.type);
-		// **DEBUG**
-		// printf("VALUE: >%d<\n", ae.value);
+		ae.func.return_type = ae.type;
+		strcpy(ae.func.name, ae.name);  // set function name
 		return ae;
 
-	} else {
-		// Invalid
+	} else if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){   // variable
+		u8_var_asgmt(tkns, &ae.value, ae.type);
+		return ae;
+
+	} else {  // Invalid
 		throw_err(tkns, "Invalid symbol", NULL);
 		exit(0);
 	}
@@ -344,7 +422,7 @@ ASGMT var_asgmt(TKNS *tkns){
 /* macro_asgmt: assignment for #include and #define */
 MACRO macro_asgmt(TKNS *tkns){
 	MACRO mcro;
-	mcro.value.type = INT_CONST;
+	mcro.value.type = INT_VAR;
 	mcro.type = DEFINE_MACRO;
 
 	tkns->idx++;
@@ -397,8 +475,6 @@ MACRO macro_asgmt(TKNS *tkns){
 	skip_white_space(tkns);
 
 	if(tkns->tokens[tkns->idx].type == NEWLINE){
-		// printf("MACRO: %s\n", mcro.name);
-		// tkns->idx++;
 		return mcro;
 	} else {
 		throw_err(tkns, "Invalid macro", NULL);
@@ -617,21 +693,37 @@ BODY_ASGMT else_asgmt(TKNS *tkns){
 }
 
 
-int return_asgmt(TKNS *tkns){
+CNST_VAR return_asgmt(TKNS *tkns, var_t return_type){
 	tkns->idx++;
-
-	int value = 0;
 	skip_white_space(tkns);
+	CNST_VAR vl;
 
-	if(get_literal_value(tkns->tokens[tkns->idx].word, &value) == 0){
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		if(variable_exits(tkns->tokens[tkns->idx].word, &vl) == 0){
+			throw_err(tkns, "Variable not found", NULL);
+		}
+		if(vl.type != return_type){
+			char type[20];
+			type_to_str(return_type, type);
+			throw_err(tkns, "Invalid return type", type);
+		}
 		tkns->idx++;
 	} else {
-		throw_err(tkns, "Invalid value", "integer");
-		exit(0);
+		vl = const_var(tkns);
 	}
 
+	if(vl.type == STR_VAR){
+		throw_err(tkns, "Unsupported return type", "int, char");
+	}
+
+	if(vl.type != return_type){
+		char type[20];
+		type_to_str(return_type, type);
+		throw_err(tkns, "Invalid return type", type);
+		exit(0);
+	}
 	skip_white_space(tkns);
 	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
-	return value;
+	return vl;
 }
 
