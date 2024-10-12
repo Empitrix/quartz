@@ -13,7 +13,7 @@ int main(int argc, char *argv[]){
 	TKNS tkns;
 	tokenizer(buff, &tkns);  // break down the source code into tokens
 
-	parser(&tkns);  // Parse tokens & check for errors
+	parser(&tkns, 0);  // Parse tokens & check for errors
 
 	// func_exists("main", 1);  // check for function 'main'
 

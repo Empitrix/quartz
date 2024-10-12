@@ -7,7 +7,7 @@
 
 static var_t return_type = INT_VAR;
 
-void parser(TKNS *tkns){
+void parser(TKNS *tkns, int allow_expression){
 
 	for(tkns->idx = 0; tkns->idx < tkns->max; tkns->idx++){
 
@@ -20,11 +20,11 @@ void parser(TKNS *tkns){
 		// Check for varialbe assignments
 		if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0 || strcmp(tkns->tokens[tkns->idx].word, "char") == 0){
 			ASGMT asgmt = var_asgmt(tkns);
-			printf("%s:\n", asgmt.name);
 
 			if(asgmt.is_func){
+				printf("%s:\n", asgmt.name);
 				return_type = asgmt.func.return_type;
-				parser(&asgmt.func.body);
+				parser(&asgmt.func.body, 1);
 				save_func_global(asgmt.func);
 
 			} else {
@@ -66,8 +66,12 @@ void parser(TKNS *tkns){
 			printf("    RETLW 0x%x\n", rtrn.type == INT_VAR ? rtrn.int_value : rtrn.char_value);
 
 		} else {
-			throw_err(tkns, "Invalid word", NULL);
-			exit(0);
+			if(allow_expression){
+				get_expr(tkns, END_SIGN);
+			} else {
+				throw_err(tkns, "Invalid word", NULL);
+				exit(0);
+			}
 		}
 	}
 }

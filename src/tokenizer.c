@@ -155,10 +155,13 @@ void tokenizer(char inpt[], TKNS *tokens){
 					ttype = PLUS_SIGN;
 					break;
 				case '-':
-					ttype = PLUS_SIGN;
+					ttype = MINUS_SIGN;
 					break;
 				case '~':
 					ttype = TILDE_SIGN;
+					break;
+				case '^':
+					ttype = CARET_SIGN;
 					break;
 				default:
 					ttype = UNKNOWN;

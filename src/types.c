@@ -42,6 +42,7 @@ typedef enum token_t {
 	PLUS_SIGN,         // +
 	MINUS_SIGN,        // -
 	TILDE_SIGN,        // ~
+	CARET_SIGN,        // ^
 	COMMA_SIGN,        // ,
 	UNKNOWN,           // Unknown `, ! ...
 } token_t;
@@ -168,6 +169,7 @@ typedef struct{
 	TKNS body;
 } FOR_ASGMT;
 
+
 typedef enum {
 	IF_BODY,
 	ELSE_BODY,
@@ -179,7 +181,6 @@ typedef struct{
 	TKNS body;
 	body_t type;
 } BODY_ASGMT;
-
 
 typedef struct {
 	char name[NAME_MAX];
@@ -204,8 +205,18 @@ typedef enum {
 
 
 typedef struct {
-	int complement;
+	int complement;   // is complemented (contains '~')
+	int arithmetic;   // -1: decrement, 0: no arithmetic, 1: increment
 	int value;
+} side_t;
+
+typedef struct {
+	side_t left;
+	side_t right;
+	operator op;
+	int mono_side;
+	char assign_name[NAME_MAX];
+	int is_assign;
 } EXPR;
 
 

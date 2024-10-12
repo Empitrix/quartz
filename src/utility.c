@@ -250,3 +250,27 @@ void convert_var_to_const(VAR *var, CNST_VAR *cnst){
 	}
 
 }
+
+
+int get_arighmetic(TKNS *tkns){
+	token_t tmp = WHITESPACE;
+
+	if(tkns->tokens[tkns->idx].type == PLUS_SIGN || tkns->tokens[tkns->idx].type == MINUS_SIGN){
+		tkns->idx++;
+		tmp = tkns->tokens[tkns->idx].type;
+		if(tkns->tokens[tkns->idx].type == tmp){
+			tkns->idx++;
+			if(tkns->tokens[tkns->idx].type == PLUS_SIGN){
+				return 1;
+			} else {
+				return -1;
+			}
+		} else {
+			throw_err(tkns, "Invalid arithmetic symbols", "++ or --");
+			exit(0);
+		}
+	}
+
+	return 0;
+}
+

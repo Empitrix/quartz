@@ -211,9 +211,7 @@ int get_variable(char name[], target_t t, VAR *var){
 
 /* for scoop and global (usable variables) */
 int variable_exits(char name[], CNST_VAR *var){
-
 	VAR v;
-	
 	if(get_variable(name, SCOOP_TARGET, &v)){
 		convert_var_to_const(&v, var);
 		return 1;
@@ -223,22 +221,6 @@ int variable_exits(char name[], CNST_VAR *var){
 		convert_var_to_const(&v, var);
 		return 1;
 	}
-
-	// if (name_exists(name, scoop_var, svar_idx)){
-	// 	VAR v;
-	// 	if(get_variable(name, SCOOP_TARGET, &v)){
-	// 		convert_var_to_const(&v, var);
-	// 		return 1;
-	// 	}
-	// }
-	// if (name_exists(name, global_var, gvar_idx)){
-	// 	VAR v;
-	// 	if(get_variable(name, GLOBAL_TARGET, &v)){
-	// 		convert_var_to_const(&v, var);
-	// 		return 1;
-	// 	}
-	// }
-
 	return 0;
 }
 
@@ -254,10 +236,7 @@ int save_macro_variable(VAR v){
 }
 
 
-
-
-
-
+/* func_exists: check that if function exists */
 int func_exists(const char name[], int force){
 	for(int i = 0; i < func_idx; ++i){
 		if(strcmp(functions[i].name, name) == 0){
@@ -270,6 +249,7 @@ int func_exists(const char name[], int force){
 	}
 	return 0;
 }
+
 
 
 /* ---------------------- DEBUG ---------------------- */

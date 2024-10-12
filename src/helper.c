@@ -499,11 +499,13 @@ operator get_operator(TKNS *tkns){
 	operator op = NO_OP;
 	switch(tkns->tokens[tkns->idx].type){
 		case PLUS_SIGN:
-			op = set_double_op(tkns, PLUS_SIGN, ADD_OP, INCREMENT_OP);
+			// op = set_double_op(tkns, PLUS_SIGN, ADD_OP, INCREMENT_OP);
+			return ADD_OP;
 			break;
 
 		case MINUS_SIGN:
-			op = set_double_op(tkns, MINUS_SIGN, MINUS_OP, DECREMENT_OP);
+			// op = set_double_op(tkns, MINUS_SIGN, MINUS_OP, DECREMENT_OP);
+			return MINUS_OP;
 			break;
 
 		case EQUAL_SIGN:
@@ -525,10 +527,6 @@ operator get_operator(TKNS *tkns){
 			} else {
 				op = set_double_op(tkns, RIGHT_SIGN, GREATOR_EQ_OP, SHIFT_RIGHT_OP);
 			}
-			break;
-
-		case TILDE_SIGN:
-			op = COMPLEMENT_OP;
 			break;
 
 		default:
@@ -725,5 +723,118 @@ CNST_VAR return_asgmt(TKNS *tkns, var_t return_type){
 	skip_white_space(tkns);
 	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
 	return vl;
+}
+
+
+
+
+
+
+
+side_t get_side(TKNS *tkns, token_t split){
+	side_t side;
+	side.value = 0;
+	side.arithmetic = 0;
+	side.complement = 0;
+
+	if(tkns->tokens[tkns->idx].type == CARET_SIGN){
+		side.complement = 1;
+		tkns->idx++;
+	}
+
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		CNST_VAR var;
+		if(variable_exits(tkns->tokens[tkns->idx].word, &var) == 0){
+			tkns->idx++;
+			throw_err(tkns, "variable not exits in this expression", NULL);
+			exit(0);
+		}
+		side.value = var.int_value;
+		tkns->idx++;
+
+	} else if (tkns->tokens[tkns->idx].type == INTEGER_VALUE){
+		if(get_literal_value(tkns->tokens[tkns->idx].word, &side.value) == 0){
+			tkns->idx++;
+		} else {
+			throw_err(tkns, "Invalid value", "int (0 to 255)");
+			exit(0);
+		}
+	} else {
+		throw_err(tkns, "Invalid expression value", NULL);
+		exit(0);
+	}
+
+	// end of the expression
+	// if(tkns->tokens[tkns->idx].type == PAREN_CLS || tkns->tokens[tkns->idx].type == END_SIGN){
+	if(tkns->tokens[tkns->idx].type == split){
+		return side;
+	}
+	side.arithmetic = get_arighmetic(tkns);
+
+	return side;
+}
+
+
+EXPR get_expr(TKNS *tkns, token_t endtok){
+	EXPR expr;
+	
+	skip_white_space(tkns);
+
+	int tmpidx = tkns->idx;
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		CNST_VAR var;
+		if(variable_exits(tkns->tokens[tkns->idx].word, &var) == 0){
+			tkns->idx++;
+			throw_err(tkns, "variable not exits", NULL);
+			exit(0);
+		}
+		strcpy(expr.assign_name, tkns->tokens[tkns->idx].word);
+		tkns->idx++;
+
+		skip_white_space(tkns);
+		if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
+			tkns->idx++;
+			expr.is_assign = 1;
+		} else {
+			memset(expr.assign_name, '\0', sizeof(expr.assign_name));
+			expr.is_assign = 0;
+			tkns->idx = tmpidx;
+		}
+	}
+
+
+
+	skip_white_space(tkns);
+
+	expr.left = get_side(tkns, endtok);
+
+	skip_white_space(tkns);
+
+
+	if(tkns->tokens[tkns->idx].type == endtok){ return expr; }
+	
+	skip_white_space(tkns);
+
+
+	expr.op = get_operator(tkns);
+	if(expr.op == INVALID_OP || expr.op == NO_OP){
+		throw_err(tkns, "Invalid operator", NULL);
+		exit(0);
+	}
+
+	tkns->idx++;
+	skip_double_op(tkns, expr.op);
+	skip_white_space(tkns);
+
+	expr.right = get_side(tkns, endtok);
+
+	if(tkns->tokens[tkns->idx].type == endtok){
+		return expr;
+	} else {
+		throw_err(tkns, "Invalid expression", NULL);
+		exit(0);
+	}
+
+	return expr;
 }
 
