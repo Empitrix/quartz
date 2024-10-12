@@ -499,12 +499,17 @@ operator get_operator(TKNS *tkns){
 	operator op = NO_OP;
 	switch(tkns->tokens[tkns->idx].type){
 		case PLUS_SIGN:
-			// op = set_double_op(tkns, PLUS_SIGN, ADD_OP, INCREMENT_OP);
+			if(tkns->tokens[tkns->idx + 1].type == EQUAL_SIGN){
+				return ADD_ASSIGN_OP;
+			}
 			return ADD_OP;
-			break;
 
 		case MINUS_SIGN:
 			// op = set_double_op(tkns, MINUS_SIGN, MINUS_OP, DECREMENT_OP);
+			//
+			if(tkns->tokens[tkns->idx + 1].type == EQUAL_SIGN){
+				return MINUS_ASSIGN_OP;
+			}
 			return MINUS_OP;
 			break;
 
@@ -529,6 +534,13 @@ operator get_operator(TKNS *tkns){
 			}
 			break;
 
+
+		case AND_SIGN:
+			return AND_OP;
+
+		case OR_SIGN:
+			return OR_SIGN;
+
 		default:
 			op = INVALID_OP;
 	}
@@ -543,6 +555,8 @@ void skip_double_op(TKNS *tkns, operator op){
 			op == SMALLER_EQ_OP ||
 			op == GREATOR_EQ_OP ||
 			op == SHIFT_RIGHT_OP ||
+			op == ADD_ASSIGN_OP ||
+			op == MINUS_ASSIGN_OP ||
 			op == SHIFT_LEFT_OP){
 		tkns->idx++;
 	}
@@ -817,6 +831,9 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 
 
 	expr.op = get_operator(tkns);
+
+	// if(expr.op == ADD_ASSIGN_OP || expr.op == MINUS_ASSIGN_OP){ }
+
 	if(expr.op == INVALID_OP || expr.op == NO_OP){
 		throw_err(tkns, "Invalid operator", NULL);
 		exit(0);

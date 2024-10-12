@@ -163,6 +163,12 @@ void tokenizer(char inpt[], TKNS *tokens){
 				case '^':
 					ttype = CARET_SIGN;
 					break;
+				case '&':
+					ttype = AND_SIGN;
+					break;
+				case '|':
+					ttype = OR_SIGN;
+					break;
 				default:
 					ttype = UNKNOWN;
 					break;

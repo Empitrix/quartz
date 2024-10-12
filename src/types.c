@@ -43,6 +43,8 @@ typedef enum token_t {
 	MINUS_SIGN,        // -
 	TILDE_SIGN,        // ~
 	CARET_SIGN,        // ^
+	AND_SIGN,          // &
+	OR_SIGN,           // |
 	COMMA_SIGN,        // ,
 	UNKNOWN,           // Unknown `, ! ...
 } token_t;
@@ -151,6 +153,10 @@ typedef enum {
 	SHIFT_RIGHT_OP,     // >>
 	SHIFT_LEFT_OP,      // <<
 	COMPLEMENT_OP,      // ~
+	AND_OP,             // &
+	OR_OP,              // |
+	ADD_ASSIGN_OP,      // +=
+	MINUS_ASSIGN_OP,    // -=
 	NO_OP,              // No operator
 	INVALID_OP          // invalid(err) operator
 } operator;
