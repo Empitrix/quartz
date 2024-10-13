@@ -28,14 +28,15 @@ typedef enum token_t {
 	WHITESPACE,        // <space>, ' '
 	NEWLINE,           // <enter>, '\n'
 	TYPE_KEYWORDS,     // 'int', 'char', 'string'
-	INCLUDE_KEWORD,    // include keyword
-	DEFINE_KEWORD,     // define keyword
-	IF_KEWORD,         // if keyword
-	ELSE_KEWORD,       // else keyword
-	RETURN_KEWORD,       // return keyword
-	GOTO_KEWORD,       // return keyword
-	FOR_KEWORD,        // for keyword
-	WHILE_KEWORD,      // while keyword
+	INCLUDE_KEYWORD,    // include keyword
+	DEFINE_KEYWORD,     // define keyword
+	IF_KEYWORD,         // if keyword
+	ELSE_KEYWORD,       // else keyword
+	RETURN_KEYWORD,     // return keyword
+	VOID_KEYWORD,       // void keyword
+	GOTO_KEYWORD,      // goto keyword
+	FOR_KEYWORD,        // for keyword
+	WHILE_KEYWORD,      // while keyword
 	COMMENT_TOK,       // comment token
 	LEFT_SIGN,         // <
 	RIGHT_SIGN,        // >
@@ -223,6 +224,8 @@ typedef struct {
 	int mono_side;
 	char assign_name[NAME_MAX];
 	int is_assign;
+	int is_call;
+	func_t caller;
 } EXPR;
 
 
@@ -230,19 +233,23 @@ typedef struct {
 /* Abstract Syntax Tree */
 typedef enum {
 	AST_VARIABLE_ASSIGNEMNT,
-	AST_FUNCTION_ASSIGNEMNT,
+
 	AST_FOOR_LOOP_ASSIGNEMNT,
 	AST_WHILE_LOOP_ASSIGNEMNT,
+
 	AST_IF_STATEMENT,
 	AST_ELSE_STATEMENT,
+
+	AST_FUNCTION_ASSIGNEMNT,
 	AST_RETURN_STATEMENT,
+
 	AST_STATEMENT,
 } ast_t;
 
 
 typedef struct {
 	func_t func;
-	VAR var;
+	ASGMT asgmt;
 	ast_t type;
 	EXPR expr;
 } AST;

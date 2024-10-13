@@ -80,23 +80,25 @@ void tokenizer(char inpt[], TKNS *tokens){
 			strncpy(word, &inpt[idx], len);
 			word[len] = '\0';
 			if(strcmp(word, "define") == 0){
-				ttype = DEFINE_KEWORD;
+				ttype = DEFINE_KEYWORD;
 			} else if(strcmp(word, "include") == 0){
-				ttype = INCLUDE_KEWORD;
+				ttype = INCLUDE_KEYWORD;
 			} else if(strcmp(word, "if") == 0){
-				ttype = IF_KEWORD;
+				ttype = IF_KEYWORD;
 			} else if(strcmp(word, "else") == 0){
-				ttype = ELSE_KEWORD;
+				ttype = ELSE_KEYWORD;
 			} else if(strcmp(word, "for") == 0){
-				ttype = FOR_KEWORD;
+				ttype = FOR_KEYWORD;
 			} else if(strcmp(word, "while") == 0){
-				ttype = WHILE_KEWORD;
+				ttype = WHILE_KEYWORD;
 			} else if(strcmp(word, "return") == 0){
-				ttype = RETURN_KEWORD;
+				ttype = RETURN_KEYWORD;
 			} else if(strcmp(word, "int") == 0){
 				ttype = INT_KEYWORD;
 			} else if(strcmp(word, "char") == 0){
 				ttype = CHAR_KEYWORD;
+			} else if(strcmp(word, "void") == 0){
+				ttype = VOID_KEYWORD;
 			} else {
 				ttype = IDENTIFIER;
 			}

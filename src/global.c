@@ -250,6 +250,21 @@ int func_exists(const char name[], int force){
 	return 0;
 }
 
+/* get_func: 0 if function is not exists otherwise return 1 (update func pointer) */
+int get_func(char name[], func_t *func){
+	if(func_exists(name, 0) == 0){
+		return 0;
+	}
+
+	for(int i = 0; i < func_idx; ++i){
+		if(strcmp(functions[i].name, name) == 0){
+			*func = functions[i];  // update function
+			return 1;
+		}
+	}
+	return 0;
+}
+
 
 
 /* ---------------------- DEBUG ---------------------- */

@@ -22,7 +22,6 @@ void parser(TKNS *tkns, int allow_expression){
 			ASGMT asgmt = var_asgmt(tkns);
 
 			if(asgmt.is_func){
-				printf("%s:\n", asgmt.name);
 				return_type = asgmt.func.return_type;
 				parser(&asgmt.func.body, 1);
 				save_func_global(asgmt.func);
@@ -45,29 +44,33 @@ void parser(TKNS *tkns, int allow_expression){
 			macro_asgmt(tkns);
 
 		// Check for 'for(...;...;...){...}'
-		} else if(tkns->tokens[tkns->idx].type == FOR_KEWORD){
-			for_asgmt(tkns);
+		} else if(tkns->tokens[tkns->idx].type == FOR_KEYWORD){
+			FOR_ASGMT fa = for_asgmt(tkns);
+			parser(&fa.body, 1);
 
 		// Check for 'while(...){...}'
-		} else if(tkns->tokens[tkns->idx].type == WHILE_KEWORD){
-			body_asgmt(tkns, WHILE_BODY);
+		} else if(tkns->tokens[tkns->idx].type == WHILE_KEYWORD){
+			BODY_ASGMT ba = body_asgmt(tkns, WHILE_BODY);
+			parser(&ba.body, 1);
 
 		// Check for 'if(...){...}'
-		} else if(tkns->tokens[tkns->idx].type == IF_KEWORD){
-			body_asgmt(tkns, IF_BODY);
+		} else if(tkns->tokens[tkns->idx].type == IF_KEYWORD){
+			BODY_ASGMT ba = body_asgmt(tkns, IF_BODY);
+			parser(&ba.body, 1);
 
 		// Check for 'else{...}'
-		} else if(tkns->tokens[tkns->idx].type == ELSE_KEWORD){
-			else_asgmt(tkns);
+		} else if(tkns->tokens[tkns->idx].type == ELSE_KEYWORD){
+			BODY_ASGMT ba = else_asgmt(tkns);
+			parser(&ba.body, 1);
 
 		// Check for 'return ...;'
-		} else if(tkns->tokens[tkns->idx].type == RETURN_KEWORD){
+		} else if(tkns->tokens[tkns->idx].type == RETURN_KEYWORD){
 			CNST_VAR rtrn = return_asgmt(tkns, return_type);
-			printf("    RETLW 0x%x\n", rtrn.type == INT_VAR ? rtrn.int_value : rtrn.char_value);
 
 		} else {
 			if(allow_expression){
-				get_expr(tkns, END_SIGN);
+				EXPR xpr = get_expr(tkns, END_SIGN);
+
 			} else {
 				throw_err(tkns, "Invalid word", NULL);
 				exit(0);

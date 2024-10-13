@@ -428,14 +428,14 @@ MACRO macro_asgmt(TKNS *tkns){
 	tkns->idx++;
 
 
-	if(tkns->tokens[tkns->idx].type == INCLUDE_KEWORD || tkns->tokens[tkns->idx].type == DEFINE_KEWORD){
+	if(tkns->tokens[tkns->idx].type == INCLUDE_KEYWORD || tkns->tokens[tkns->idx].type == DEFINE_KEYWORD){
 		tkns->idx++;
 	} else {
 		throw_err(tkns, "Invalid preprocessor directive", "include or define");
 		exit(0);
 	}
 
-	int is_include = tkns->tokens[tkns->idx - 1].type == INCLUDE_KEWORD;
+	int is_include = tkns->tokens[tkns->idx - 1].type == INCLUDE_KEYWORD;
 
 	skip_white_space(tkns);
 
@@ -539,7 +539,7 @@ operator get_operator(TKNS *tkns){
 			return AND_OP;
 
 		case OR_SIGN:
-			return OR_SIGN;
+			return OR_OP;
 
 		default:
 			op = INVALID_OP;
@@ -789,8 +789,75 @@ side_t get_side(TKNS *tkns, token_t split){
 }
 
 
+CNST_VAR skip_by_arg(TKNS *tkns, ARG arg){
+	CNST_VAR var;
+
+	skip_white_space(tkns);
+
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		if(variable_exits(tkns->tokens[tkns->idx].word, &var) == 0){
+			throw_err(tkns, "Variable not found", NULL);
+		}
+		tkns->idx++;
+	} else {
+		var = const_var(tkns);
+	}
+
+	if(var.type != arg.type){
+		char type[20];
+		type_to_str(arg.type, type);
+		throw_err(tkns, "Invalid type", type);
+	}
+
+	return var;
+}
+
+
+int function_call(TKNS *tkns, func_t *func){
+	int tmpidx = tkns->idx;
+	skip_white_space(tkns);
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		if(get_func(tkns->tokens[tkns->idx].word, func)){
+			tkns->idx++;
+			skip_white_space(tkns);
+
+			pass_by_type(tkns, PAREN_OPN, "Invalid syntax", "'('");
+			if(func->arg_len != 0){
+
+				for(int i = 0; i < func->arg_len; ++i){
+					CNST_VAR avar = skip_by_arg(tkns, func->args[i]);
+
+					skip_white_space(tkns);
+					if(i == func->arg_len - 1){
+						pass_by_type(tkns, PAREN_CLS, "Invalid syntax", "')'");
+						break;
+					} else {
+						pass_by_type(tkns, COMMA_SIGN, "Invalid syntax", ",");
+					}
+				}
+
+			}
+
+			return 1;
+		} else { tkns->idx = tmpidx; return 0; }
+	} else { tkns->idx = tmpidx; return 0; }
+}
+
+
+
 EXPR get_expr(TKNS *tkns, token_t endtok){
 	EXPR expr;
+
+	// Function
+	expr.is_call = 0;
+	expr.caller.arg_len = 0;
+	expr.caller.return_type = INT_VAR;
+
+	if(function_call(tkns, &expr.caller)){
+		return expr;
+	}
+
+
 	
 	skip_white_space(tkns);
 
@@ -815,6 +882,9 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 			tkns->idx = tmpidx;
 		}
 	}
+
+
+
 
 
 
