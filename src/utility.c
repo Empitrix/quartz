@@ -64,7 +64,7 @@ void read_file(char *path, char buff[]){
 void write_tree(char *path){
 	FILE *fp = fopen(path, "w+");
 	for(int i = 0; i < tree_idx; ++i){
-		fprintf(fp, "%s", tree[i]);
+		fprintf(fp, "%s\n", tree[i]);
 	}
 	fclose(fp);
 }
