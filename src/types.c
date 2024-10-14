@@ -226,6 +226,7 @@ typedef struct {
 	int is_assign;
 	int is_call;
 	func_t caller;
+	CNST_VAR args[10];
 } EXPR;
 
 
@@ -242,8 +243,11 @@ typedef enum {
 
 	AST_FUNCTION_ASSIGNEMNT,
 	AST_RETURN_STATEMENT,
+	AST_FUNCTION_CALL,
 
 	AST_STATEMENT,
+
+	AST_NO_STATEMENT,
 } ast_t;
 
 
@@ -252,6 +256,7 @@ typedef struct {
 	ASGMT asgmt;
 	ast_t type;
 	EXPR expr;
+	CNST_VAR value;
 } AST;
 
 

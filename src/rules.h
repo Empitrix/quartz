@@ -11,5 +11,7 @@
 
 #define MAX_ARG 10
 
+#define MAX_AST 100
+
 #endif
 

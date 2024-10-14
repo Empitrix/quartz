@@ -311,3 +311,6 @@ void show_functions(void){
 	putchar('\n');
 }
 
+
+
+char tree[1000][100];

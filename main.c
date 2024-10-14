@@ -13,13 +13,15 @@ int main(int argc, char *argv[]){
 	TKNS tkns;
 	tokenizer(buff, &tkns);  // break down the source code into tokens
 
-	parser(&tkns, 0);  // Parse tokens & check for errors
+	int tidx = 0;
+
+	parser(&tkns, 0, &tidx);  // Parse tokens & check for errors
 
 	// func_exists("main", 1);  // check for function 'main'
 
-	printf("\n\n\n\nINFORMATIONS\n");
-	show_global_variables();
-	show_functions();
+	// printf("\n\n\n\nINFORMATIONS\n");
+	// show_global_variables();
+	// show_functions();
 	return 0;
 }
 

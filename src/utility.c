@@ -274,3 +274,39 @@ int get_arighmetic(TKNS *tkns){
 	return 0;
 }
 
+
+void show_ast_info(AST ast){
+	switch(ast.type){
+	case AST_VARIABLE_ASSIGNEMNT:
+		printf("AST_VARIABLE_ASSIGNEMNT");
+		break;
+	case AST_FOOR_LOOP_ASSIGNEMNT:
+		printf("AST_FOOR_LOOP_ASSIGNEMNT");
+		break;
+	case AST_WHILE_LOOP_ASSIGNEMNT:
+		printf("AST_WHILE_LOOP_ASSIGNEMNT");
+		break;
+	case AST_IF_STATEMENT:
+		printf("AST_IF_STATEMENT");
+		break;
+	case AST_ELSE_STATEMENT:
+		printf("AST_ELSE_STATEMENT");
+		break;
+	case AST_FUNCTION_ASSIGNEMNT:
+		printf("AST_FUNCTION_ASSIGNEMNT");
+		break;
+	case AST_RETURN_STATEMENT:
+		printf("AST_RETURN_STATEMENT");
+		break;
+	case AST_FUNCTION_CALL:
+		printf("AST_FUNCTION_CALL");
+		break;
+	case AST_STATEMENT:
+		printf("AST_STATEMENT");
+		break;
+	case AST_NO_STATEMENT:
+		printf("AST_NO_STATEMENT");
+		break;
+	}
+	putchar('\n');
+}

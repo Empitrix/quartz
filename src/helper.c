@@ -813,8 +813,9 @@ CNST_VAR skip_by_arg(TKNS *tkns, ARG arg){
 }
 
 
-int function_call(TKNS *tkns, func_t *func){
+int function_call(TKNS *tkns, func_t *func, CNST_VAR *arguments){
 	int tmpidx = tkns->idx;
+	int idx = 0;
 	skip_white_space(tkns);
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
 		if(get_func(tkns->tokens[tkns->idx].word, func)){
@@ -826,6 +827,7 @@ int function_call(TKNS *tkns, func_t *func){
 
 				for(int i = 0; i < func->arg_len; ++i){
 					CNST_VAR avar = skip_by_arg(tkns, func->args[i]);
+					arguments[idx++] = avar;
 
 					skip_white_space(tkns);
 					if(i == func->arg_len - 1){
@@ -844,6 +846,13 @@ int function_call(TKNS *tkns, func_t *func){
 }
 
 
+side_t empty_side(){
+	side_t side;
+	side.value = 0;
+	side.complement = 0;
+	side.arithmetic = 0;
+	return side;
+}
 
 EXPR get_expr(TKNS *tkns, token_t endtok){
 	EXPR expr;
@@ -853,7 +862,13 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 	expr.caller.arg_len = 0;
 	expr.caller.return_type = INT_VAR;
 
-	if(function_call(tkns, &expr.caller)){
+	expr.op = NO_OP;
+	expr.mono_side = 0;
+	expr.is_assign = 0;
+	expr.left = empty_side();
+	expr.right = empty_side();
+
+	if(function_call(tkns, &expr.caller, expr.args)){
 		return expr;
 	}
 
