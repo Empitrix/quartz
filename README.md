@@ -7,6 +7,19 @@ A compiler for [8-Bit CPU](https://github.com/empitrix/8bitcpu).
 > [!NOTE]
 > This repository will be updated!
 
+## Build
+First clone the project:
+```bash
+git clone https://github.com/empitrix/quartz
+cd ./quartz
+```
+
+To build the project using `gnu make`:
+```bash
+make
+```
+
+
 ## Quartz Script
 The syntax of this language is similar to C, but with fewer features.
 
