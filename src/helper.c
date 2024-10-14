@@ -764,6 +764,7 @@ side_t get_side(TKNS *tkns, token_t split){
 			exit(0);
 		}
 		side.value = var.int_value;
+		side.var = var;
 		tkns->idx++;
 
 	} else if (tkns->tokens[tkns->idx].type == INTEGER_VALUE){
@@ -851,6 +852,7 @@ side_t empty_side(){
 	side.value = 0;
 	side.complement = 0;
 	side.arithmetic = 0;
+	side.var.int_value = 0;
 	return side;
 }
 

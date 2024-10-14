@@ -120,6 +120,7 @@ typedef struct {
 
 
 typedef struct {
+	char name[NAME_MAX];
 	char str_value[STR_MAX];
 	int int_value;
 	char char_value;
@@ -215,6 +216,7 @@ typedef struct {
 	int complement;   // is complemented (contains '~')
 	int arithmetic;   // -1: decrement, 0: no arithmetic, 1: increment
 	int value;
+	CNST_VAR var;
 } side_t;
 
 typedef struct {

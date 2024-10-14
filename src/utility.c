@@ -244,6 +244,7 @@ void type_to_str(var_t type, char dst[]){
 
 void convert_var_to_const(VAR *var, CNST_VAR *cnst){
 	cnst->type = var->type;
+	strcpy(cnst->name, var->name);
 
 	switch(var->type){
 		case INT_VAR:
