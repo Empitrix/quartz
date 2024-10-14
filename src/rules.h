@@ -13,5 +13,8 @@
 
 #define MAX_AST 100
 
+#define MAX_RAM 16
+
+#include "rules.c"
 #endif
 

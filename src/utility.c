@@ -43,6 +43,8 @@ void update_glfag(GFLAG *gflag, int argc, char *argv[]){
 		printf("%s: no output file!\ncompilation terminated.\n", argv[0]);
 		exit(0);
 	}
+
+	if(strcmp(gflag->output, "") == 0){ strcpy(gflag->output, "./out"); }
 }
 
 
@@ -58,6 +60,14 @@ void read_file(char *path, char buff[]){
 	fclose(fp);
 }
 
+
+void write_tree(char *path){
+	FILE *fp = fopen(path, "w+");
+	for(int i = 0; i < tree_idx; ++i){
+		fprintf(fp, "%s", tree[i]);
+	}
+	fclose(fp);
+}
 
 
 /* get_token_line: get the whole line that invalid token was found in */
@@ -259,10 +269,11 @@ int get_arighmetic(TKNS *tkns){
 		tkns->idx++;
 		tmp = tkns->tokens[tkns->idx].type;
 		if(tkns->tokens[tkns->idx].type == tmp){
-			tkns->idx++;
 			if(tkns->tokens[tkns->idx].type == PLUS_SIGN){
+				tkns->idx++;
 				return 1;
 			} else {
+				tkns->idx++;
 				return -1;
 			}
 		} else {

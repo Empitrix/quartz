@@ -116,7 +116,6 @@ void parser(TKNS *tkns, int allow_expression, int *tidx){
 
 			} else {
 				throw_err(tkns, "Invalid word", NULL);
-				exit(0);
 			}
 		}
 

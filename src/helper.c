@@ -910,7 +910,7 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 	skip_white_space(tkns);
 
 
-	if(tkns->tokens[tkns->idx].type == endtok){ return expr; }
+	if(tkns->tokens[tkns->idx].type == endtok){ expr.mono_side = 1; return expr; }
 	
 	skip_white_space(tkns);
 
