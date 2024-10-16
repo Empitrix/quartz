@@ -1,6 +1,6 @@
 <div align="center" style="margin: 10px">
 	<picture>
-		<img alt="Quartz" src="./assets/quartz.png" width="60%">
+		<img alt="Quartz" src="./assets/quartz.png" width="45%">
 	</picture>
 	<h1>Quartz</h1>
 	<p>A compiler for <a href="https://github.com/empitrix/8bitcpu">Amethyst</a></p>
