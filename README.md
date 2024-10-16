@@ -1,6 +1,10 @@
-# Quartz
-A compiler for [8-Bit CPU](https://github.com/empitrix/8bitcpu).
-
+<div align="center" style="margin: 10px">
+	<picture>
+		<img alt="Quartz" src="./assets/quartz.png" width="60%">
+	</picture>
+	<h1>Quartz</h1>
+	<p>A compiler for <a href="https://github.com/empitrix/8bitcpu">Amethyst</a></p>
+</div>
 
 <!-- [langauge syntax](./syntax.md) -->
 
