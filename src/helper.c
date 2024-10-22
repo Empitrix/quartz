@@ -817,13 +817,16 @@ CNST_VAR skip_by_arg(TKNS *tkns, ARG arg){
 int function_call(TKNS *tkns, func_t *func, CNST_VAR *arguments){
 	int tmpidx = tkns->idx;
 	int idx = 0;
+
 	skip_white_space(tkns);
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+
 		if(get_func(tkns->tokens[tkns->idx].word, func)){
 			tkns->idx++;
 			skip_white_space(tkns);
 
 			pass_by_type(tkns, PAREN_OPN, "Invalid syntax", "'('");
+			tkns->idx++;
 			if(func->arg_len != 0){
 
 				for(int i = 0; i < func->arg_len; ++i){
@@ -838,9 +841,7 @@ int function_call(TKNS *tkns, func_t *func, CNST_VAR *arguments){
 						pass_by_type(tkns, COMMA_SIGN, "Invalid syntax", ",");
 					}
 				}
-
 			}
-
 			return 1;
 		} else { tkns->idx = tmpidx; return 0; }
 	} else { tkns->idx = tmpidx; return 0; }

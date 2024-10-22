@@ -25,3 +25,7 @@ val:
 # Full check (if test.qz exists)
 full:
 	@ echo "CPPCHECK..." && cppcheck . --check-level=exhaustive && echo "VALGRIND..." && valgrind ./quartz ./test.qz && echo "DEBUG..." && gcc -g -fanalyzer -Wall -Wextra -pedantic -fsanitize=undefined,address,leak ./main.c -lm -o ./quartz
+
+
+test:
+	@ clear && gcc ./main.c -o ./quartz && ./quartz ./test.qz && echo "" && echo "" && echo "" && echo "" && cat ./out

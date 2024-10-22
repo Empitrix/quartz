@@ -334,3 +334,66 @@ void strcatf(char* dst, const char * frmt, ...){
 	va_end(arglist);
 	strcat(dst, tmp);
 }
+
+
+/* strcnt: string contains */
+int strcnt(const char *src, const char *inpt) {
+	if (src == NULL || inpt == NULL) { return 0; }
+	return strstr(src, inpt) != NULL;
+}
+
+
+
+void shift_tree(int start, int end) {
+	// if (start < 0 || end >= tree_idx || start > end) { return; }
+
+	int shift_count = end - start + 1;
+
+	for (int i = end + 1; i < tree_idx; i++) {
+		strcpy(tree[i - shift_count], tree[i]);
+	}
+
+	tree_idx -= shift_count;
+
+	for (int i = tree_idx; i < tree_idx + shift_count; i++) {
+		tree[i][0] = '\0';
+	}
+}
+
+
+void reorder(void){
+	int start = 0;
+	int end = 0;
+	int reached = 0;
+	int check = 1;
+
+	char tmp[1000][100];
+	int tmp_idx = 0;
+
+	while(check){
+		start = -1;
+		end = -1;
+
+		for(int i = 0; i < tree_idx; ++i){
+			if(i == tree_idx - 1){ check = 0; break; }
+
+			// a function except 'main'
+			if(strcnt(tree[i], ":") && strcnt(tree[i], "main") == 0 && start == -1){ start = i; }
+			if(strcnt(tree[i], "RETLW") && end == -1 && start != -1){ end = i; break; }
+		}
+		check = 0;
+
+
+		// copy to tmp buff
+		for(int i = start; i < end + 1; ++i){ strcpy(tmp[tmp_idx++], tree[i]); }
+		shift_tree(start, end);
+
+		// printf("RUNNING\n");
+
+	}
+
+	// copy the tmp at the end of the tree
+	for(int i = 0; i < tmp_idx; ++i){ strcpy(tree[tree_idx++], tmp[i]); }
+
+}
+

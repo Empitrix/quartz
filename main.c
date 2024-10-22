@@ -18,7 +18,9 @@ int main(int argc, char *argv[]){
 
 	func_exists("main", 1);  // Check that if function 'main' exists
 
-	strcpy(tree[tree_idx++], "\tSLEEP");  // sleep at the end of the code
+	reorder();
+
+	strcpy(tree[tree_idx++], "\tSLEEP  ; Auto added");  // sleep at the end of the code
 
 	write_tree(gflag.output);
 
