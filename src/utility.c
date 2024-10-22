@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdarg.h>
 #include "types.h"
 #include "rules.h"
 
@@ -292,7 +293,7 @@ void show_ast_info(AST ast){
 	case AST_VARIABLE_ASSIGNEMNT:
 		printf("AST_VARIABLE_ASSIGNEMNT");
 		break;
-	case AST_FOOR_LOOP_ASSIGNEMNT:
+	case AST_FOR_LOOP_ASSIGNEMNT:
 		printf("AST_FOOR_LOOP_ASSIGNEMNT");
 		break;
 	case AST_WHILE_LOOP_ASSIGNEMNT:
@@ -321,4 +322,15 @@ void show_ast_info(AST ast){
 		break;
 	}
 	putchar('\n');
+}
+
+
+/* strcatf: formated strcat */
+void strcatf(char* dst, const char * frmt, ...){
+	char tmp[MAXSIZ];
+	va_list arglist;
+	va_start(arglist, frmt);
+	vsprintf(tmp, frmt, arglist);
+	va_end(arglist);
+	strcat(dst, tmp);
 }

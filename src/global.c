@@ -245,7 +245,7 @@ int func_exists(const char name[], int force){
 	}
 	if(force){
 		printf("Function '%s' not found\n", name);
-		exit(0);
+		exit(1);
 	}
 	return 0;
 }
