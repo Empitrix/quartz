@@ -21,12 +21,15 @@ int pop_ram(){
 	return out;
 }
 
+static int main_found = 0;
+
 void code_emission(AST ast, char code[]){
 
 	char tmp[MAXSIZ] = { 0 };
 
+
 	switch(ast.type){
-		case AST_VARIABLE_ASSIGNEMNT:
+		case AST_VARIABLE_ASSIGNMENT:
 			if(ast.asgmt.is_func == 0 && ast.asgmt.is_str == 0){
 				if(ast.asgmt.type == INT_VAR){
 					int addr = pop_ram();
@@ -39,10 +42,10 @@ void code_emission(AST ast, char code[]){
 			
 			break;
 
-		case AST_FOR_LOOP_ASSIGNEMNT:
+		case AST_FOR_LOOP_ASSIGNMENT:
 			break;
 
-		case AST_WHILE_LOOP_ASSIGNEMNT:
+		case AST_WHILE_LOOP_ASSIGNMENT:
 			break;
 
 		case AST_IF_STATEMENT:
@@ -51,15 +54,22 @@ void code_emission(AST ast, char code[]){
 		case AST_ELSE_STATEMENT:
 			break;
 
-		case AST_FUNCTION_ASSIGNEMNT:
+		case AST_FUNCTION_ASSIGNMENT:
+			if(strcmp(ast.func.name, "main") == 0 && main_found == 0){ main_found = 1; }
 			sprintf(code, "%s:", ast.func.name);
 			break;
 
 		case AST_RETURN_STATEMENT:
-			sprintf(code, "\tRETLW %d", ast.value.int_value);
+			if(main_found){
+				main_found = -1;
+				sprintf(code, "\tSLEEP  ; End of the 'main'");
+			} else {
+				sprintf(code, "\tRETLW %d", ast.value.int_value);
+			}
 			break;
 
 		case AST_FUNCTION_CALL:
+			sprintf(code, "\tCALL %s", ast.expr.caller.name);
 			break;
 
 		case AST_STATEMENT:

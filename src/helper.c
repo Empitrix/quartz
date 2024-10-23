@@ -872,6 +872,7 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 	expr.right = empty_side();
 
 	if(function_call(tkns, &expr.caller, expr.args)){
+		expr.is_call = 1;
 		return expr;
 	}
 

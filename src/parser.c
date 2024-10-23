@@ -48,7 +48,7 @@ void parser(TKNS *tkns, int allow_expression, int *tidx){
 				body = asgmt.func.body;
 				save_func_global(asgmt.func);
 				ast.func = asgmt.func;
-				ast.type = AST_FUNCTION_ASSIGNEMNT;
+				ast.type = AST_FUNCTION_ASSIGNMENT;
 
 			} else {
 				VAR v;
@@ -61,7 +61,7 @@ void parser(TKNS *tkns, int allow_expression, int *tidx){
 					strcpy(v.str_value, asgmt.str);
 				}
 				save_global_variable(v);
-				ast.type = AST_VARIABLE_ASSIGNEMNT;
+				ast.type = AST_VARIABLE_ASSIGNMENT;
 			}
 
 			ast.asgmt = asgmt;
@@ -73,28 +73,24 @@ void parser(TKNS *tkns, int allow_expression, int *tidx){
 		// Check for 'for(...;...;...){...}'
 		} else if(tkns->tokens[tkns->idx].type == FOR_KEYWORD){
 			FOR_ASGMT fa = for_asgmt(tkns);
-			// parser(&fa.body, 1, tidx);
 			body = fa.body;
-			ast.type = AST_FOR_LOOP_ASSIGNEMNT;
+			ast.type = AST_FOR_LOOP_ASSIGNMENT;
 
 		// Check for 'while(...){...}'
 		} else if(tkns->tokens[tkns->idx].type == WHILE_KEYWORD){
 			BODY_ASGMT ba = body_asgmt(tkns, WHILE_BODY);
-			// parser(&ba.body, 1, tidx);
 			body = ba.body;
-			ast.type = AST_WHILE_LOOP_ASSIGNEMNT;
+			ast.type = AST_WHILE_LOOP_ASSIGNMENT;
 
 		// Check for 'if(...){...}'
 		} else if(tkns->tokens[tkns->idx].type == IF_KEYWORD){
 			BODY_ASGMT ba = body_asgmt(tkns, IF_BODY);
-			// parser(&ba.body, 1, tidx);
 			body = ba.body;
 			ast.type = AST_IF_STATEMENT;
 
 		// Check for 'else{...}'
 		} else if(tkns->tokens[tkns->idx].type == ELSE_KEYWORD){
 			BODY_ASGMT ba = else_asgmt(tkns);
-			// parser(&ba.body, 1, tidx);
 			body = ba.body;
 			ast.type = AST_ELSE_STATEMENT;
 

@@ -290,13 +290,13 @@ int get_arighmetic(TKNS *tkns){
 
 void show_ast_info(AST ast){
 	switch(ast.type){
-	case AST_VARIABLE_ASSIGNEMNT:
+	case AST_VARIABLE_ASSIGNMENT:
 		printf("AST_VARIABLE_ASSIGNEMNT");
 		break;
-	case AST_FOR_LOOP_ASSIGNEMNT:
-		printf("AST_FOOR_LOOP_ASSIGNEMNT");
+	case AST_FOR_LOOP_ASSIGNMENT:
+		printf("AST_FOR_LOOP_ASSIGNEMNT");
 		break;
-	case AST_WHILE_LOOP_ASSIGNEMNT:
+	case AST_WHILE_LOOP_ASSIGNMENT:
 		printf("AST_WHILE_LOOP_ASSIGNEMNT");
 		break;
 	case AST_IF_STATEMENT:
@@ -305,7 +305,7 @@ void show_ast_info(AST ast){
 	case AST_ELSE_STATEMENT:
 		printf("AST_ELSE_STATEMENT");
 		break;
-	case AST_FUNCTION_ASSIGNEMNT:
+	case AST_FUNCTION_ASSIGNMENT:
 		printf("AST_FUNCTION_ASSIGNEMNT");
 		break;
 	case AST_RETURN_STATEMENT:
@@ -364,6 +364,7 @@ void shift_tree(int start, int end) {
 void reorder(void){
 	int start = 0;
 	int end = 0;
+	int main_found = 0;
 	int reached = 0;
 	int check = 1;
 
@@ -388,12 +389,9 @@ void reorder(void){
 		for(int i = start; i < end + 1; ++i){ strcpy(tmp[tmp_idx++], tree[i]); }
 		shift_tree(start, end);
 
-		// printf("RUNNING\n");
-
 	}
 
 	// copy the tmp at the end of the tree
 	for(int i = 0; i < tmp_idx; ++i){ strcpy(tree[tree_idx++], tmp[i]); }
-
 }
 

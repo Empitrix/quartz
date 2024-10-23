@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
 
 	reorder();
 
-	strcpy(tree[tree_idx++], "\tSLEEP  ; Auto added");  // sleep at the end of the code
+	// strcpy(tree[tree_idx++], "\tSLEEP  ; Auto added");  // sleep at the end of the code
 
 	write_tree(gflag.output);
 
