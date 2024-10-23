@@ -371,18 +371,18 @@ void reorder(void){
 	char tmp[1000][100];
 	int tmp_idx = 0;
 
+	int counter = 0;
 	while(check){
 		start = -1;
 		end = -1;
 
 		for(int i = 0; i < tree_idx; ++i){
-			if(i == tree_idx - 1){ check = 0; break; }
-
 			// a function except 'main'
 			if(strcnt(tree[i], ":") && strcnt(tree[i], "main") == 0 && start == -1){ start = i; }
 			if(strcnt(tree[i], "RETLW") && end == -1 && start != -1){ end = i; break; }
 		}
-		check = 0;
+
+		if(start == -1 || end == -1){ check = 0; break; }
 
 
 		// copy to tmp buff
