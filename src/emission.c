@@ -82,6 +82,11 @@ void code_emission(AST ast, char code[]){
 			}
 			break;
 
+
+		case AST_RAW_ASM:
+			sprintf(code, "%s", ast.raw_asm);
+			break;
+
 		case AST_NO_STATEMENT:
 			break;
 	}

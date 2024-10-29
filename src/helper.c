@@ -10,10 +10,7 @@
 void pass_by_type(TKNS *tkns, token_t type, const char *msg, const char *exp){
 	if(tkns->tokens[tkns->idx].type == type){
 		tkns->idx++;
-	} else {
-		throw_err(tkns, msg, exp);
-		exit(0);
-	}
+	} else { throw_err(tkns, msg, exp); }
 }
 
 
@@ -58,10 +55,7 @@ var_t get_type(TKNS *tkns){
 			return v;
 		}
 		
-	} else {
-		throw_err(tkns, "Invalid type", "int, char, char[]");
-		exit(0);
-	}
+	} else { throw_err(tkns, "Invalid type", "int, char, char[]"); }
 
 	return v;
 }
@@ -165,10 +159,7 @@ void get_arg(TKNS *tkns, ARG args[], int *arg_len){
 			continue;
 		} else if (tkns->tokens[tkns->idx].type == PAREN_CLS){
 			break;
-		} else {
-			throw_err(tkns, "Invalid syntax", ", or )");
-			exit(0);
-		}
+		} else { throw_err(tkns, "Invalid syntax", ", or )"); }
 
 	}
 
@@ -192,8 +183,6 @@ void get_brace_content(TKNS *tkns, TKNS *save){
 		if(tkns->idx >= tkns->max){
 			tkns->idx = sidx;
 			throw_err(tkns, "syntax error", "'}' or closed brace at end of the file");
-			exit(0);
-
 		} else {
 			save->tokens[save->max] = tkns->tokens[tkns->idx];
 			save->max++;
@@ -216,7 +205,7 @@ int check_const_var(TKNS *tkns, CNST_VAR *cvar, int force){
 			return 1;
 		} else {
 			if(force){
-				throw_err(tkns, "Invalid value", "literal value"); exit(0);
+				throw_err(tkns, "Invalid value", "literal value");
 			}
 			return -1;
 		}
@@ -225,7 +214,7 @@ int check_const_var(TKNS *tkns, CNST_VAR *cvar, int force){
 		if(get_char_value(tkns, &cvar->char_value)){
 			return -1;
 			if(force){
-				throw_err(tkns, "Invalid character", NULL); exit(0);
+				throw_err(tkns, "Invalid character", NULL);
 			}
 		}
 	} else if (tkns->tokens[tkns->idx].type == DOUBLE_QUOTE){
@@ -235,15 +224,12 @@ int check_const_var(TKNS *tkns, CNST_VAR *cvar, int force){
 			return 1;
 		} else {
 			if(force){
-				throw_err(tkns, "Invalid string constant", NULL); exit(0);
+				throw_err(tkns, "Invalid string constant", NULL);
 			}
 			return -1;
 		}
 	} else {
-		if(force){
-			throw_err(tkns, "Invalid constant", NULL);
-			exit(0);
-		}
+		if(force){ throw_err(tkns, "Invalid constant", NULL); }
 		return 0;
 	}
 	return 0;
@@ -261,22 +247,22 @@ CNST_VAR const_var(TKNS *tkns){
 		if(get_literal_value(tkns->tokens[tkns->idx].word, &cvar.int_value) == 0){
 			tkns->idx++;
 		} else {
-			throw_err(tkns, "Invalid value", "literal value"); exit(0);
+			throw_err(tkns, "Invalid value", "literal value");
 		}
 	} else if (tkns->tokens[tkns->idx].type == SINGLE_QUOTE){
 		cvar.type = CHAR_VAR;
 		if(get_char_value(tkns, &cvar.char_value)){
-			throw_err(tkns, "Invalid character", NULL); exit(0);
+			throw_err(tkns, "Invalid character", NULL);
 		}
 	} else if (tkns->tokens[tkns->idx].type == DOUBLE_QUOTE){
 		cvar.type = STR_VAR;
 		if(get_string(tkns, cvar.str_value) == 0){
 			tkns->idx++;
 		} else {
-			throw_err(tkns, "Invalid string constant", NULL); exit(0);
+			throw_err(tkns, "Invalid string constant", NULL);
 		}
 	} else {
-		throw_err(tkns, "Invalid constant", NULL); exit(0);
+		throw_err(tkns, "Invalid constant", NULL);
 	}
 	return cvar;
 }
@@ -290,39 +276,27 @@ void str_var_asgmt(TKNS *tkns, char *value){
 
 	if(tkns->tokens[tkns->idx].type == BRAKET_CLS){
 		tkns->idx++;
-	} else {
-		throw_err(tkns, "Invalid syntax", "]");
-		exit(0);
-	}
+	} else { throw_err(tkns, "Invalid syntax", "]"); }
 
 	skip_white_space(tkns);
 
 	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 		tkns->idx++;
-	} else {
-		throw_err(tkns, "Invalid syntax", "=");
-		exit(0);
-	}
+	} else { throw_err(tkns, "Invalid syntax", "="); }
 
 
 	skip_white_space(tkns);
 
 	if(get_string(tkns, value) == 0){
 		tkns->idx++;
-	} else {
-		throw_err(tkns, "Invalid syntax", NULL);
-		exit(0);
-	}
+	} else { throw_err(tkns, "Invalid syntax", NULL); }
 
 	skip_white_space(tkns);
 
 	if(tkns->tokens[tkns->idx].type == END_SIGN){
 		++tkns->idx;
 		return;
-	} else {
-		throw_err(tkns, "Invalid syntax", ";");
-		exit(0);
-	}
+	} else { throw_err(tkns, "Invalid syntax", ";"); }
 }
 
 
@@ -333,7 +307,7 @@ void u8_var_asgmt(TKNS *tkns, int *value, var_t type){
 	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 		tkns->idx++;
 	} else {
-		throw_err(tkns, "Invalid symbol", "="); exit(0);
+		throw_err(tkns, "Invalid symbol", "=");
 	}
 
 	skip_white_space(tkns);
@@ -342,7 +316,7 @@ void u8_var_asgmt(TKNS *tkns, int *value, var_t type){
 		if(tkns->tokens[tkns->idx].type == INTEGER_VALUE && get_literal_value(tkns->tokens[tkns->idx].word, value) == 0){
 			tkns->idx++;
 		} else {
-			throw_err(tkns, "invalid value", "literal value"); exit(0);
+			throw_err(tkns, "invalid value", "literal value");
 		}
 	} else {
 		// printf("SHOULD OF BEEN CHAR\n");
@@ -354,10 +328,7 @@ void u8_var_asgmt(TKNS *tkns, int *value, var_t type){
 	if(tkns->tokens[tkns->idx].type == END_SIGN){
 		tkns->idx++;
 		return;
-	} else {
-		throw_err(tkns, "syntax error", ";");
-		exit(0);
-	}
+	} else { throw_err(tkns, "syntax error", ";"); }
 }
 
 
@@ -381,7 +352,7 @@ ASGMT var_asgmt(TKNS *tkns){
 		update_name_state(tkns, ae.name, 0);
 		tkns->idx++;
 	} else {
-		throw_err(tkns, "Invalid varialbe name", NULL); exit(0);
+		throw_err(tkns, "Invalid varialbe name", NULL);
 	}
 
 	skip_white_space(tkns);
@@ -410,10 +381,7 @@ ASGMT var_asgmt(TKNS *tkns){
 		u8_var_asgmt(tkns, &ae.value, ae.type);
 		return ae;
 
-	} else {  // Invalid
-		throw_err(tkns, "Invalid symbol", NULL);
-		exit(0);
-	}
+	} else { throw_err(tkns, "Invalid symbol", NULL); }
 
 	return ae;
 }
@@ -430,10 +398,7 @@ MACRO macro_asgmt(TKNS *tkns){
 
 	if(tkns->tokens[tkns->idx].type == INCLUDE_KEYWORD || tkns->tokens[tkns->idx].type == DEFINE_KEYWORD){
 		tkns->idx++;
-	} else {
-		throw_err(tkns, "Invalid preprocessor directive", "include or define");
-		exit(0);
-	}
+	} else { throw_err(tkns, "Invalid preprocessor directive", "include or define"); }
 
 	int is_include = tkns->tokens[tkns->idx - 1].type == INCLUDE_KEYWORD;
 
@@ -446,14 +411,8 @@ MACRO macro_asgmt(TKNS *tkns){
 		if (tkns->tokens[tkns->idx].type == DOUBLE_QUOTE){
 			if(get_string(tkns, mcro.name) == 0){
 				tkns->idx++;
-			} else {
-				throw_err(tkns, "Invalid string constant", NULL);
-				exit(0);
-			}
-		} else {
-			throw_err(tkns, "Invalid constant", NULL);
-			exit(0);
-		}
+			} else { throw_err(tkns, "Invalid string constant", NULL); }
+		} else { throw_err(tkns, "Invalid constant", NULL); }
 
 	} else {
 
@@ -463,10 +422,7 @@ MACRO macro_asgmt(TKNS *tkns){
 			update_name_state(tkns, mcro.name, 0);
 
 			tkns->idx++;
-		} else {
-			throw_err(tkns, "A name required", NULL);
-			exit(0);
-		}
+		} else { throw_err(tkns, "A name required", NULL); }
 
 		skip_white_space(tkns);
 		mcro.value = const_var(tkns);
@@ -476,10 +432,7 @@ MACRO macro_asgmt(TKNS *tkns){
 
 	if(tkns->tokens[tkns->idx].type == NEWLINE){
 		return mcro;
-	} else {
-		throw_err(tkns, "Invalid macro", NULL);
-		exit(0);
-	}
+	} else { throw_err(tkns, "Invalid macro", NULL); }
 
 	return mcro;
 }
@@ -565,9 +518,7 @@ void skip_double_op(TKNS *tkns, operator op){
 /* get_statement: detect: ...int a = 0;... in for loop*/
 STMT get_statement(TKNS *tkns){
 	STMT st;
-
 	skip_white_space(tkns);
-
 
 	if(tkns->tokens[tkns->idx].type == END_SIGN){
 		st.op = NO_OP;
@@ -588,12 +539,10 @@ STMT get_statement(TKNS *tkns){
 	st.op = get_operator(tkns);
 	if(st.op == INVALID_OP || st.op == COMPLEMENT_OP){
 		throw_err(tkns, "Invalid operator", NULL);
-		exit(0);
 	} else {
 		st.op = get_operator(tkns);
 		if(st.op == INVALID_OP || st.op == NO_OP){
 			throw_err(tkns, "Invalid operator", NULL);
-			exit(0);
 		} else if(st.op == INCREMENT_OP || st.op == DECREMENT_OP){
 			tkns->idx += 2;
 			return st;
@@ -732,7 +681,6 @@ CNST_VAR return_asgmt(TKNS *tkns, var_t return_type){
 		char type[20];
 		type_to_str(return_type, type);
 		throw_err(tkns, "Invalid return type", type);
-		exit(0);
 	}
 	skip_white_space(tkns);
 	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
@@ -761,7 +709,6 @@ side_t get_side(TKNS *tkns, token_t split){
 		if(variable_exits(tkns->tokens[tkns->idx].word, &var) == 0){
 			tkns->idx++;
 			throw_err(tkns, "variable not exits in this expression", NULL);
-			exit(0);
 		}
 		side.value = var.int_value;
 		side.var = var;
@@ -772,11 +719,9 @@ side_t get_side(TKNS *tkns, token_t split){
 			tkns->idx++;
 		} else {
 			throw_err(tkns, "Invalid value", "int (0 to 255)");
-			exit(0);
 		}
 	} else {
 		throw_err(tkns, "Invalid expression value", NULL);
-		exit(0);
 	}
 
 	// end of the expression
@@ -886,7 +831,6 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 		if(variable_exits(tkns->tokens[tkns->idx].word, &var) == 0){
 			tkns->idx++;
 			throw_err(tkns, "variable not exits", NULL);
-			exit(0);
 		}
 		strcpy(expr.assign_name, tkns->tokens[tkns->idx].word);
 		tkns->idx++;
@@ -921,12 +865,7 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 
 	expr.op = get_operator(tkns);
 
-	// if(expr.op == ADD_ASSIGN_OP || expr.op == MINUS_ASSIGN_OP){ }
-
-	if(expr.op == INVALID_OP || expr.op == NO_OP){
-		throw_err(tkns, "Invalid operator", NULL);
-		exit(0);
-	}
+	if(expr.op == INVALID_OP || expr.op == NO_OP){ throw_err(tkns, "Invalid operator", NULL); }
 
 	tkns->idx++;
 	skip_double_op(tkns, expr.op);
@@ -936,10 +875,7 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 
 	if(tkns->tokens[tkns->idx].type == endtok){
 		return expr;
-	} else {
-		throw_err(tkns, "Invalid expression", NULL);
-		exit(0);
-	}
+	} else { throw_err(tkns, "Invalid expression", NULL); }
 
 	return expr;
 }

@@ -47,6 +47,7 @@ typedef enum token_t {
 	AND_SIGN,          // &
 	OR_SIGN,           // |
 	COMMA_SIGN,        // ,
+	BACKTICK_SIGN,     // `
 	UNKNOWN,           // Unknown `, ! ...
 } token_t;
 
@@ -249,6 +250,8 @@ typedef enum {
 
 	AST_STATEMENT,
 
+	AST_RAW_ASM,
+
 	AST_NO_STATEMENT,
 } ast_t;
 
@@ -258,6 +261,7 @@ typedef struct {
 	ASGMT asgmt;
 	ast_t type;
 	EXPR expr;
+	char raw_asm[128];
 	CNST_VAR value;
 } AST;
 

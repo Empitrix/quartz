@@ -171,6 +171,9 @@ void tokenizer(char inpt[], TKNS *tokens){
 				case '|':
 					ttype = OR_SIGN;
 					break;
+				case '`':
+					ttype = BACKTICK_SIGN;
+					break;
 				default:
 					ttype = UNKNOWN;
 					break;

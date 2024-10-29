@@ -82,6 +82,30 @@ void parser(TKNS *tkns, int allow_expression, int *tidx){
 			body = ba.body;
 			ast.type = AST_WHILE_LOOP_ASSIGNMENT;
 
+		} else if(tkns->tokens[tkns->idx].type == BACKTICK_SIGN){
+			tkns->idx++;
+			char raw_asm[128] = { 0 };
+			while(tkns->tokens[tkns->idx].type != BACKTICK_SIGN){
+				strcat(raw_asm, tkns->tokens[tkns->idx].word);
+				if(tkns->tokens[tkns->idx].type == NEWLINE){
+					throw_err(tkns, "syntax error", "`");
+				}
+				tkns->idx++;
+			}
+			tkns->idx++;
+
+			printf("asm_ex: %s\n", raw_asm);
+
+			skip_white_space(tkns);
+			pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
+
+			strcpy(ast.raw_asm, raw_asm);
+			ast.type = AST_RAW_ASM;
+
+			// printf("***BACKTICK detected\n");
+			// exit(1);
+
+
 		// Check for 'if(...){...}'
 		} else if(tkns->tokens[tkns->idx].type == IF_KEYWORD){
 			BODY_ASGMT ba = body_asgmt(tkns, IF_BODY);
