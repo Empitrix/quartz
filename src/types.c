@@ -263,6 +263,8 @@ typedef struct {
 	EXPR expr;
 	char raw_asm[128];
 	CNST_VAR value;
+	ast_t refer;
+	STMT cond;
 } AST;
 
 

@@ -8,8 +8,11 @@
 
 static var_t return_type = INT_VAR;
 
-void parser(TKNS *tkns, int allow_expression, int *tidx){
+void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 	AST ast;
+
+
+	// if(refer == AST_VARIABLE_ASSIGNMENT){ exit(1); }
 
 	ast.type = AST_NO_STATEMENT;
 	ast.func.arg_len = 0;
@@ -25,6 +28,7 @@ void parser(TKNS *tkns, int allow_expression, int *tidx){
 	ast.expr.mono_side = 0;
 
 
+	ast.refer = refer;
 
 	for(tkns->idx = 0; tkns->idx < tkns->max; tkns->idx++){
 
@@ -94,23 +98,19 @@ void parser(TKNS *tkns, int allow_expression, int *tidx){
 			}
 			tkns->idx++;
 
-			printf("asm_ex: %s\n", raw_asm);
-
 			skip_white_space(tkns);
 			pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
-
 			strcpy(ast.raw_asm, raw_asm);
 			ast.type = AST_RAW_ASM;
-
-			// printf("***BACKTICK detected\n");
-			// exit(1);
 
 
 		// Check for 'if(...){...}'
 		} else if(tkns->tokens[tkns->idx].type == IF_KEYWORD){
 			BODY_ASGMT ba = body_asgmt(tkns, IF_BODY);
 			body = ba.body;
+			ast.cond = ba.cond;
 			ast.type = AST_IF_STATEMENT;
+			refer = AST_IF_STATEMENT;
 
 		// Check for 'else{...}'
 		} else if(tkns->tokens[tkns->idx].type == ELSE_KEYWORD){
@@ -145,14 +145,18 @@ void parser(TKNS *tkns, int allow_expression, int *tidx){
 		if(ast.type != AST_NO_STATEMENT){
 			char code[100];
 			memset(code, '\0', sizeof(code));
+			ast.refer = refer;
 			code_emission(ast, code);
-			strcpy(tree[*tidx], code);
-			*tidx = *tidx + 1;
+			update_tree_lines(tidx, code);
 		}
 
 
-		if(body.max != 0){ parser(&body, 1, tidx); }
+		if(body.max != 0){
+			parser(&body, 1, tidx, refer);
+			ast.refer = AST_NO_STATEMENT;
+		}
 	}
+	
 
 }
 

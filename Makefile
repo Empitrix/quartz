@@ -28,4 +28,4 @@ full:
 
 
 test:
-	@ clear && gcc ./main.c -o ./quartz && ./quartz ./test.qz && echo "" && echo "" && echo "" && echo "" && cat ./out
+	@ clear && gcc ./main.c -o ./quartz && ./quartz ./test.qz && echo "" && echo "" && echo "" && echo "------------->" && cat ./out && echo "<-------------"

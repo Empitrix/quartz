@@ -14,17 +14,17 @@ int main(int argc, char *argv[]){
 	TKNS tkns;
 	tokenizer(buff, &tkns);  // break down the source code into tokens
 
-	parser(&tkns, 0, &tree_idx);  // Parse tokens & check for errors
 
-	func_exists("main", 1);  // Check that if function 'main' exists
+	add_tree("STATUS EQU 0x03  ; Added by Compiler (only for pic10f200)");
+	add_tree("Z EQU 0x02 ; Added by Compiler (only for pic10f200)");
 
-	reorder();
+	parser(&tkns, 0, &tree_idx, AST_NO_STATEMENT);  // Parse tokens & check for errors
 
-	// strcpy(tree[tree_idx++], "\tSLEEP  ; Auto added");  // sleep at the end of the code
 
+	func_exists("main", 1);  // Check that if function 'main' exists (1 means exit if there is no 'main')
+
+	reorder();  // Reorder functions for assembler
 	write_tree(gflag.output);
-
-
 	return 0;
 }
 

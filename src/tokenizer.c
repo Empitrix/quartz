@@ -18,7 +18,7 @@ void tokenizer(char inpt[], TKNS *tokens){
 	while(inpt[i]){
 		int scol = col;
 		int idx = i;
-		char word[32];
+		char word[64] = { 0 };
 		token_t ttype;
 
 		if(inpt[i] == '\t'){

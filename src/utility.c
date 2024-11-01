@@ -288,10 +288,10 @@ int get_arighmetic(TKNS *tkns){
 }
 
 
-void show_ast_info(AST ast){
-	switch(ast.type){
+void show_ast_t(ast_t t, int flush){
+	switch(t){
 	case AST_VARIABLE_ASSIGNMENT:
-		printf("AST_VARIABLE_ASSIGNEMNT");
+		printf("AST_VARIABLE_ASSIGNMENT");
 		break;
 	case AST_FOR_LOOP_ASSIGNMENT:
 		printf("AST_FOR_LOOP_ASSIGNEMNT");
@@ -320,8 +320,17 @@ void show_ast_info(AST ast){
 	case AST_NO_STATEMENT:
 		printf("AST_NO_STATEMENT");
 		break;
+	case AST_RAW_ASM:
+		printf("AST_RAW_ASM");
+		break;
 	}
-	putchar('\n');
+	if(flush) putchar('\n');
+}
+
+void show_ast_info(AST ast){
+	show_ast_t(ast.type, 0);
+	printf(" -> ");
+	show_ast_t(ast.refer, 1);
 }
 
 
@@ -395,3 +404,32 @@ void reorder(void){
 	for(int i = 0; i < tmp_idx; ++i){ strcpy(tree[tree_idx++], tmp[i]); }
 }
 
+
+void add_tree(const char inpt[]){ strcpy(tree[tree_idx++], inpt); insts++; }
+
+void add_to_tree(int *tidx, char inpt[]){
+	strcpy(tree[*tidx], inpt);
+	*tidx = *tidx + 1;
+}
+
+void update_tree_lines(int *tree_idx, char code[]){
+	char lines[10][128] = { 0 };
+	char temp[128] = { 0 };
+	int tidx = 0;
+	int pointer = 0;
+	int idx = 0;
+
+	while(code[idx] != '\0'){
+		temp[tidx++] = code[idx];
+		if(code[idx++] == '\n' || code[idx] == '\0' ){
+			if(temp[tidx - 1] == '\n'){ tidx--; }
+			temp[tidx] = '\0';
+			strcpy(lines[pointer++], temp);
+			tidx = 0;
+		}
+	}
+	for(int i = 0; i < pointer; i++){
+		add_to_tree(tree_idx, lines[i]);
+	}
+
+}

@@ -27,16 +27,18 @@ void code_emission(AST ast, char code[]){
 
 	char tmp[MAXSIZ] = { 0 };
 
+	int current = 0;
 
 	switch(ast.type){
 		case AST_VARIABLE_ASSIGNMENT:
 			if(ast.asgmt.is_func == 0 && ast.asgmt.is_str == 0){
-				if(ast.asgmt.type == INT_VAR){
+				if(ast.asgmt.type == INT_VAR || ast.asgmt.type == CHAR_VAR){
 					int addr = pop_ram();
-					sprintf(code, "%s EQU 0x%x", ast.asgmt.name, addr);
-					if(ast.asgmt.value != 0){
-						strcatf(code, "\nMOVLW 0x%x\nMOVWF %s", ast.asgmt.value, ast.asgmt.name);
-					}
+					// sprintf(code, "%s EQU 0x%x", ast.asgmt.name, addr);
+					strcatf(code, "%s EQU 0x%x\nMOVLW 0x%x\nMOVWF %s", ast.asgmt.name, addr, ast.asgmt.value, ast.asgmt.name);
+					insts += 3;
+					// if(ast.asgmt.value != 0){
+					// }
 				}
 			}
 			
@@ -49,6 +51,15 @@ void code_emission(AST ast, char code[]){
 			break;
 
 		case AST_IF_STATEMENT:
+			current = insts;
+			if(ast.cond.op == 0){  // ==
+				strcatf(code, "\tMOVF %s, F\n", ast.cond.left); insts++;
+				strcatf(code, "\tSUBWF %s, W\n", ast.cond.right); insts++;
+				strcatf(code, "\tBTFSS STATUS, Z\n"); insts++;
+			printf("CURRENT: %d\n", insts);
+				strcatf(code, "\t\tNOP\n");
+				strcatf(code, "\t\tNOP\n");
+			}
 			break;
 
 		case AST_ELSE_STATEMENT:
@@ -87,8 +98,7 @@ void code_emission(AST ast, char code[]){
 			sprintf(code, "%s", ast.raw_asm);
 			break;
 
-		case AST_NO_STATEMENT:
-			break;
+		case AST_NO_STATEMENT: break;
 	}
 }
 
