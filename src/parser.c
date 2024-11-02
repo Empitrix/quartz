@@ -145,9 +145,17 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 		if(ast.type != AST_NO_STATEMENT){
 			char code[100];
 			memset(code, '\0', sizeof(code));
+			ast_t tmp_refer = ast.refer;
 			ast.refer = refer;
-			code_emission(ast, code);
+
+			code_emission(ast, code, &tree_idx);
 			update_tree_lines(tidx, code);
+
+			if(refer == tmp_refer && tmp_refer == AST_IF_STATEMENT){
+				sprintf(code, "");
+				strcatf(code, "\tNOP ;; NO Else detected", shift_addr);
+				update_tree_lines(tidx, code);
+			}
 		}
 
 

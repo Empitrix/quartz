@@ -405,13 +405,14 @@ void reorder(void){
 }
 
 
-void add_tree(const char inpt[]){ strcpy(tree[tree_idx++], inpt); insts++; }
+void add_tree(const char inpt[]){ strcpy(tree[tree_idx++], inpt); }
 
 void add_to_tree(int *tidx, char inpt[]){
 	strcpy(tree[*tidx], inpt);
 	*tidx = *tidx + 1;
 }
 
+// break down lines that contains '\n' e.g. "MOVLW 12\nMOVWF i" to separate lines
 void update_tree_lines(int *tree_idx, char code[]){
 	char lines[10][128] = { 0 };
 	char temp[128] = { 0 };
@@ -431,5 +432,4 @@ void update_tree_lines(int *tree_idx, char code[]){
 	for(int i = 0; i < pointer; i++){
 		add_to_tree(tree_idx, lines[i]);
 	}
-
 }

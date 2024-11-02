@@ -23,7 +23,7 @@ int pop_ram(){
 
 static int main_found = 0;
 
-void code_emission(AST ast, char code[]){
+void code_emission(AST ast, char code[], int *tree_idx){
 
 	char tmp[MAXSIZ] = { 0 };
 
@@ -34,11 +34,8 @@ void code_emission(AST ast, char code[]){
 			if(ast.asgmt.is_func == 0 && ast.asgmt.is_str == 0){
 				if(ast.asgmt.type == INT_VAR || ast.asgmt.type == CHAR_VAR){
 					int addr = pop_ram();
-					// sprintf(code, "%s EQU 0x%x", ast.asgmt.name, addr);
 					strcatf(code, "%s EQU 0x%x\nMOVLW 0x%x\nMOVWF %s", ast.asgmt.name, addr, ast.asgmt.value, ast.asgmt.name);
 					insts += 3;
-					// if(ast.asgmt.value != 0){
-					// }
 				}
 			}
 			
@@ -52,13 +49,20 @@ void code_emission(AST ast, char code[]){
 
 		case AST_IF_STATEMENT:
 			current = insts;
+			printf("BEGGIN: %d\n", insts);
 			if(ast.cond.op == 0){  // ==
 				strcatf(code, "\tMOVF %s, F\n", ast.cond.left); insts++;
 				strcatf(code, "\tSUBWF %s, W\n", ast.cond.right); insts++;
-				strcatf(code, "\tBTFSS STATUS, Z\n"); insts++;
-			printf("CURRENT: %d\n", insts);
-				strcatf(code, "\t\tNOP\n");
-				strcatf(code, "\t\tNOP\n");
+				strcatf(code, "\tBTFSC STATUS, Z\n"); insts++;
+
+				printf("CURRENT: %d\n", insts);
+
+				// get_unique_lable("if_handler", shift_addr); shifted = 1;
+				// strcatf(code, "\t\t%s\n", shift_addr);
+				// shift_type = AST_IF_STATEMENT;
+
+				// strcatf(code, "\t\tNOP\n");
+				// strcatf(code, "\t\tNOP\n");
 			}
 			break;
 
@@ -95,6 +99,7 @@ void code_emission(AST ast, char code[]){
 
 
 		case AST_RAW_ASM:
+			// update_tree_lines(tree_idx, ast.raw_asm);
 			sprintf(code, "%s", ast.raw_asm);
 			break;
 
