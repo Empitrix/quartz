@@ -373,14 +373,11 @@ void shift_tree(int start, int end) {
 void reorder(void){
 	int start = 0;
 	int end = 0;
-	int main_found = 0;
-	int reached = 0;
 	int check = 1;
 
 	char tmp[1000][100];
 	int tmp_idx = 0;
 
-	int counter = 0;
 	while(check){
 		start = -1;
 		end = -1;

@@ -2,6 +2,8 @@
 #include "src/utility.h"
 #include "src/tokenizer.h"
 #include "src/parser.h"
+#include <stdio.h>
+
 
 
 int main(int argc, char *argv[]){
@@ -21,10 +23,13 @@ int main(int argc, char *argv[]){
 	parser(&tkns, 0, &tree_idx, AST_NO_STATEMENT);  // Parse tokens & check for errors
 
 
+	printf("AST Len: %d\n", ast_len());
+
 	func_exists("main", 1);  // Check that if function 'main' exists (1 means exit if there is no 'main')
 
 	reorder();  // Reorder functions for assembler
 	write_tree(gflag.output);
 	return 0;
 }
+
 

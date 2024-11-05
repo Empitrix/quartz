@@ -28,15 +28,15 @@ typedef enum token_t {
 	WHITESPACE,        // <space>, ' '
 	NEWLINE,           // <enter>, '\n'
 	TYPE_KEYWORDS,     // 'int', 'char', 'string'
-	INCLUDE_KEYWORD,    // include keyword
-	DEFINE_KEYWORD,     // define keyword
-	IF_KEYWORD,         // if keyword
-	ELSE_KEYWORD,       // else keyword
-	RETURN_KEYWORD,     // return keyword
-	VOID_KEYWORD,       // void keyword
+	INCLUDE_KEYWORD,   // include keyword
+	DEFINE_KEYWORD,    // define keyword
+	IF_KEYWORD,        // if keyword
+	ELSE_KEYWORD,      // else keyword
+	RETURN_KEYWORD,    // return keyword
+	VOID_KEYWORD,      // void keyword
 	GOTO_KEYWORD,      // goto keyword
-	FOR_KEYWORD,        // for keyword
-	WHILE_KEYWORD,      // while keyword
+	FOR_KEYWORD,       // for keyword
+	WHILE_KEYWORD,     // while keyword
 	COMMENT_TOK,       // comment token
 	LEFT_SIGN,         // <
 	RIGHT_SIGN,        // >
@@ -67,21 +67,10 @@ typedef struct {
 } TKNS;
 
 
-
-// typedef enum {
-// 	INT_TYPE,
-// 	CHAR_TYPE,
-// 	INVALID_TYPE
-// } variable_t;
-
-
-
-
 typedef enum {
 	INT_VAR,
 	CHAR_VAR,
 	STR_VAR,
-	// UNRECOGNIZED_VAR,
 } var_t;
 
 
@@ -234,29 +223,23 @@ typedef struct {
 
 
 
-/* Abstract Syntax Tree */
+/* Abstract Syntax Tree (AST) type */
 typedef enum {
-	AST_VARIABLE_ASSIGNMENT,
-
-	AST_FOR_LOOP_ASSIGNMENT,
-	AST_WHILE_LOOP_ASSIGNMENT,
-
-	AST_IF_STATEMENT,
-	AST_ELSE_STATEMENT,
-
-	AST_FUNCTION_ASSIGNMENT,
-	AST_RETURN_STATEMENT,
-	AST_FUNCTION_CALL,
-
-	AST_STATEMENT,
-
-	AST_RAW_ASM,
-
-	AST_NO_STATEMENT,
+	AST_VARIABLE_ASSIGNMENT,      // variable
+	AST_FOR_LOOP_ASSIGNMENT,      // for loop
+	AST_WHILE_LOOP_ASSIGNMENT,    // while loop
+	AST_IF_STATEMENT,             // if
+	AST_ELSE_STATEMENT,           // else
+	AST_FUNCTION_ASSIGNMENT,      // function
+	AST_RETURN_STATEMENT,         // return
+	AST_FUNCTION_CALL,            // function call
+	AST_STATEMENT,                // statement
+	AST_RAW_ASM,                  // raw assembly
+	AST_NO_STATEMENT,             // no statement <empty>
 } ast_t;
 
 
-typedef struct {
+typedef struct AST{
 	func_t func;
 	ASGMT asgmt;
 	ast_t type;

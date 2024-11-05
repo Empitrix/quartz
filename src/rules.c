@@ -20,4 +20,3 @@ void get_unique_lable(const char suggest[], char name[]){
 	sprintf(name, "%s%d:", suggest, ncall++);
 }
 
-

@@ -29,6 +29,11 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 	ast.refer = refer;
 
+
+	ast.left = NULL;
+	ast.right = NULL;
+	ast.next = NULL;
+
 	for(tkns->idx = 0; tkns->idx < tkns->max; tkns->idx++){
 
 		TKNS body;
@@ -151,9 +156,8 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 			memset(code, '\0', sizeof(code));
 			ast.refer = refer;
 
-			add_ast(ast);
-			// code_emission(ast, code);
-			// update_tree_lines(tidx, code);
+			code_emission(ast, code);
+			update_tree_lines(tidx, code);
 		}
 
 

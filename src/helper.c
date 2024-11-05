@@ -28,7 +28,7 @@ void skip_gap(TKNS *tkns){
 
 
 var_t get_type(TKNS *tkns){
-	var_t v;
+	var_t v = INT_VAR;
 	skip_white_space(tkns);
 
 	if(tkns->tokens[tkns->idx].type == INT_KEYWORD){
@@ -191,6 +191,29 @@ void get_brace_content(TKNS *tkns, TKNS *save){
 	}
 }
 
+
+void get_paren_content(TKNS *tkns, TKNS *save){
+	int open;
+	open = 0;
+	save->idx = 0;
+	save->max = 0;
+	int sidx = tkns->idx;
+
+	while(tkns->tokens[tkns->idx].type != PAREN_CLS || open != 0){
+
+		if(tkns->tokens[tkns->idx].type == PAREN_OPN){ open++; }
+		if(tkns->tokens[tkns->idx].type == PAREN_CLS){ open--; }
+
+		if(tkns->idx >= tkns->max){
+			tkns->idx = sidx;
+			throw_err(tkns, "syntax error", "')' or closed brace at end of the file");
+		} else {
+			save->tokens[save->max] = tkns->tokens[tkns->idx];
+			save->max++;
+			tkns->idx++;
+		}
+	}
+}
 
 
 
@@ -604,6 +627,14 @@ FOR_ASGMT for_asgmt(TKNS *tkns){
 }
 
 
+
+// void get_cond(TKNS *tkns, TKNS *dst){
+// 	skip_white_space(tkns);
+// 	pass_by_type(tkns, PAREN_OPN, "Invalid syntax", "(");
+// 	while(tkns->tokens[tkns->idx].type != PAREN_CLS)
+// 	pass_by_type(tkns, PAREN_CLS, "Invalid syntax", ")");
+// }
+
 BODY_ASGMT body_asgmt(TKNS *tkns, body_t type){
 	BODY_ASGMT wa;
 	wa.type = type;
@@ -614,7 +645,11 @@ BODY_ASGMT body_asgmt(TKNS *tkns, body_t type){
 	// (...), condition (test) part of the while loop
 	pass_by_type(tkns, PAREN_OPN, "Invalid character", "'('");
 	skip_white_space(tkns);
+	// int tidx = tkns->id;
 	wa.cond = get_statement(tkns);
+	// tkns->idx = tidx;
+	// get_paren_content(tkns, &wa.cond.body);
+
 	skip_white_space(tkns);
 	pass_by_type(tkns, PAREN_CLS, "Invalid character", "')'");
 
@@ -689,10 +724,6 @@ CNST_VAR return_asgmt(TKNS *tkns, var_t return_type){
 
 
 
-
-
-
-
 side_t get_side(TKNS *tkns, token_t split){
 	side_t side;
 	side.value = 0;
@@ -725,10 +756,7 @@ side_t get_side(TKNS *tkns, token_t split){
 	}
 
 	// end of the expression
-	// if(tkns->tokens[tkns->idx].type == PAREN_CLS || tkns->tokens[tkns->idx].type == END_SIGN){
-	if(tkns->tokens[tkns->idx].type == split){
-		return side;
-	}
+	if(tkns->tokens[tkns->idx].type == split){ return side; }
 	side.arithmetic = get_arighmetic(tkns);
 
 	return side;

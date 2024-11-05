@@ -23,11 +23,7 @@ int pop_ram(){
 
 static int main_found = 0;
 
-void code_emission(AST ast, char code[], int *tree_idx){
-
-	char tmp[MAXSIZ] = { 0 };
-
-	int current = 0;
+void code_emission(AST ast, char code[]){
 
 	switch(ast.type){
 		case AST_VARIABLE_ASSIGNMENT:
@@ -48,21 +44,10 @@ void code_emission(AST ast, char code[], int *tree_idx){
 			break;
 
 		case AST_IF_STATEMENT:
-			current = insts;
-			printf("BEGGIN: %d\n", insts);
 			if(ast.cond.op == 0){  // ==
 				strcatf(code, "\tMOVF %s, F\n", ast.cond.left); insts++;
 				strcatf(code, "\tSUBWF %s, W\n", ast.cond.right); insts++;
 				strcatf(code, "\tBTFSC STATUS, Z\n"); insts++;
-
-				printf("CURRENT: %d\n", insts);
-
-				// get_unique_lable("if_handler", shift_addr); shifted = 1;
-				// strcatf(code, "\t\t%s\n", shift_addr);
-				// shift_type = AST_IF_STATEMENT;
-
-				// strcatf(code, "\t\tNOP\n");
-				// strcatf(code, "\t\tNOP\n");
 			}
 			break;
 

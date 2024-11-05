@@ -311,3 +311,16 @@ void show_functions(void){
 	putchar('\n');
 }
 
+
+
+
+static AST asts[1024];
+static int ast_idx = 0;
+
+void add_ast(AST ast){
+	asts[ast_idx++] = ast;
+}
+
+int ast_len(){
+	return ast_idx;
+}
