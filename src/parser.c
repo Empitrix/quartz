@@ -4,7 +4,6 @@
 #include "helper.h"
 #include "global.h"
 #include "utility.h"
-#include "emission.h"
 
 static var_t return_type = INT_VAR;
 
@@ -22,8 +21,7 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 	ast.value.int_value = 0;
 
-	ast.expr.is_call = 0;
-	ast.expr.is_assign = 0;
+	ast.expr.type = EXPR_EMPTY;
 	ast.expr.mono_side = 0;
 
 
@@ -130,7 +128,7 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 				EXPR xpr = get_expr(tkns, END_SIGN);
 				ast.expr = xpr;
 				ast.type = AST_STATEMENT;
-				if(ast.expr.is_call){
+				if(ast.expr.type == EXPR_FUNCTION_CALL){
 					ast.type = AST_FUNCTION_CALL;
 					ast.func = xpr.caller;
 				}
@@ -144,10 +142,10 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 		if(if_detected && ast.type != AST_IF_STATEMENT){ if_detected = 0; }
 
 
-		show_ast_info(ast);
+		// show_ast_info(ast);
 
 		if(ast.type != AST_NO_STATEMENT){
-			char code[100];
+			char code[100] = { 0 };
 			memset(code, '\0', sizeof(code));
 			ast.refer = refer;
 
@@ -159,7 +157,8 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 		if(body.max != 0){
 			parser(&body, 1, tidx, refer);
-			ast.refer = AST_NO_STATEMENT;
+			refer = AST_NO_STATEMENT;
+			ast.refer = refer;
 		}
 	}
 	

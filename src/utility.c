@@ -291,37 +291,37 @@ int get_arighmetic(TKNS *tkns){
 void show_ast_t(ast_t t, int flush){
 	switch(t){
 	case AST_VARIABLE_ASSIGNMENT:
-		printf("AST_VARIABLE_ASSIGNMENT");
+		printf("VARIABLE_ASSIGNMENT");
 		break;
 	case AST_FOR_LOOP_ASSIGNMENT:
-		printf("AST_FOR_LOOP_ASSIGNEMNT");
+		printf("FOR_LOOP_ASSIGNEMNT");
 		break;
 	case AST_WHILE_LOOP_ASSIGNMENT:
-		printf("AST_WHILE_LOOP_ASSIGNEMNT");
+		printf("WHILE_LOOP_ASSIGNEMNT");
 		break;
 	case AST_IF_STATEMENT:
-		printf("AST_IF_STATEMENT");
+		printf("IF_STATEMENT");
 		break;
 	case AST_ELSE_STATEMENT:
-		printf("AST_ELSE_STATEMENT");
+		printf("ELSE_STATEMENT");
 		break;
 	case AST_FUNCTION_ASSIGNMENT:
-		printf("AST_FUNCTION_ASSIGNEMNT");
+		printf("FUNCTION_ASSIGNEMNT");
 		break;
 	case AST_RETURN_STATEMENT:
-		printf("AST_RETURN_STATEMENT");
+		printf("RETURN_STATEMENT");
 		break;
 	case AST_FUNCTION_CALL:
-		printf("AST_FUNCTION_CALL");
+		printf("FUNCTION_CALL");
 		break;
 	case AST_STATEMENT:
-		printf("AST_STATEMENT");
+		printf("STATEMENT");
 		break;
 	case AST_NO_STATEMENT:
-		printf("AST_NO_STATEMENT");
+		printf("NO_STATEMENT");
 		break;
 	case AST_RAW_ASM:
-		printf("AST_RAW_ASM");
+		printf("RAW_ASM");
 		break;
 	}
 	if(flush) putchar('\n');
@@ -404,10 +404,10 @@ void reorder(void){
 
 void add_tree(const char inpt[]){ strcpy(tree[tree_idx++], inpt); }
 
-void add_to_tree(int *tidx, char inpt[]){
-	strcpy(tree[*tidx], inpt);
-	*tidx = *tidx + 1;
-}
+// void add_to_tree(int *tidx, char inpt[]){
+// 	strcpy(tree[*tidx], inpt);
+// 	*tidx = *tidx + 1;
+// }
 
 // break down lines that contains '\n' e.g. "MOVLW 12\nMOVWF i" to separate lines
 void update_tree_lines(int *tree_idx, char code[]){
@@ -427,6 +427,6 @@ void update_tree_lines(int *tree_idx, char code[]){
 		}
 	}
 	for(int i = 0; i < pointer; i++){
-		add_to_tree(tree_idx, lines[i]);
+		add_to_tree(lines[i]);
 	}
 }

@@ -209,14 +209,22 @@ typedef struct {
 	CNST_VAR var;
 } side_t;
 
+
+typedef enum {
+	EXPR_EMPTY,
+	EXPR_ASSIGNABLE,
+	EXPR_FUNCTION_CALL,
+} expr_t;
+
 typedef struct {
 	side_t left;
 	side_t right;
 	operator op;
 	int mono_side;
 	char assign_name[NAME_MAX];
-	int is_assign;
-	int is_call;
+	// int is_assign;
+	// int is_call;
+	expr_t type;
 	func_t caller;
 	CNST_VAR args[10];
 } EXPR;

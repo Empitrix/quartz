@@ -23,7 +23,7 @@ int pop_ram(){
 
 static int main_found = 0;
 
-void code_emission(AST ast, char code[]){
+void code_emission(AST ast, char code[], int *length){
 
 	switch(ast.type){
 		case AST_VARIABLE_ASSIGNMENT:
@@ -31,7 +31,7 @@ void code_emission(AST ast, char code[]){
 				if(ast.asgmt.type == INT_VAR || ast.asgmt.type == CHAR_VAR){
 					int addr = pop_ram();
 					strcatf(code, "%s EQU 0x%x\nMOVLW 0x%x\nMOVWF %s", ast.asgmt.name, addr, ast.asgmt.value, ast.asgmt.name);
-					insts += 3;
+					*length = 2;
 				}
 			}
 			
@@ -45,9 +45,10 @@ void code_emission(AST ast, char code[]){
 
 		case AST_IF_STATEMENT:
 			if(ast.cond.op == 0){  // ==
-				strcatf(code, "\tMOVF %s, F\n", ast.cond.left); insts++;
-				strcatf(code, "\tSUBWF %s, W\n", ast.cond.right); insts++;
-				strcatf(code, "\tBTFSC STATUS, Z\n"); insts++;
+				strcatf(code, "\tMOVF %s, 0\n", ast.cond.left); 
+				strcatf(code, "\tXORWF %s, 0\n", ast.cond.right);
+				strcatf(code, "\tBTFSC STATUS, Z");
+				*length = 3;
 			}
 			break;
 
@@ -66,10 +67,13 @@ void code_emission(AST ast, char code[]){
 			} else {
 				sprintf(code, "\tRETLW %d", ast.value.int_value);
 			}
+
+			*length = 1;
 			break;
 
 		case AST_FUNCTION_CALL:
 			sprintf(code, "\tCALL %s", ast.expr.caller.name);
+			*length = 1;
 			break;
 
 		case AST_STATEMENT:
@@ -84,7 +88,6 @@ void code_emission(AST ast, char code[]){
 
 
 		case AST_RAW_ASM:
-			// update_tree_lines(tree_idx, ast.raw_asm);
 			sprintf(code, "%s", ast.raw_asm);
 			break;
 

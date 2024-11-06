@@ -2,9 +2,16 @@
 #include <string.h>
 
 
-char tree[1000][100];
+char tree[1024][128];
 int tree_idx = 0;
-int insts = 0;  // number of instructions (used for storing path ...)
+
+
+void add_to_tree(char inpt[]){
+	strcpy(tree[tree_idx++], inpt);
+}
+
+int get_tree_len(void){ return tree_idx; }
+
 
 char shift_addr[128] = { 0 };
 int shift_type = 11;

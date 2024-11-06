@@ -834,18 +834,17 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 	EXPR expr;
 
 	// Function
-	expr.is_call = 0;
+	expr.type = EXPR_EMPTY;
 	expr.caller.arg_len = 0;
 	expr.caller.return_type = INT_VAR;
 
 	expr.op = NO_OP;
 	expr.mono_side = 0;
-	expr.is_assign = 0;
 	expr.left = empty_side();
 	expr.right = empty_side();
 
 	if(function_call(tkns, &expr.caller, expr.args)){
-		expr.is_call = 1;
+		expr.type = EXPR_FUNCTION_CALL;
 		return expr;
 	}
 
@@ -866,10 +865,10 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 		skip_white_space(tkns);
 		if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 			tkns->idx++;
-			expr.is_assign = 1;
+			expr.type = EXPR_ASSIGNABLE;
 		} else {
 			memset(expr.assign_name, '\0', sizeof(expr.assign_name));
-			expr.is_assign = 0;
+			expr.type = EXPR_EMPTY;
 			tkns->idx = tmpidx;
 		}
 	}
