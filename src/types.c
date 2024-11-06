@@ -156,6 +156,7 @@ typedef enum {
 typedef struct {
 	char left[STR_MAX];
 	char right[STR_MAX];
+	int literal;
 	operator op;
 } STMT;
 

@@ -81,7 +81,9 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 		} else if(tkns->tokens[tkns->idx].type == WHILE_KEYWORD){
 			BODY_ASGMT ba = body_asgmt(tkns, WHILE_BODY);
 			body = ba.body;
+			ast.cond = ba.cond;
 			ast.type = AST_WHILE_LOOP_ASSIGNMENT;
+			refer = AST_WHILE_LOOP_ASSIGNMENT;
 
 		} else if(tkns->tokens[tkns->idx].type == BACKTICK_SIGN){
 			tkns->idx++;

@@ -541,6 +541,8 @@ void skip_double_op(TKNS *tkns, operator op){
 /* get_statement: detect: ...int a = 0;... in for loop*/
 STMT get_statement(TKNS *tkns){
 	STMT st;
+	st.literal = 0;
+
 	skip_white_space(tkns);
 
 	if(tkns->tokens[tkns->idx].type == END_SIGN){
@@ -572,10 +574,12 @@ STMT get_statement(TKNS *tkns){
 		} else {
 			tkns->idx++;
 		}
+		// printf("SLDKFJSLDKFJSDLKFJLSDKJFLSDKJFLKSDJFLKSDJF <<<<<<<<<<<<<<<<<<<<<<<<<<\n");
 		skip_double_op(tkns, st.op);
 		skip_white_space(tkns);
 		pass_by_type(tkns, INTEGER_VALUE, "Invalid syntax", "integer");
 		strcpy(st.right, tkns->tokens[tkns->idx - 1].word);
+		st.literal = 1;
 		// **IMPORTANT**: check for different kind of names
 	}
 
