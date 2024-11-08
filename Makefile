@@ -34,3 +34,6 @@ assemble:
 
 run:
 	@ clear && gcc ./main.c -o ./quartz && ./quartz ./test.qz && ../assembler/assembler ./out -o ../amethyst/examples/test.bin && ../amethyst/cpu -p ../amethyst/examples/test.bin -csf 10
+
+auto:
+	@ clear && gcc ./main.c -o ./quartz && ./quartz ./test.qz && ../assembler/assembler ./out -o ../amethyst/examples/test.bin && ../amethyst/cpu -p ../amethyst/examples/test.bin -cf 10

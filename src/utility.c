@@ -410,7 +410,7 @@ void add_tree(const char inpt[]){ strcpy(tree[tree_idx++], inpt); }
 // }
 
 // break down lines that contains '\n' e.g. "MOVLW 12\nMOVWF i" to separate lines
-void update_tree_lines(int *tree_idx, char code[]){
+void update_tree_lines(char code[]){
 	char lines[10][128] = { 0 };
 	char temp[128] = { 0 };
 	int tidx = 0;

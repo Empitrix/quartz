@@ -480,6 +480,14 @@ operator get_operator(TKNS *tkns){
 			}
 			return ADD_OP;
 
+		// !=
+		case EXCLAMATION_SIGN:
+			if(tkns->tokens[tkns->idx + 1].type == EQUAL_SIGN){
+				return NOT_EQUAL_OP;
+			}
+			return NO_OP;
+
+
 		case MINUS_SIGN:
 			// op = set_double_op(tkns, MINUS_SIGN, MINUS_OP, DECREMENT_OP);
 			//
@@ -533,6 +541,7 @@ void skip_double_op(TKNS *tkns, operator op){
 			op == SHIFT_RIGHT_OP ||
 			op == ADD_ASSIGN_OP ||
 			op == MINUS_ASSIGN_OP ||
+			op == NOT_EQUAL_OP ||
 			op == SHIFT_LEFT_OP){
 		tkns->idx++;
 	}

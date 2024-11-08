@@ -46,6 +46,7 @@ typedef enum token_t {
 	CARET_SIGN,        // ^
 	AND_SIGN,          // &
 	OR_SIGN,           // |
+	EXCLAMATION_SIGN,  // !
 	COMMA_SIGN,        // ,
 	BACKTICK_SIGN,     // `
 	UNKNOWN,           // Unknown `, ! ...
@@ -133,6 +134,7 @@ typedef struct {
 // expressions
 typedef enum {
 	EQUAL_OP,           // ==
+	NOT_EQUAL_OP,       // !=
 	ASSIGN_OP,          // =
 	SMALLER_OP,         // <
 	GREATOR_OP,         // >

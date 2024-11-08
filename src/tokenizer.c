@@ -174,6 +174,9 @@ void tokenizer(char inpt[], TKNS *tokens){
 				case '`':
 					ttype = BACKTICK_SIGN;
 					break;
+				case '!':
+					ttype = EXCLAMATION_SIGN;
+					break;
 				default:
 					ttype = UNKNOWN;
 					break;

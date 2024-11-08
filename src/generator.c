@@ -2,11 +2,26 @@
 #include "emission.h"
 #include "rules.h"
 #include <stdio.h>
+#include <string.h>
+
+
+int extract_to(char[], ast_t, int *);
+
+
+int get_scoop_length(int idx){
+	int i;
+	for(i = idx; i > 0; --i){
+		if(asts[i].type == AST_FUNCTION_ASSIGNMENT){ break; }
+	}
+	// printf("IDX: %d\nI: %d\n", idx, i);
+	return idx - i;
+}
 
 
 void generator(void){
 	int i;
 	int length = 0;
+	int s_length = 0;
 
 	int if_detected = 0;
 
@@ -20,11 +35,22 @@ void generator(void){
 
 		if (asts[i].type == AST_VARIABLE_ASSIGNMENT ||
 			asts[i].type == AST_RAW_ASM ||
-			asts[i].type == AST_FUNCTION_ASSIGNMENT ||
-			asts[i].type == AST_RETURN_STATEMENT) {
+			asts[i].type == AST_FUNCTION_ASSIGNMENT) {
 				code_emission(asts[i], tmpc, &l);
 				add_to_tree(tmpc);
 				length += l;
+
+		} else if(asts[i].type == AST_RETURN_STATEMENT){
+				code_emission(asts[i], tmpc, &l);
+				add_to_tree(tmpc);
+				length += l;
+
+				// printf("IDX: %d\nI: %d\n", length, get_scoop_length(i));
+				// s_length = length - get_scoop_length(i) + 1;
+				s_length += ( get_scoop_length(i) - length);
+				// s_length--;
+				// s_length = i - length;
+				// s_length = length - i;
 
 		} else if (asts[i].type == AST_IF_STATEMENT){
 			code_emission(asts[i], tmpc, &l);
@@ -49,6 +75,7 @@ void generator(void){
 			if(total_if == 0){
 				strcatf(tmpc, "NOP ; if body is empty");
 				strcpy(if_part[if_part_idx++], tmpc);
+				length++;
 			}
 
 
@@ -77,6 +104,7 @@ void generator(void){
 
 			if(total_else == 0){
 				strcatf(tmpc, "NOP ; else body is empty");
+				length++;
 				strcpy(else_part[else_part_idx++], tmpc);
 				total_else = 1;
 			}
@@ -84,6 +112,7 @@ void generator(void){
 
 			memset(tmpc, '\0', sizeof(tmpc));
 			strcatf(tmpc, "\tGOTO 0x%x", length + total_else);
+			length++;
 			add_to_tree(tmpc);
 
 			for(int j = 0; j < else_part_idx; ++j){
@@ -93,6 +122,7 @@ void generator(void){
 
 			memset(tmpc, '\0', sizeof(tmpc));
 			strcatf(tmpc, "\tGOTO 0x%x", length + total_else + total_if);
+			length++;
 			add_to_tree(tmpc);
 
 			for(int j = 0; j < if_part_idx; ++j){
@@ -100,55 +130,64 @@ void generator(void){
 			}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		} else if(asts[i].type == AST_WHILE_LOOP_ASSIGNMENT){
-			code_emission(asts[i], tmpc, &l);
-			add_to_tree(tmpc);
-			memset(tmpc, '\0', sizeof(tmpc));
+			int top_of_while = s_length - 1;
+			char while_sec[1024] = { 0 };
+			code_emission(asts[i], while_sec, &l);
+			int len = extract_to(tmpc, AST_WHILE_LOOP_ASSIGNMENT, &i);
+			update_tree_lines(tmpc);
+
+
+			add_to_tree(while_sec);
 			length += l;
 
 
+			if(len == 0){
+				add_to_tree("NOP ; NO WHILE BODY");
+				length++;
+			} else {
+				attf("\tGOTO 0x%x", top_of_while);
+				length++;
 
-			int body_idx = i + 1;
-			int body_len = 0;
-			int total = 0;
-
-			char part[100][128] = { 0 };
-			int part_idx = 0;
-
-
-			while(asts[body_idx].refer == AST_WHILE_LOOP_ASSIGNMENT){
-				char inner[256] = { 0 };
-				code_emission(asts[body_idx], inner, &body_len);
-				strcpy(part[part_idx++], inner);
-				total += body_len;
-				++body_idx;
 			}
-
-			if(total == 0){
-				strcatf(tmpc, "NOP ; if body is empty");
-				strcpy(part[part_idx++], tmpc);
-				total = 1;
-			}
-
-			i = body_idx - 1;
+			attf("\tNOP  ; End of while", top_of_while);
+			length++;
 		}
 
 	}
 
 	printf("LENGTH: %d\n", length);
 }
+
+
+
+
+int extract_to(char dst[], ast_t type, int *index){
+	int total_len = 0;
+	int i = *index;
+	int len = 0;
+	i++;  // point to next instruction
+
+	char part[100][128] = { 0 };
+	int part_idx = 0;
+
+	while(asts[i].refer == type){
+		char inner[256] = { 0 };
+		code_emission(asts[i], inner, &len);
+		strcpy(part[part_idx++], inner);
+		total_len += len;
+		++i;
+	}
+
+	for(int j = 0; j < part_idx; ++j){
+		strcat(dst, part[j]);
+		if(j != part_idx - 1){ strcat(dst, "\n"); }
+	}
+
+	// *total = part_idx;
+	*index = i - 1;  // go back by 1
+
+	return total_len;
+}
+
 

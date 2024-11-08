@@ -41,27 +41,35 @@ void code_emission(AST ast, char code[], int *length){
 			break;
 
 		case AST_WHILE_LOOP_ASSIGNMENT:
-			if(ast.cond.op == 0){  // ==
+			if(ast.cond.op == EQUAL_OP || ast.cond.op == NOT_EQUAL_OP){  // ==
 				strcatf(code, "\tMOVF %s, 0\n", ast.cond.left); 
 				if(ast.cond.literal){
 					strcatf(code, "\tXORLW %s\n", ast.cond.right);
 				} else {
 					strcatf(code, "\tXORWF %s, 0\n", ast.cond.right);
 				}
-				strcatf(code, "\tBTFSC STATUS, Z");
+				if(ast.cond.op == NOT_EQUAL_OP){
+					strcatf(code, "\tBTFSS STATUS, Z");
+				} else {
+					strcatf(code, "\tBTFSC STATUS, Z");
+				}
 				*length = 3;
 			}
 			break;
 
 		case AST_IF_STATEMENT:
-			if(ast.cond.op == 0){  // ==
+			if(ast.cond.op == EQUAL_OP || ast.cond.op == NOT_EQUAL_OP){  // ==
 				strcatf(code, "\tMOVF %s, 0\n", ast.cond.left); 
 				if(ast.cond.literal){
 					strcatf(code, "\tXORLW %s\n", ast.cond.right);
 				} else {
 					strcatf(code, "\tXORWF %s, 0\n", ast.cond.right);
 				}
-				strcatf(code, "\tBTFSC STATUS, Z");
+				if(ast.cond.op == NOT_EQUAL_OP){
+					strcatf(code, "\tBTFSS STATUS, Z");
+				} else {
+					strcatf(code, "\tBTFSC STATUS, Z");
+				}
 				*length = 3;
 			}
 			break;
