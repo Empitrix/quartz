@@ -23,7 +23,7 @@ int pop_ram(){
 
 static int main_found = 0;
 
-void code_emission(AST ast, char code[], int *length){
+void code_emission(AST ast, char code[], int *length, char label[]){
 
 	switch(ast.type){
 		case AST_VARIABLE_ASSIGNMENT:
@@ -34,11 +34,8 @@ void code_emission(AST ast, char code[], int *length){
 					*length = 2;
 				}
 			}
-			
 			break;
 
-		case AST_FOR_LOOP_ASSIGNMENT:
-			break;
 
 		case AST_WHILE_LOOP_ASSIGNMENT:
 			if(ast.cond.op == EQUAL_OP || ast.cond.op == NOT_EQUAL_OP){  // ==
@@ -58,6 +55,35 @@ void code_emission(AST ast, char code[], int *length){
 				*length = 3;
 			}
 			break;
+
+		case AST_FOR_LOOP_ASSIGNMENT:
+
+			strcatf(code, "\tMOVLW %s\n\tMOVWF %s\n", ast.for_asgmt.init.right, ast.for_asgmt.init.left);
+			*length = 2;
+			
+			get_label(label);
+			// attf("%s\n", label);
+			strcatf(code, "%s:\n", label);
+
+
+			if(ast.for_asgmt.cond.op == EQUAL_OP || ast.for_asgmt.cond.op == NOT_EQUAL_OP){  // ==
+				strcatf(code, "\tMOVF %s, 0\n", ast.for_asgmt.cond.left); 
+				if(ast.for_asgmt.cond.literal){
+					strcatf(code, "\tXORLW %s\n", ast.for_asgmt.cond.right);
+				} else {
+					strcatf(code, "\tXORWF %s, 0\n", ast.for_asgmt.cond.right);
+				}
+				if(ast.for_asgmt.cond.op == NOT_EQUAL_OP){
+					// strcatf(code, "\tBTFSS STATUS, Z");
+					strcatf(code, "\tBTFSC STATUS, Z");
+				} else {
+					// strcatf(code, "\tBTFSC STATUS, Z");
+					strcatf(code, "\tBTFSS STATUS, Z");
+				}
+				*length = 3;
+			}
+			break;
+
 
 		case AST_IF_STATEMENT:
 			if(ast.cond.op == EQUAL_OP || ast.cond.op == NOT_EQUAL_OP){  // ==

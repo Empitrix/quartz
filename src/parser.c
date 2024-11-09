@@ -76,6 +76,11 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 			FOR_ASGMT fa = for_asgmt(tkns);
 			body = fa.body;
 			ast.type = AST_FOR_LOOP_ASSIGNMENT;
+			ast.for_asgmt = fa;
+			// ast.init = fa.init;
+			// ast.cond = fa.cond;
+
+			refer = AST_FOR_LOOP_ASSIGNMENT;
 
 		// Check for 'while(...){...}'
 		} else if(tkns->tokens[tkns->idx].type == WHILE_KEYWORD){

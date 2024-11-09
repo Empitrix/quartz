@@ -35,12 +35,12 @@ void generator(void){
 		if (asts[i].type == AST_VARIABLE_ASSIGNMENT ||
 			asts[i].type == AST_RAW_ASM ||
 			asts[i].type == AST_FUNCTION_ASSIGNMENT) {
-				code_emission(asts[i], tmpc, &l);
+				code_emission(asts[i], tmpc, &l, NULL);
 				add_to_tree(tmpc);
 				length += l;
 
 		} else if(asts[i].type == AST_RETURN_STATEMENT){
-				code_emission(asts[i], tmpc, &l);
+				code_emission(asts[i], tmpc, &l, NULL);
 				add_to_tree(tmpc);
 				length += l;
 
@@ -52,7 +52,7 @@ void generator(void){
 				// s_length = length - i;
 
 		} else if (asts[i].type == AST_IF_STATEMENT){
-			code_emission(asts[i], tmpc, &l);
+			code_emission(asts[i], tmpc, &l, NULL);
 			add_to_tree(tmpc);
 			memset(tmpc, '\0', sizeof(tmpc));
 			length += l;
@@ -65,7 +65,7 @@ void generator(void){
 
 			while(asts[if_idx].refer == AST_IF_STATEMENT){
 				char inner[256] = { 0 };
-				code_emission(asts[if_idx], inner, &if_lenght);
+				code_emission(asts[if_idx], inner, &if_lenght, NULL);
 				strcpy(if_part[if_part_idx++], inner);
 				total_if += if_lenght;
 				++if_idx;
@@ -94,7 +94,7 @@ void generator(void){
 				while(asts[else_idx].refer == AST_ELSE_STATEMENT){
 					if(asts[else_idx].type == AST_ELSE_STATEMENT){ else_idx++; continue; }
 					char inner[256] = { 0 };
-					code_emission(asts[else_idx], inner, &else_lenght);
+					code_emission(asts[else_idx], inner, &else_lenght, NULL);
 					strcpy(else_part[else_part_idx++], inner);
 					total_else += else_lenght;
 					++else_idx;
@@ -139,7 +139,7 @@ void generator(void){
 			attf("%s:", top_label);
 
 			char while_sec[1024] = { 0 };
-			code_emission(asts[i], while_sec, &l);
+			code_emission(asts[i], while_sec, &l, NULL);
 			int len = extract_to(tmpc, AST_WHILE_LOOP_ASSIGNMENT, &i);
 
 			add_to_tree(while_sec);
@@ -158,6 +158,59 @@ void generator(void){
 			attf("%s:", bottom_label);
 
 			length++;
+
+
+
+		} else if(asts[i].type == AST_FOR_LOOP_ASSIGNMENT){
+			int si = i;   // save current state of i 
+			char top_label[20];
+			char bottom_label[20];
+			// get_label(top_label);
+			get_label(bottom_label);
+
+			// attf("%s:", top_label);
+
+			char for_sec[1024] = { 0 };
+			code_emission(asts[i], for_sec, &l, top_label);
+			int len = extract_to(tmpc, AST_FOR_LOOP_ASSIGNMENT, &i);
+
+
+			// printf("LENGTH: %d <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n", len);
+
+			// if(len == 0){ return; }
+
+			add_to_tree(for_sec);
+			length += l;
+
+			if(len == 0){
+				add_to_tree("NOP ; NO FOR BODY");
+				length++;
+			} else {
+				attf("\tGOTO %s", bottom_label);
+				length++;
+			}
+
+			update_tree_lines(tmpc);
+			// attf("\tGOTO %s", top_label);
+			// length++;
+
+
+			// printf("DETECTED OP: %d\n", asts[i].for_asgmt.iter.op);
+
+			// printf("FOR LOOP ITER PARASER: %s\n", asts[i].for_asgmt.iter.left);
+
+			if(asts[si].for_asgmt.iter.op == INCREMENT_OP){
+				attf("\tINCF %s, 1", asts[si].for_asgmt.iter.left);
+				length++;
+			} else {
+				attf("\tDECF %s, 1", asts[si].for_asgmt.iter.left);
+				length++;
+			}
+
+			attf("\tGOTO %s", top_label);
+			length++;
+
+			attf("%s:", bottom_label);
 		}
 
 	}
@@ -179,7 +232,7 @@ int extract_to(char dst[], ast_t type, int *index){
 
 	while(asts[i].refer == type){
 		char inner[256] = { 0 };
-		code_emission(asts[i], inner, &len);
+		code_emission(asts[i], inner, &len, NULL);
 		strcpy(part[part_idx++], inner);
 		total_len += len;
 		++i;

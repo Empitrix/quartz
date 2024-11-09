@@ -259,6 +259,8 @@ typedef struct AST{
 	CNST_VAR value;
 	ast_t refer;
 	STMT cond;
+	STMT init;
+	FOR_ASGMT for_asgmt;
 } AST;
 
 

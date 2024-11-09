@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+EXPR get_expr(TKNS *, token_t);
 
 /* pass_by_type: Check if the token has the given type; if it does, move to the next one; otherwise, throw an error. */
 void pass_by_type(TKNS *tkns, token_t type, const char *msg, const char *exp){
@@ -474,9 +475,12 @@ operator set_double_op(TKNS *tkns, token_t tok, operator s, operator d){
 operator get_operator(TKNS *tkns){
 	operator op = NO_OP;
 	switch(tkns->tokens[tkns->idx].type){
+
 		case PLUS_SIGN:
 			if(tkns->tokens[tkns->idx + 1].type == EQUAL_SIGN){
 				return ADD_ASSIGN_OP;
+			} else if (tkns->tokens[tkns->idx + 1].type == PLUS_SIGN){
+				return INCREMENT_OP;
 			}
 			return ADD_OP;
 
@@ -583,7 +587,7 @@ STMT get_statement(TKNS *tkns){
 		} else {
 			tkns->idx++;
 		}
-		// printf("SLDKFJSLDKFJSDLKFJLSDKJFLSDKJFLKSDJFLKSDJF <<<<<<<<<<<<<<<<<<<<<<<<<<\n");
+		// asdflkjasdflkj
 		skip_double_op(tkns, st.op);
 		skip_white_space(tkns);
 		pass_by_type(tkns, INTEGER_VALUE, "Invalid syntax", "integer");
@@ -606,6 +610,8 @@ FOR_ASGMT for_asgmt(TKNS *tkns){
 	pass_by_type(tkns, PAREN_OPN, "Invalid character", "'('");
 	skip_white_space(tkns);
 	fr.init = get_statement(tkns);
+	// fr.init = get_expr(tkns, SEMICOLON_SIGN);
+	// tkns->idx++;
 
 	skip_white_space(tkns);
 
@@ -613,13 +619,25 @@ FOR_ASGMT for_asgmt(TKNS *tkns){
 	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
 	skip_white_space(tkns);
 	fr.cond = get_statement(tkns);
+	// fr.iter = get_expr(tkns, SEMICOLON_SIGN);
+	// tkns->idx++;
 
 	skip_white_space(tkns);
 
 	// iterator
 	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
 	skip_white_space(tkns);
+
 	fr.iter = get_statement(tkns);
+	// printf("FOR LOOP ITER PARASER: %s\n", fr.iter.left);
+	// fr.iter = get_expr(tkns, PAREN_CLS);
+	// tkns->idx++;
+
+	// EXPR e = get_expr(tkns, PAREN_CLS);
+	// printf("FOR LOOP ITERATION EXPRESSION: %d\n", e.op);
+	// printf("FOR LOOP ITERATION VALUE: %s\n", e.left.var.name);
+
+
 	skip_white_space(tkns);
 
 	// end ')'
