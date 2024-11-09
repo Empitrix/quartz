@@ -8,20 +8,19 @@
 int extract_to(char[], ast_t, int *);
 
 
-int get_scoop_length(int idx){
-	int i;
-	for(i = idx; i > 0; --i){
-		if(asts[i].type == AST_FUNCTION_ASSIGNMENT){ break; }
-	}
-	// printf("IDX: %d\nI: %d\n", idx, i);
-	return idx - i;
-}
+// int get_scoop_length(int idx){
+// 	int i;
+// 	for(i = idx; i > 0; --i){
+// 		if(asts[i].type == AST_FUNCTION_ASSIGNMENT){ break; }
+// 	}
+// 	// printf("IDX: %d\nI: %d\n", idx, i);
+// 	return idx - i;
+// }
 
 
 void generator(void){
 	int i;
 	int length = 0;
-	int s_length = 0;
 
 	int if_detected = 0;
 
@@ -47,7 +46,7 @@ void generator(void){
 
 				// printf("IDX: %d\nI: %d\n", length, get_scoop_length(i));
 				// s_length = length - get_scoop_length(i) + 1;
-				s_length += ( get_scoop_length(i) - length);
+				// s_length += ( get_scoop_length(i) - length);
 				// s_length--;
 				// s_length = i - length;
 				// s_length = length - i;
@@ -131,26 +130,33 @@ void generator(void){
 
 
 		} else if(asts[i].type == AST_WHILE_LOOP_ASSIGNMENT){
-			int top_of_while = s_length - 1;
+
+			char top_label[20];
+			char bottom_label[20];
+			get_label(top_label);
+			get_label(bottom_label);
+
+			attf("%s:", top_label);
+
 			char while_sec[1024] = { 0 };
 			code_emission(asts[i], while_sec, &l);
 			int len = extract_to(tmpc, AST_WHILE_LOOP_ASSIGNMENT, &i);
-			update_tree_lines(tmpc);
-
 
 			add_to_tree(while_sec);
 			length += l;
-
 
 			if(len == 0){
 				add_to_tree("NOP ; NO WHILE BODY");
 				length++;
 			} else {
-				attf("\tGOTO 0x%x", top_of_while);
+				attf("\tGOTO %s", bottom_label);
 				length++;
-
 			}
-			attf("\tNOP  ; End of while", top_of_while);
+
+			update_tree_lines(tmpc);
+			attf("\tGOTO %s", top_label);
+			attf("%s:", bottom_label);
+
 			length++;
 		}
 

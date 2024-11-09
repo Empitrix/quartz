@@ -31,10 +31,7 @@ int shifted = 0;
 
 static int ncall = 0;
 
-void get_unique_lable(const char suggest[], char name[]){
-	if(suggest == NULL || strcmp(suggest, "") == 0){
-		suggest = "handler";
-	}
-	sprintf(name, "%s%d:", suggest, ncall++);
+void get_label(char name[]){
+	sprintf(name, ".L%d", ncall++);
 }
 

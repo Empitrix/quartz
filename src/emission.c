@@ -49,9 +49,11 @@ void code_emission(AST ast, char code[], int *length){
 					strcatf(code, "\tXORWF %s, 0\n", ast.cond.right);
 				}
 				if(ast.cond.op == NOT_EQUAL_OP){
-					strcatf(code, "\tBTFSS STATUS, Z");
-				} else {
+					// strcatf(code, "\tBTFSS STATUS, Z");
 					strcatf(code, "\tBTFSC STATUS, Z");
+				} else {
+					// strcatf(code, "\tBTFSC STATUS, Z");
+					strcatf(code, "\tBTFSS STATUS, Z");
 				}
 				*length = 3;
 			}
