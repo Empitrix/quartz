@@ -138,20 +138,12 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 					int addr;
 					ARG arg = get_arg_struct(refer_func, var.name);
 					addr = arg.addr;
-					// printf("NAME: %s\n ADDRESS: %d\n", var.name, addr);
-
-					// strcatf(raw_asm, "0x%x", addr);
 					strcatf(raw_asm, "%s", arg.name);
-
-					// tkns->idx++;
-					// printf("FUNCTION: %s ---- NAME: %s\n", refer_func.name, var.name);
 					continue;
 				}
 
 
 				strcat(raw_asm, tkns->tokens[tkns->idx].word);
-				// printf("IN HERE: %s\n", tkns->tokens[tkns->idx].word);
-
 				if(tkns->tokens[tkns->idx].type == NEWLINE){
 					throw_err(tkns, "syntax error", "`");
 				}

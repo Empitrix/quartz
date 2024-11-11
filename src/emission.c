@@ -129,19 +129,29 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 
 		case AST_FUNCTION_CALL:
 			for(int i = 0; i < ast.func.arg_len; ++i){
+
 				assign_arg(code, ast.func.args[i]);
 
-				if(ast.expr.args[i].type == INT_VAR){
-					strcatf(code, "\tMOVLW %d;\n", ast.expr.args[i].int_value);
-				} else if(ast.expr.args[i].type == CHAR_VAR){
-					strcatf(code, "\tMOVLW '%c';\n", ast.expr.args[i].char_value);
-				} else if(ast.expr.args[i].type == STR_VAR){
+				// Pass variable
+				if(strcmp(ast.expr.args[i].name, "") != 0){
+					strcatf(code, "\tMOVF %s, 0\n", ast.expr.args[i].name);
+					strcatf(code, "\tMOVWF %s\n", ast.func.args[i].name);
+
+				// Pass const
 				} else {
-					strcatf(code, "\tMOVF %d, 0;\n", asm_var_addr(ast.func.args[i].name));
-					strcatf(code, "\tMOVWF %s;\n", ast.func.args[i].name);
+					if(ast.expr.args[i].type == INT_VAR){
+						strcatf(code, "\tMOVLW %d;\n", ast.expr.args[i].int_value);
+					} else if(ast.expr.args[i].type == CHAR_VAR){
+						strcatf(code, "\tMOVLW '%c';\n", ast.expr.args[i].char_value);
+					} else if(ast.expr.args[i].type == STR_VAR){
+					} else {
+						strcatf(code, "\tMOVF %d, 0;\n", asm_var_addr(ast.func.args[i].name));
+						strcatf(code, "\tMOVWF %s;\n", ast.func.args[i].name);
+					}
+
+					strcatf(code, "\tMOVWF %s\n", ast.func.args[i].name);
 				}
 
-				strcatf(code, "\tMOVWF %s\n", ast.func.args[i].name);
 			}
 
 			strcatf(code, "\tCALL %s", ast.expr.caller.name);
@@ -151,9 +161,15 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 		case AST_STATEMENT:
 			if(ast.expr.mono_side){
 				if(ast.expr.left.arithmetic == 1){
-					sprintf(code, "\tINCF %s, W", ast.expr.left.var.name);
+					sprintf(code, "\tINCF %s, 1", ast.expr.left.var.name);
 				} else if (ast.expr.left.arithmetic == -1){
-					sprintf(code, "\tDECF %s, W", ast.expr.left.var.name);
+					sprintf(code, "\tDECF %s, 1", ast.expr.left.var.name);
+				}
+
+			} else {
+				if(ast.expr.type == EXPR_ASSIGNABLE){
+					strcatf(code, "\tMOVLW 0x%x\n", ast.expr.left.value);
+					strcatf(code, "\tMOVWF %s\n", ast.expr.assign_name);
 				}
 			}
 			break;

@@ -34,6 +34,7 @@ void generator(void){
 
 		if (asts[i].type == AST_VARIABLE_ASSIGNMENT ||
 			asts[i].type == AST_RAW_ASM ||
+			asts[i].type == AST_FUNCTION_CALL ||
 			asts[i].type == AST_FUNCTION_ASSIGNMENT) {
 				code_emission(asts[i], tmpc, &l, NULL);
 				add_to_tree(tmpc);
@@ -209,6 +210,15 @@ void generator(void){
 			length++;
 
 			attf("%s:", bottom_label);
+
+
+
+
+		} else if(asts[i].type == AST_STATEMENT){
+			code_emission(asts[i], tmpc, &l, NULL);
+			add_to_tree(tmpc);
+			length += l;
+
 		}
 
 	}

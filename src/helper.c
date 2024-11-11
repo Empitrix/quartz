@@ -620,8 +620,6 @@ FOR_ASGMT for_asgmt(TKNS *tkns){
 	pass_by_type(tkns, PAREN_OPN, "Invalid character", "'('");
 	skip_white_space(tkns);
 	fr.init = get_statement(tkns);
-	// fr.init = get_expr(tkns, SEMICOLON_SIGN);
-	// tkns->idx++;
 
 	skip_white_space(tkns);
 
@@ -629,8 +627,6 @@ FOR_ASGMT for_asgmt(TKNS *tkns){
 	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
 	skip_white_space(tkns);
 	fr.cond = get_statement(tkns);
-	// fr.iter = get_expr(tkns, SEMICOLON_SIGN);
-	// tkns->idx++;
 
 	skip_white_space(tkns);
 
@@ -639,14 +635,6 @@ FOR_ASGMT for_asgmt(TKNS *tkns){
 	skip_white_space(tkns);
 
 	fr.iter = get_statement(tkns);
-	// printf("FOR LOOP ITER PARASER: %s\n", fr.iter.left);
-	// fr.iter = get_expr(tkns, PAREN_CLS);
-	// tkns->idx++;
-
-	// EXPR e = get_expr(tkns, PAREN_CLS);
-	// printf("FOR LOOP ITERATION EXPRESSION: %d\n", e.op);
-	// printf("FOR LOOP ITERATION VALUE: %s\n", e.left.var.name);
-
 
 	skip_white_space(tkns);
 
@@ -793,7 +781,9 @@ side_t get_side(TKNS *tkns, token_t split){
 			throw_err(tkns, "Invalid value", "int (0 to 255)");
 		}
 	} else {
-		throw_err(tkns, "Invalid expression value", NULL);
+		if(tkns->tokens[tkns->idx].type != split){
+			throw_err(tkns, "Invalid expression value", NULL);
+		}
 	}
 
 	// end of the expression
@@ -885,7 +875,7 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 
 	expr.op = NO_OP;
 	expr.args_len = 0;
-	expr.mono_side = 0;
+	expr.mono_side = 1;
 	expr.left = empty_side();
 	expr.right = empty_side();
 
@@ -912,6 +902,7 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 		if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 			tkns->idx++;
 			expr.type = EXPR_ASSIGNABLE;
+			expr.mono_side = 0;
 		} else {
 			memset(expr.assign_name, '\0', sizeof(expr.assign_name));
 			expr.type = EXPR_EMPTY;
@@ -930,9 +921,11 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 
 	skip_white_space(tkns);
 
+	// printf("CALLED <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< (%s)\n", tkns->tokens[tkns->idx].word);
 
-	if(tkns->tokens[tkns->idx].type == endtok){ expr.mono_side = 1; return expr; }
+	if(tkns->tokens[tkns->idx].type == endtok){ expr.mono_side = 0; return expr; }
 	
+
 	skip_white_space(tkns);
 
 
