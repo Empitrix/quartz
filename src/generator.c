@@ -175,8 +175,6 @@ void generator(void){
 			int len = extract_to(tmpc, AST_FOR_LOOP_ASSIGNMENT, &i);
 
 
-			// printf("LENGTH: %d <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n", len);
-
 			// if(len == 0){ return; }
 
 			add_to_tree(for_sec);

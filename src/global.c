@@ -28,6 +28,25 @@ void save_func_global(func_t func){
 
 
 
+
+
+
+static ASM_VAR asm_vars[16];
+static int asm_vars_idx = 0;
+void add_asm_var(ASM_VAR var){
+	asm_vars[asm_vars_idx++] = var;
+}
+
+
+int asm_var_addr(char name[]){
+	for(int i = 0; i < asm_vars_idx; ++i){
+		if(strcmp(asm_vars[i].name, name) == 0){
+			return asm_vars[i].addr;
+		}
+	}
+	return 0;
+}
+
 /* ---------------------- ALL OF THE NAMES ---------------------- */
 
 static char saved_names[256][NAME_MAX];
@@ -198,6 +217,7 @@ int save_variable(VAR v){
 }
 
 int get_variable(char name[], target_t t, VAR *var){
+	// printf("SCOOP TYPE: %d\n", t);
 	int max = t == GLOBAL_TARGET ? gvar_idx : svar_idx;
 	for(int i = 0; i < max; ++i){
 		if(strcmp((t == GLOBAL_TARGET ? global_var : scoop_var)[i].name, name) == 0){

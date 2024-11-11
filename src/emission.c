@@ -3,6 +3,7 @@
 #include "types.h"
 #include "rules.h"
 #include "utility.h"
+#include "global.h"
 
 // RAM address
 static int ram_stack[MAX_RAM + 1] = {0xA, 0xB, 0xC, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x00};
@@ -23,14 +24,20 @@ int pop_ram(){
 
 static int main_found = 0;
 
+
+void assign_arg(char buff[], ARG arg){
+	strcatf(buff, "\t%s EQU 0x%x\n", arg.name, pop_ram());
+}
+
+
 void code_emission(AST ast, char code[], int *length, char label[]){
 
 	switch(ast.type){
 		case AST_VARIABLE_ASSIGNMENT:
 			if(ast.asgmt.is_func == 0 && ast.asgmt.is_str == 0){
 				if(ast.asgmt.type == INT_VAR || ast.asgmt.type == CHAR_VAR){
-					int addr = pop_ram();
-					strcatf(code, "%s EQU 0x%x\nMOVLW 0x%x\nMOVWF %s", ast.asgmt.name, addr, ast.asgmt.value, ast.asgmt.name);
+					strcatf(code, "%s EQU 0x%x\nMOVLW 0x%x\nMOVWF %s",
+						ast.asgmt.name, ast.asgmt.address, ast.asgmt.value, ast.asgmt.name);
 					*length = 2;
 				}
 			}
@@ -46,7 +53,6 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 					strcatf(code, "\tXORWF %s, 0\n", ast.cond.right);
 				}
 				if(ast.cond.op == NOT_EQUAL_OP){
-					// strcatf(code, "\tBTFSS STATUS, Z");
 					strcatf(code, "\tBTFSC STATUS, Z");
 				} else {
 					// strcatf(code, "\tBTFSC STATUS, Z");
@@ -122,7 +128,23 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 			break;
 
 		case AST_FUNCTION_CALL:
-			sprintf(code, "\tCALL %s", ast.expr.caller.name);
+			for(int i = 0; i < ast.func.arg_len; ++i){
+				assign_arg(code, ast.func.args[i]);
+
+				if(ast.expr.args[i].type == INT_VAR){
+					strcatf(code, "\tMOVLW %d;\n", ast.expr.args[i].int_value);
+				} else if(ast.expr.args[i].type == CHAR_VAR){
+					strcatf(code, "\tMOVLW '%c';\n", ast.expr.args[i].char_value);
+				} else if(ast.expr.args[i].type == STR_VAR){
+				} else {
+					strcatf(code, "\tMOVF %d, 0;\n", asm_var_addr(ast.func.args[i].name));
+					strcatf(code, "\tMOVWF %s;\n", ast.func.args[i].name);
+				}
+
+				strcatf(code, "\tMOVWF %s\n", ast.func.args[i].name);
+			}
+
+			strcatf(code, "\tCALL %s", ast.expr.caller.name);
 			*length = 1;
 			break;
 
@@ -138,7 +160,7 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 
 
 		case AST_RAW_ASM:
-			sprintf(code, "%s", ast.raw_asm);
+			sprintf(code, "\t%s  ; Raw ASM", ast.raw_asm);
 			break;
 
 		case AST_NO_STATEMENT: break;

@@ -153,6 +153,8 @@ void get_arg(TKNS *tkns, ARG args[], int *arg_len){
 
 		contains_str_type(tkns, &args[*arg_len].type);
 
+		// args->addr = pop_ram();
+		// args->addr = 0;
 		*arg_len = *arg_len + 1;
 
 		if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
@@ -360,6 +362,7 @@ void u8_var_asgmt(TKNS *tkns, int *value, var_t type){
 ASGMT var_asgmt(TKNS *tkns){
 	ASGMT ae;
 	ae.is_str = 0;
+	ae.address = 0;
 	ae.is_func = 0;
 	ae.value = 0;
 	ae.type = INT_VAR;
@@ -391,6 +394,13 @@ ASGMT var_asgmt(TKNS *tkns){
 		ae.is_func = 1;
 		tkns->idx++;
 		get_arg(tkns, ae.func.args, &ae.func.arg_len);
+		for(int i = 0; i < ae.func.arg_len; ++i){
+			VAR v;
+			strcpy(v.name, ae.func.args[i].name);
+			v.type = ae.func.args[i].type;
+			v.value = 255;
+			save_scoop_variable(v);
+		}
 		pass_by_type(tkns, PAREN_CLS, "Invalid character", "')'");
 		skip_white_space(tkns);
 		pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
@@ -813,14 +823,13 @@ CNST_VAR skip_by_arg(TKNS *tkns, ARG arg){
 		type_to_str(arg.type, type);
 		throw_err(tkns, "Invalid type", type);
 	}
-
 	return var;
 }
 
 
-int function_call(TKNS *tkns, func_t *func, CNST_VAR *arguments){
+int function_call(TKNS *tkns, func_t *func, CNST_VAR *arguments, int *idx){
 	int tmpidx = tkns->idx;
-	int idx = 0;
+	// int idx = 0;
 
 	skip_white_space(tkns);
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
@@ -830,12 +839,17 @@ int function_call(TKNS *tkns, func_t *func, CNST_VAR *arguments){
 			skip_white_space(tkns);
 
 			pass_by_type(tkns, PAREN_OPN, "Invalid syntax", "'('");
-			tkns->idx++;
+			// tkns->idx++;
 			if(func->arg_len != 0){
 
 				for(int i = 0; i < func->arg_len; ++i){
 					CNST_VAR avar = skip_by_arg(tkns, func->args[i]);
-					arguments[idx++] = avar;
+					// func->args[i].addr = pop_ram();
+					func->args[i].addr = 0; 
+					// printf("POPED ADDRESS: %d\n", func->args[i].addr);
+					arguments[*idx] = avar;
+					*idx = *idx + 1;
+					// printf("IDX: %d\n", idx);
 
 					skip_white_space(tkns);
 					if(i == func->arg_len - 1){
@@ -870,11 +884,12 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 	expr.caller.return_type = INT_VAR;
 
 	expr.op = NO_OP;
+	expr.args_len = 0;
 	expr.mono_side = 0;
 	expr.left = empty_side();
 	expr.right = empty_side();
 
-	if(function_call(tkns, &expr.caller, expr.args)){
+	if(function_call(tkns, &expr.caller, expr.args, &expr.args_len)){
 		expr.type = EXPR_FUNCTION_CALL;
 		return expr;
 	}
@@ -938,3 +953,28 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 	return expr;
 }
 
+
+
+CNST_VAR get_value(TKNS *tkns){
+	CNST_VAR var;
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		if(variable_exits(tkns->tokens[tkns->idx].word, &var) == 0){
+			throw_err(tkns, "Variable not found", NULL);
+		}
+		tkns->idx++;
+	} else {
+		var = const_var(tkns);
+	}
+	return var;
+}
+
+
+
+ARG get_arg_struct(func_t f, char name[]){
+	for(int i = 0; i < f.arg_len; ++i){
+		if(strcmp(f.args[i].name, name) == 0){
+			return f.args[i];
+		}
+	}
+	return (ARG){.addr = 0, .type = INT_VAR};
+}

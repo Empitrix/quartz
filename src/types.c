@@ -78,6 +78,7 @@ typedef enum {
 typedef struct {
 	char name[NAME_MAX];
 	var_t type;
+	int addr;
 } ARG;
 
 
@@ -96,6 +97,7 @@ typedef struct {
 	int value;             // int/char value
 	int is_func;           // is function
 	int is_str;            // is string
+	int address;           // RAM's Address
 	func_t func;           // function's object
 	var_t type;            // vairlabes type
 } ASGMT;
@@ -230,6 +232,7 @@ typedef struct {
 	expr_t type;
 	func_t caller;
 	CNST_VAR args[10];
+	int args_len;
 } EXPR;
 
 
@@ -263,4 +266,11 @@ typedef struct AST{
 	FOR_ASGMT for_asgmt;
 } AST;
 
+
+
+
+typedef struct {
+	char name[32];
+	int addr;
+} ASM_VAR;
 

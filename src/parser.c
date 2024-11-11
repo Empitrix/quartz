@@ -4,11 +4,18 @@
 #include "helper.h"
 #include "global.h"
 #include "utility.h"
+#include "emission.h"
 
 static var_t return_type = INT_VAR;
 
+static ast_t main_refer = AST_NO_STATEMENT;
+func_t refer_func;
+
 void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 	AST ast;
+
+	// refer_func.arg_len = 0;
+	// refer_func.return_type = INT_VAR;
 
 	int if_detected = 0;
 
@@ -50,6 +57,9 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 				save_func_global(asgmt.func);
 				ast.func = asgmt.func;
 				ast.type = AST_FUNCTION_ASSIGNMENT;
+				refer = AST_FUNCTION_ASSIGNMENT;
+				main_refer = AST_FUNCTION_ASSIGNMENT;
+				refer_func = ast.func;
 
 			} else {
 				VAR v;
@@ -61,7 +71,19 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 				} else {
 					strcpy(v.str_value, asgmt.str);
 				}
-				save_global_variable(v);
+				if(refer == AST_NO_STATEMENT){
+					save_global_variable(v);
+				} else {
+					save_scoop_variable(v);
+				}
+
+				asgmt.address = pop_ram();
+				ASM_VAR avar;
+				strcpy(avar.name, v.name);
+				avar.addr = asgmt.address;
+				add_asm_var(avar);
+
+				// ast.asgmt.name
 				ast.type = AST_VARIABLE_ASSIGNMENT;
 			}
 
@@ -93,8 +115,43 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 		} else if(tkns->tokens[tkns->idx].type == BACKTICK_SIGN){
 			tkns->idx++;
 			char raw_asm[128] = { 0 };
+			int island = 0;
+			int island_open = 0;
 			while(tkns->tokens[tkns->idx].type != BACKTICK_SIGN){
+
+				if(tkns->tokens[tkns->idx].type == BRACE_OPN){
+					tkns->idx++;
+					island++;
+					island_open = 1;
+					continue;
+				}
+
+				if(tkns->tokens[tkns->idx].type == BRACE_CLS){
+					tkns->idx++;
+					island--;
+					island_open = 0;
+					continue;
+				}
+
+				if(tkns->tokens[tkns->idx].type == IDENTIFIER && island_open == 1){
+					CNST_VAR var = get_value(tkns);
+					int addr;
+					ARG arg = get_arg_struct(refer_func, var.name);
+					addr = arg.addr;
+					// printf("NAME: %s\n ADDRESS: %d\n", var.name, addr);
+
+					// strcatf(raw_asm, "0x%x", addr);
+					strcatf(raw_asm, "%s", arg.name);
+
+					// tkns->idx++;
+					// printf("FUNCTION: %s ---- NAME: %s\n", refer_func.name, var.name);
+					continue;
+				}
+
+
 				strcat(raw_asm, tkns->tokens[tkns->idx].word);
+				// printf("IN HERE: %s\n", tkns->tokens[tkns->idx].word);
+
 				if(tkns->tokens[tkns->idx].type == NEWLINE){
 					throw_err(tkns, "syntax error", "`");
 				}
@@ -129,6 +186,8 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 			CNST_VAR rtrn = return_asgmt(tkns, return_type);
 			ast.type = AST_RETURN_STATEMENT;
 			ast.value = rtrn;
+			// refer = AST_NO_STATEMENT;
+			main_refer = AST_NO_STATEMENT;
 
 		} else {
 			if(allow_expression){
@@ -164,7 +223,8 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 		if(body.max != 0){
 			parser(&body, 1, tidx, refer);
-			refer = AST_NO_STATEMENT;
+			// refer = AST_NO_STATEMENT;
+			refer = main_refer;
 			ast.refer = refer;
 		}
 	}
