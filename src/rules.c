@@ -29,9 +29,18 @@ int shift_type = 11;
 int shifted = 0;
 
 
+// 
+
 static int ncall = 0;
 
-void get_label(char name[]){
-	sprintf(name, ".L%d", ncall++);
+static char buffer[256][20];
+
+const char *get_label(void){
+	snprintf(buffer[ncall], sizeof(buffer), ".L%d", ncall);
+	ncall++;
+	return buffer[ncall - 1];
 }
 
+void get_label_buff(char name[]){
+	sprintf(name, ".L%d", ncall++);
+}

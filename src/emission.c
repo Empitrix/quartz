@@ -25,8 +25,22 @@ int pop_ram(){
 static int main_found = 0;
 
 
+static char assigned_args[MAX_ARG][NAME_MAX] = { 0 };
+static int aa_idx = 0;
+
+int arg_name_exists(char name[]){
+	for(int i = 0; i < aa_idx; ++i){
+		if(strcmp(assigned_args[i], name) == 0){
+			return 1;
+		}
+	}
+	return 0;
+}
+
 void assign_arg(char buff[], ARG arg){
+	if(arg_name_exists(arg.name)){ return; }
 	strcatf(buff, "\t%s EQU 0x%x\n", arg.name, pop_ram());
+	strcpy(assigned_args[aa_idx++], arg.name);
 }
 
 
@@ -67,7 +81,7 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 			strcatf(code, "\tMOVLW %s\n\tMOVWF %s\n", ast.for_asgmt.init.right, ast.for_asgmt.init.left);
 			*length = 2;
 			
-			get_label(label);
+			get_label_buff(label);
 			// attf("%s\n", label);
 			strcatf(code, "%s:\n", label);
 

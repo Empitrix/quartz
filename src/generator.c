@@ -32,7 +32,7 @@ void generator(void){
 
 		if(if_detected != 1 && asts[i].type != AST_ELSE_STATEMENT){ if_detected = 0; }
 
-		if (asts[i].type == AST_VARIABLE_ASSIGNMENT ||
+		if(asts[i].type == AST_VARIABLE_ASSIGNMENT ||
 			asts[i].type == AST_RAW_ASM ||
 			asts[i].type == AST_FUNCTION_CALL ||
 			asts[i].type == AST_FUNCTION_ASSIGNMENT) {
@@ -45,97 +45,52 @@ void generator(void){
 				add_to_tree(tmpc);
 				length += l;
 
-				// printf("IDX: %d\nI: %d\n", length, get_scoop_length(i));
-				// s_length = length - get_scoop_length(i) + 1;
-				// s_length += ( get_scoop_length(i) - length);
-				// s_length--;
-				// s_length = i - length;
-				// s_length = length - i;
-
 		} else if (asts[i].type == AST_IF_STATEMENT){
-			code_emission(asts[i], tmpc, &l, NULL);
-			add_to_tree(tmpc);
-			memset(tmpc, '\0', sizeof(tmpc));
-			length += l;
+			const char *btm_label = get_label();
+			const char *eq_label = get_label();
+			const char *neq_label = get_label();
 
-			int if_idx = i + 1;
-			int if_lenght = 0;
-			char if_part[100][128] = { 0 };
-			int if_part_idx = 0;
-			int total_if = 0;
+			char if_sec[1024] = { 0 };
+			char else_block[1024] = { 0 };
+			code_emission(asts[i], if_sec, &l, NULL);
+			int if_len = extract_to(tmpc, AST_IF_STATEMENT, &i);
+			int else_len = 0;
 
-			while(asts[if_idx].refer == AST_IF_STATEMENT){
-				char inner[256] = { 0 };
-				code_emission(asts[if_idx], inner, &if_lenght, NULL);
-				strcpy(if_part[if_part_idx++], inner);
-				total_if += if_lenght;
-				++if_idx;
+			// Else detected
+			if(asts[i + 1].type == AST_ELSE_STATEMENT){
+				i++;
+				else_len = extract_to(else_block, AST_ELSE_STATEMENT, &i);
 			}
 
-			if(total_if == 0){
-				strcatf(tmpc, "NOP ; if body is empty");
-				strcpy(if_part[if_part_idx++], tmpc);
-				length++;
+			add_to_tree(if_sec);
+			attf("\tGOTO %s", eq_label);
+
+
+			if(else_len != 0){
+
+				attf("\tGOTO %s", neq_label);
+
+				attf("%s:", neq_label);
+
+				add_to_tree(else_block);
 			}
 
+			attf("\tGOTO %s", btm_label);
 
-			i = if_idx - 1;
 
-
-			int else_idx = 0;
-			int else_lenght = 0;
-			char else_part[100][128] = { 0 };
-			int else_part_idx = 0;
-			int total_else = 0;
-
-			int else_exists = asts[if_idx].refer == AST_ELSE_STATEMENT;
-
-			if(else_exists){
-				else_idx = i + 1;
-				while(asts[else_idx].refer == AST_ELSE_STATEMENT){
-					if(asts[else_idx].type == AST_ELSE_STATEMENT){ else_idx++; continue; }
-					char inner[256] = { 0 };
-					code_emission(asts[else_idx], inner, &else_lenght, NULL);
-					strcpy(else_part[else_part_idx++], inner);
-					total_else += else_lenght;
-					++else_idx;
-				}
+			attf("%s:", eq_label);
+			if(if_len == 0){
+				attf("\tNOP  ; No 'IF' body");
+			} else {
+				add_to_tree(tmpc);
 			}
 
-			if(total_else == 0){
-				strcatf(tmpc, "NOP ; else body is empty");
-				length++;
-				strcpy(else_part[else_part_idx++], tmpc);
-				total_else = 1;
-			}
-
-
-			memset(tmpc, '\0', sizeof(tmpc));
-			strcatf(tmpc, "\tGOTO 0x%x", length + total_else);
-			length++;
-			add_to_tree(tmpc);
-
-			for(int j = 0; j < else_part_idx; ++j){
-				add_to_tree(else_part[j]);
-			}
-
-
-			memset(tmpc, '\0', sizeof(tmpc));
-			strcatf(tmpc, "\tGOTO 0x%x", length + total_else + total_if);
-			length++;
-			add_to_tree(tmpc);
-
-			for(int j = 0; j < if_part_idx; ++j){
-				add_to_tree(if_part[j]);
-			}
+			attf("%s:", btm_label);
 
 
 		} else if(asts[i].type == AST_WHILE_LOOP_ASSIGNMENT){
-
-			char top_label[20];
-			char bottom_label[20];
-			get_label(top_label);
-			get_label(bottom_label);
+			const char *top_label = get_label();
+			const char *bottom_label = get_label();
 
 			attf("%s:", top_label);
 
@@ -164,10 +119,8 @@ void generator(void){
 
 		} else if(asts[i].type == AST_FOR_LOOP_ASSIGNMENT){
 			int si = i;   // save current state of i 
+			const char *bottom_label = get_label();
 			char top_label[20];
-			char bottom_label[20];
-			// get_label(top_label);
-			get_label(bottom_label);
 
 			// attf("%s:", top_label);
 
