@@ -430,14 +430,17 @@ MACRO macro_asgmt(TKNS *tkns){
 	tkns->idx++;
 
 
-	if(tkns->tokens[tkns->idx].type == INCLUDE_KEYWORD || tkns->tokens[tkns->idx].type == DEFINE_KEYWORD){
+	// if(tkns->tokens[tkns->idx].type == INCLUDE_KEYWORD || tkns->tokens[tkns->idx].type == DEFINE_KEYWORD){
+	if(tkns->tokens[tkns->idx].type == DEFINE_KEYWORD){
 		tkns->idx++;
-	} else { throw_err(tkns, "Invalid preprocessor directive", "include or define"); }
+	// } else { throw_err(tkns, "Invalid preprocessor directive", "include or define"); }
+	} else { throw_err(tkns, "Invalid preprocessor directive", "define"); }
 
-	int is_include = tkns->tokens[tkns->idx - 1].type == INCLUDE_KEYWORD;
+	// int is_include = tkns->tokens[tkns->idx - 1].type == INCLUDE_KEYWORD;
 
 	skip_white_space(tkns);
 
+	/*
 	if(is_include){
 		mcro.type = INCLUDE_MACRO;
 
@@ -461,6 +464,36 @@ MACRO macro_asgmt(TKNS *tkns){
 		skip_white_space(tkns);
 		mcro.value = const_var(tkns);
 	}
+	*/
+
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		strcpy(mcro.name, tkns->tokens[tkns->idx].word);
+
+		update_name_state(tkns, mcro.name, 0);
+
+		tkns->idx++;
+	} else { throw_err(tkns, "A name required", NULL); }
+
+	skip_white_space(tkns);
+	// mcro.value = const_var(tkns);
+
+
+	CNST_VAR cvar;
+	cvar.int_value = 0;
+	cvar.char_value = '\0';
+
+	if(tkns->tokens[tkns->idx].type == INTEGER_VALUE){
+		cvar.type = INT_VAR;
+		if(get_literal_value(tkns->tokens[tkns->idx].word, &cvar.int_value) == 0){
+			tkns->idx++;
+		} else {
+			throw_err(tkns, "Invalid value", "literal value");
+		}
+	} else {
+		throw_err(tkns, "Invalid \"#define\" value", "integer");
+	}
+
+	mcro.value = cvar;
 
 	skip_white_space(tkns);
 

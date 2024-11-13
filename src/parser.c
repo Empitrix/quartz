@@ -11,6 +11,28 @@ static var_t return_type = INT_VAR;
 static ast_t main_refer = AST_NO_STATEMENT;
 func_t refer_func;
 
+
+static ast_t refers[20] = { AST_NO_STATEMENT };
+static int refers_idx = 0;
+
+/* STACK */
+void push_refers(ast_t value){
+	refers[refers_idx++] = value;
+	main_refer = value;
+	// printf("LEN: %d\n", refers_idx);
+}
+ast_t pop_refers(void){
+	ast_t popped = refers[0];
+	for(int i = 1; i < refers_idx; ++i){
+		refers[i - 1] = refers[i];
+	}
+
+	refers[refers_idx] = AST_NO_STATEMENT;
+	// printf("LEN: %d\n", refers_idx);
+	return popped;
+}
+
+
 void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 	AST ast;
 
@@ -58,7 +80,8 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 				ast.func = asgmt.func;
 				ast.type = AST_FUNCTION_ASSIGNMENT;
 				refer = AST_FUNCTION_ASSIGNMENT;
-				main_refer = AST_FUNCTION_ASSIGNMENT;
+				// main_refer = AST_FUNCTION_ASSIGNMENT;
+				push_refers(AST_FUNCTION_ASSIGNMENT);
 				refer_func = ast.func;
 
 			} else {
@@ -91,7 +114,8 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 		// Check for #include "..." & #define ... ...
 		} else if(tkns->tokens[tkns->idx].type == HASHTAG){
-			macro_asgmt(tkns);
+			ast.macro = macro_asgmt(tkns);
+			ast.type = AST_MACRO;
 
 		// Check for 'for(...;...;...){...}'
 		} else if(tkns->tokens[tkns->idx].type == FOR_KEYWORD){
@@ -103,6 +127,9 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 			// ast.cond = fa.cond;
 
 			refer = AST_FOR_LOOP_ASSIGNMENT;
+
+			// main_refer = AST_FOR_LOOP_ASSIGNMENT;
+			push_refers(AST_FOR_LOOP_ASSIGNMENT);
 
 		// Check for 'while(...){...}'
 		} else if(tkns->tokens[tkns->idx].type == WHILE_KEYWORD){
@@ -179,7 +206,8 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 			ast.type = AST_RETURN_STATEMENT;
 			ast.value = rtrn;
 			// refer = AST_NO_STATEMENT;
-			main_refer = AST_NO_STATEMENT;
+			// main_refer = AST_NO_STATEMENT;
+			push_refers(AST_NO_STATEMENT);
 
 		} else {
 			if(allow_expression){
@@ -205,9 +233,11 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 		if(ast.type != AST_NO_STATEMENT){
 			char code[100] = { 0 };
 			memset(code, '\0', sizeof(code));
-			ast.refer = refer;
 
 			add_ast(ast);
+			ast.refer = refer;
+
+
 			// code_emission(ast, code);
 			// update_tree_lines(tidx, code);
 		}
@@ -216,9 +246,14 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 		if(body.max != 0){
 			parser(&body, 1, tidx, refer);
 			// refer = AST_NO_STATEMENT;
+
+
 			refer = main_refer;
+			// refer = pop_refers();
 			ast.refer = refer;
 		}
+
+
 	}
 	
 

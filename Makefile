@@ -40,3 +40,6 @@ asm:
 
 auto:
 	@ clear && gcc ./main.c -o ./quartz && ./quartz ./test.qz && ../assembler/assembler ./out -o ../amethyst/examples/test.bin && ../amethyst/cpu -p ../amethyst/examples/test.bin -cf 10
+
+imm:
+	@ clear && gcc ./main.c -o ./quartz && ./quartz ./test.qz && ../assembler/assembler ./out -o ../amethyst/examples/test.bin && ../amethyst/cpu -p ../amethyst/examples/test.bin -cf 1000000

@@ -323,6 +323,9 @@ void show_ast_t(ast_t t, int flush){
 	case AST_RAW_ASM:
 		printf("RAW_ASM");
 		break;
+	case AST_MACRO:
+		printf("MACRO");
+		break;
 	}
 	if(flush) putchar('\n');
 }
@@ -429,4 +432,56 @@ void update_tree_lines(char code[]){
 	for(int i = 0; i < pointer; i++){
 		add_to_tree(lines[i]);
 	}
+}
+
+
+const char *ast_f(ast_t t){
+	switch(t){
+	case AST_VARIABLE_ASSIGNMENT: return "VARIABLE_ASSIGNMENT";
+	case AST_FOR_LOOP_ASSIGNMENT: return "FOR_LOOP_ASSIGNEMNT";
+	case AST_WHILE_LOOP_ASSIGNMENT: return "WHILE_LOOP_ASSIGNEMNT";
+	case AST_IF_STATEMENT: return "IF_STATEMENT";
+	case AST_ELSE_STATEMENT: return "ELSE_STATEMENT";
+	case AST_FUNCTION_ASSIGNMENT: return "FUNCTION_ASSIGNEMNT";
+	case AST_RETURN_STATEMENT: return "RETURN_STATEMENT";
+	case AST_FUNCTION_CALL: return "FUNCTION_CALL";
+	case AST_STATEMENT: return "STATEMENT";
+	case AST_NO_STATEMENT: return "NO_STATEMENT";
+	case AST_RAW_ASM: return "RAW_ASM";
+	case AST_MACRO: return "MACRO";
+	}
+}
+
+void show_tab(int siz){
+	for(int i = 0; i < siz; ++i){
+		printf("\t");
+	}
+}
+
+
+void show_tree(AST asts[], int len) {
+	int indent = 0;
+	ast_t current_parent = AST_NO_STATEMENT;
+
+	for (int i = 0; i < len; ++i) {
+		if (asts[i].refer != current_parent) {
+			if (asts[i].refer == AST_NO_STATEMENT) {
+				indent = 0;
+			} else if (asts[i].refer == asts[i - 1].type) {
+				indent++;
+			} else if (asts[i].refer != asts[i - 1].refer) {
+				indent = 1;
+			}
+			current_parent = asts[i].refer;
+		}
+		show_tab(indent);
+		printf("%s\n", ast_f(asts[i].type));
+	}
+
+	printf("\n\n\n\n\n\n\n\n\n\n\n");
+
+	for(int i = 0; i < len; ++i){
+		printf("%s -> %s\n", ast_f(asts[i].type), ast_f(asts[i].refer));
+	}
+
 }

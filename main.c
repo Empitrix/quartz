@@ -3,8 +3,6 @@
 #include "src/tokenizer.h"
 #include "src/generator.h"
 #include "src/parser.h"
-#include <stdio.h>
-
 
 
 int main(int argc, char *argv[]){
@@ -22,13 +20,15 @@ int main(int argc, char *argv[]){
 	add_tree("Z EQU 0x02 ; Added by Compiler (only for pic10f200)");
 
 	parser(&tkns, 0, &tree_idx, AST_NO_STATEMENT);  // Parse tokens & check for errors
+	// parser(&tkns, 0, &tree_idx);  // Parse tokens & check for errors
 
 
-	printf("AST Len: %d\n", ast_len());
-	for(int i = 0; i < ast_len(); ++i){
-		printf("%d%-3s", i + 1, ". ");
-		show_ast_info(asts[i]);
-	}
+	// printf("AST Len: %d\n", ast_len());
+	// for(int i = 0; i < ast_len(); ++i){
+	// 	printf("%d%-3s", i + 1, ". ");
+	// 	show_ast_info(asts[i]);
+	// }
+	show_tree(asts, ast_len());
 
 	func_exists("main", 1);  // Check that if function 'main' exists (1 means exit if there is no 'main')
 

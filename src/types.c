@@ -239,6 +239,7 @@ typedef struct {
 
 /* Abstract Syntax Tree (AST) type */
 typedef enum {
+	AST_NO_STATEMENT,             // no statement <empty>
 	AST_VARIABLE_ASSIGNMENT,      // variable
 	AST_FOR_LOOP_ASSIGNMENT,      // for loop
 	AST_WHILE_LOOP_ASSIGNMENT,    // while loop
@@ -249,7 +250,7 @@ typedef enum {
 	AST_FUNCTION_CALL,            // function call
 	AST_STATEMENT,                // statement
 	AST_RAW_ASM,                  // raw assembly
-	AST_NO_STATEMENT,             // no statement <empty>
+	AST_MACRO,                    // macro (define)
 } ast_t;
 
 
@@ -264,6 +265,7 @@ typedef struct AST{
 	STMT cond;
 	STMT init;
 	FOR_ASGMT for_asgmt;
+	MACRO macro;
 } AST;
 
 

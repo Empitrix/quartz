@@ -44,7 +44,7 @@ void assign_arg(char buff[], ARG arg){
 }
 
 
-void code_emission(AST ast, char code[], int *length, char label[]){
+void code_emission(AST ast, char code[], char label[]){
 
 	switch(ast.type){
 		case AST_VARIABLE_ASSIGNMENT:
@@ -52,7 +52,7 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 				if(ast.asgmt.type == INT_VAR || ast.asgmt.type == CHAR_VAR){
 					strcatf(code, "%s EQU 0x%x\nMOVLW 0x%x\nMOVWF %s",
 						ast.asgmt.name, ast.asgmt.address, ast.asgmt.value, ast.asgmt.name);
-					*length = 2;
+					// *length = 2;
 				}
 			}
 			break;
@@ -72,14 +72,14 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 					// strcatf(code, "\tBTFSC STATUS, Z");
 					strcatf(code, "\tBTFSS STATUS, Z");
 				}
-				*length = 3;
+				// *length = 3;
 			}
 			break;
 
 		case AST_FOR_LOOP_ASSIGNMENT:
 
 			strcatf(code, "\tMOVLW %s\n\tMOVWF %s\n", ast.for_asgmt.init.right, ast.for_asgmt.init.left);
-			*length = 2;
+			// *length = 2;
 			
 			get_label_buff(label);
 			// attf("%s\n", label);
@@ -100,7 +100,7 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 					// strcatf(code, "\tBTFSC STATUS, Z");
 					strcatf(code, "\tBTFSS STATUS, Z");
 				}
-				*length = 3;
+				// *length = 3;
 			}
 			break;
 
@@ -118,11 +118,15 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 				} else {
 					strcatf(code, "\tBTFSC STATUS, Z");
 				}
-				*length = 3;
+				// *length = 3;
 			}
 			break;
 
 		case AST_ELSE_STATEMENT:
+			break;
+
+		case AST_MACRO:
+			sprintf(code, "%s EQU 0x%x", ast.macro.name, ast.macro.value.int_value);
 			break;
 
 		case AST_FUNCTION_ASSIGNMENT:
@@ -138,7 +142,7 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 				sprintf(code, "\tRETLW %d", ast.value.int_value);
 			}
 
-			*length = 1;
+			// *length = 1;
 			break;
 
 		case AST_FUNCTION_CALL:
@@ -169,7 +173,7 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 			}
 
 			strcatf(code, "\tCALL %s", ast.expr.caller.name);
-			*length = 1;
+			// *length = 1;
 			break;
 
 		case AST_STATEMENT:
@@ -197,3 +201,35 @@ void code_emission(AST ast, char code[], int *length, char label[]){
 	}
 }
 
+/*
+void remove_range(int start, int end) {
+	int range_size = end - start + 1;
+	int total_rows = ast_len();
+	for (int i = end + 1; i < total_rows; ++i) {
+		strcpy(tree[i - range_size], tree[i]);
+	}
+	total_rows -= range_size;
+	for (int i = total_rows; i < total_rows + range_size; ++i) {
+		tree[i][0] = '\0';
+	}
+	set_ast_len(total_rows);
+}
+
+
+void remove_unused_func(char name[]){
+	int i = 0;
+	char tmp[128] = { 0 };
+	int start = -1, end = -1;
+
+	// strcatf(tmp, "%s:", name);
+	sprintf(tmp, "%s:", name);
+
+	for(i = 0; i < ast_len(); ++i){
+		if(strcmp(tree[i], tmp) == 0){ start = i; }
+		if(strstr(tree[i], "RETLW") && start != -1){ end = i; }
+	}
+	if(start != -1 && end != -1){
+		remove_range(start, end);
+	}
+}
+*/

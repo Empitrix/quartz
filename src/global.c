@@ -344,3 +344,8 @@ void add_ast(AST ast){
 int ast_len(){
 	return ast_idx;
 }
+
+void set_ast_len(int len){
+	ast_idx = len;
+}
+
