@@ -80,8 +80,8 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 				ast.func = asgmt.func;
 				ast.type = AST_FUNCTION_ASSIGNMENT;
 				refer = AST_FUNCTION_ASSIGNMENT;
-				// main_refer = AST_FUNCTION_ASSIGNMENT;
-				push_refers(AST_FUNCTION_ASSIGNMENT);
+				main_refer = AST_FUNCTION_ASSIGNMENT;
+				// push_refers(AST_FUNCTION_ASSIGNMENT);
 				refer_func = ast.func;
 
 			} else {
@@ -117,6 +117,21 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 			ast.macro = macro_asgmt(tkns);
 			ast.type = AST_MACRO;
 
+			VAR v;
+			v.type = INT_VAR;
+			strcpy(v.name, ast.macro.name);
+			v.value = ast.macro.value.int_value;
+			v.type = MACRO_VAR;
+			save_global_variable(v);
+
+
+			// asgmt.address = pop_ram();
+			ASM_VAR avar;
+			strcpy(avar.name, v.name);
+			avar.addr = ast.macro.value.int_value;
+			add_asm_var(avar);
+
+
 		// Check for 'for(...;...;...){...}'
 		} else if(tkns->tokens[tkns->idx].type == FOR_KEYWORD){
 			FOR_ASGMT fa = for_asgmt(tkns);
@@ -129,7 +144,7 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 			refer = AST_FOR_LOOP_ASSIGNMENT;
 
 			// main_refer = AST_FOR_LOOP_ASSIGNMENT;
-			push_refers(AST_FOR_LOOP_ASSIGNMENT);
+			// push_refers(AST_FOR_LOOP_ASSIGNMENT);
 
 		// Check for 'while(...){...}'
 		} else if(tkns->tokens[tkns->idx].type == WHILE_KEYWORD){
@@ -160,11 +175,25 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 					continue;
 				}
 
+				int isave = tkns->idx; 
 				if(tkns->tokens[tkns->idx].type == IDENTIFIER && island_open == 1){
 					CNST_VAR var = get_value(tkns);
 					int addr;
 					ARG arg = get_arg_struct(refer_func, var.name);
 					addr = arg.addr;
+
+					// printf("(RAW ASM): {name: %s, addr: %d}\n", arg.name, arg.addr);
+					// printf("(IDENTIFIER): %s\n", tkns->tokens[isave].word);
+
+					if(strcmp(arg.name, "") == 0){
+						VAR v;
+						get_variable(tkns->tokens[isave].word, GLOBAL_TARGET, &v);
+						if(v.type == MACRO_VAR){
+							strcpy(arg.name, v.name);
+						}
+					}
+
+					
 					strcatf(raw_asm, "%s", arg.name);
 					continue;
 				}
@@ -206,8 +235,8 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 			ast.type = AST_RETURN_STATEMENT;
 			ast.value = rtrn;
 			// refer = AST_NO_STATEMENT;
-			// main_refer = AST_NO_STATEMENT;
-			push_refers(AST_NO_STATEMENT);
+			main_refer = AST_NO_STATEMENT;
+			// push_refers(AST_NO_STATEMENT);
 
 		} else {
 			if(allow_expression){

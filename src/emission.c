@@ -69,22 +69,16 @@ void code_emission(AST ast, char code[], char label[]){
 				if(ast.cond.op == NOT_EQUAL_OP){
 					strcatf(code, "\tBTFSC STATUS, Z");
 				} else {
-					// strcatf(code, "\tBTFSC STATUS, Z");
 					strcatf(code, "\tBTFSS STATUS, Z");
 				}
-				// *length = 3;
 			}
 			break;
 
 		case AST_FOR_LOOP_ASSIGNMENT:
 
 			strcatf(code, "\tMOVLW %s\n\tMOVWF %s\n", ast.for_asgmt.init.right, ast.for_asgmt.init.left);
-			// *length = 2;
-			
 			get_label_buff(label);
-			// attf("%s\n", label);
 			strcatf(code, "%s:\n", label);
-
 
 			if(ast.for_asgmt.cond.op == EQUAL_OP || ast.for_asgmt.cond.op == NOT_EQUAL_OP){  // ==
 				strcatf(code, "\tMOVF %s, 0\n", ast.for_asgmt.cond.left); 
@@ -94,13 +88,10 @@ void code_emission(AST ast, char code[], char label[]){
 					strcatf(code, "\tXORWF %s, 0\n", ast.for_asgmt.cond.right);
 				}
 				if(ast.for_asgmt.cond.op == NOT_EQUAL_OP){
-					// strcatf(code, "\tBTFSS STATUS, Z");
 					strcatf(code, "\tBTFSC STATUS, Z");
 				} else {
-					// strcatf(code, "\tBTFSC STATUS, Z");
 					strcatf(code, "\tBTFSS STATUS, Z");
 				}
-				// *length = 3;
 			}
 			break;
 

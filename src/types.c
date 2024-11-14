@@ -72,6 +72,7 @@ typedef enum {
 	INT_VAR,
 	CHAR_VAR,
 	STR_VAR,
+	MACRO_VAR,
 } var_t;
 
 

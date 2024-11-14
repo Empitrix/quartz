@@ -954,8 +954,6 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 
 	skip_white_space(tkns);
 
-	// printf("CALLED <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< (%s)\n", tkns->tokens[tkns->idx].word);
-
 	if(tkns->tokens[tkns->idx].type == endtok){ expr.mono_side = 0; return expr; }
 	
 
