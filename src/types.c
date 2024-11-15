@@ -5,6 +5,7 @@
 typedef struct GFLAG {
 	char output[PATH_MAX];
 	char input[PATH_MAX];
+	char target[100];
 } GFLAG;
 
 

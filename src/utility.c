@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +7,14 @@
 #include "types.h"
 #include "rules.h"
 
+
+/* lower_str: make a char* to a lower case char* */
+void lower_str(char buff[]){
+	int i;
+	for(i = 0; buff[i] != '\0'; ++i){
+		buff[i] = tolower(buff[i]);
+	}
+}
 
 /* Setup General Flags */
 void update_glfag(GFLAG *gflag, int argc, char *argv[]){
@@ -23,7 +32,32 @@ void update_glfag(GFLAG *gflag, int argc, char *argv[]){
 
 	int get_output = 0;
 
+	strcpy(gflag->target, "pic10f200");
+
 	for(int i = 2; i < argc; ++i){
+
+		char targets[][100] = { "pic10f200", "pic10f202"};  // supported targets
+		int target_exists = 0;
+
+		if(sscanf(argv[i], "--target=%s", gflag->target)){
+			// Check if there is a valid target
+			for(int j = 0; j < (int)(sizeof(targets) / sizeof(targets[1])); ++j){
+				lower_str(gflag->target);  // lowercase
+				// break the loop if exists
+				if(strcmp(gflag->target, targets[j]) == 0){ target_exists = 1; break; }
+			}
+
+			// Show error if target does not exists (show all of the supported targets)
+			if(target_exists == 0){
+				printf("Invalid target \"%s\"\nUse:\n", gflag->target);
+
+				for(int j = 0; j < (int)(sizeof(targets) / sizeof(targets[1])); ++j){
+					printf("\t- %s\n", targets[j]);
+				}
+				exit(0);  // exit
+			}
+		}
+
 		if(get_output){
 			strcpy(gflag->output, argv[i]);
 			get_output = 0;

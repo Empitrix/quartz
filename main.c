@@ -16,9 +16,11 @@ int main(int argc, char *argv[]){
 	tokenizer(buff, &tkns);  // break down the source code into tokens
 
 
-	add_tree("STATUS EQU 0x03  ; Added by Compiler (only for pic10f200)");
-	add_tree("Z EQU 0x02       ; Added by Compiler (only for pic10f200)");
-	add_tree("C EQU 0x00       ; Added by Compiler (only for pic10f200)");
+	if(strcmp(gflag.target, "pic10f200") == 0){
+		add_tree("STATUS EQU 0x03  ; Added by Compiler (only for pic10f200)");
+		add_tree("Z EQU 0x02       ; Added by Compiler (only for pic10f200)");
+		add_tree("C EQU 0x00       ; Added by Compiler (only for pic10f200)");
+	}
 
 	parser(&tkns, 0, &tree_idx, AST_NO_STATEMENT);  // Parse tokens & check for errors
 	// parser(&tkns, 0, &tree_idx);  // Parse tokens & check for errors
