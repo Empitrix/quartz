@@ -630,11 +630,13 @@ STMT get_statement(TKNS *tkns){
 		} else {
 			tkns->idx++;
 		}
-		// asdflkjasdflkj
 		skip_double_op(tkns, st.op);
 		skip_white_space(tkns);
+
 		pass_by_type(tkns, INTEGER_VALUE, "Invalid syntax", "integer");
 		strcpy(st.right, tkns->tokens[tkns->idx - 1].word);
+
+
 		st.literal = 1;
 		// **IMPORTANT**: check for different kind of names
 	}
@@ -1002,3 +1004,59 @@ ARG get_arg_struct(func_t f, char name[]){
 	}
 	return (ARG){.addr = 0, .type = INT_VAR};
 }
+
+
+
+/* emit_stmt: code emission for statement (check) */
+void emit_stmt(char dst[], STMT stmt, int reverse){
+
+	if(stmt.op == EQUAL_OP || stmt.op == NOT_EQUAL_OP){
+		strcatf(dst, "\tMOVF %s, 0\n", stmt.left); 
+		if(stmt.literal){
+			strcatf(dst, "\tXORLW %s\n", stmt.right);
+		} else {
+			strcatf(dst, "\tXORWF %s, 0\n", stmt.right);
+		}
+		if(stmt.op == NOT_EQUAL_OP){
+			if(reverse){
+				strcatf(dst, "\tBTFSS STATUS, Z");
+			} else {
+				strcatf(dst, "\tBTFSC STATUS, Z");
+			}
+		} else {
+			if(reverse){
+				strcatf(dst, "\tBTFSC STATUS, Z");
+			} else {
+				strcatf(dst, "\tBTFSS STATUS, Z");
+			}
+		}
+	} else if (stmt.op == GREATOR_EQ_OP || stmt.op == SMALLER_EQ_OP){
+		if(stmt.literal){
+			strcatf(dst, "\tMOVLW %s\n", stmt.right); 
+			strcatf(dst, "\tSUBWF %s, 0\n", stmt.left);
+		} else {
+			strcatf(dst, "\tMOVF %s, 0\n", stmt.left); 
+			strcatf(dst, "\tSUBWF %s, 0\n", stmt.right);
+		}
+
+		// Auto reverse (because **SUBWF** can't accept literal so we give it to W and make a reverse condition)
+		if(stmt.literal){ reverse = reverse == 0; }
+
+		if(stmt.op == SMALLER_EQ_OP){
+			if(reverse){
+				strcatf(dst, "\tBTFSS STATUS, C");
+			} else {
+				strcatf(dst, "\tBTFSC STATUS, C");
+			}
+		} else {
+			if(reverse){
+				strcatf(dst, "\tBTFSC STATUS, C");
+			} else {
+				strcatf(dst, "\tBTFSS STATUS, C");
+			}
+		}
+
+	}
+
+}
+

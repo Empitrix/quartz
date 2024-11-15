@@ -4,6 +4,7 @@
 #include "rules.h"
 #include "utility.h"
 #include "global.h"
+#include "helper.h"
 
 // RAM address
 static int ram_stack[MAX_RAM + 1] = {0xA, 0xB, 0xC, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x00};
@@ -80,37 +81,39 @@ void code_emission(AST ast, char code[], char label[]){
 			get_label_buff(label);
 			strcatf(code, "%s:\n", label);
 
-			if(ast.for_asgmt.cond.op == EQUAL_OP || ast.for_asgmt.cond.op == NOT_EQUAL_OP){  // ==
-				strcatf(code, "\tMOVF %s, 0\n", ast.for_asgmt.cond.left); 
-				if(ast.for_asgmt.cond.literal){
-					strcatf(code, "\tXORLW %s\n", ast.for_asgmt.cond.right);
-				} else {
-					strcatf(code, "\tXORWF %s, 0\n", ast.for_asgmt.cond.right);
-				}
-				if(ast.for_asgmt.cond.op == NOT_EQUAL_OP){
-					strcatf(code, "\tBTFSC STATUS, Z");
-				} else {
-					strcatf(code, "\tBTFSS STATUS, Z");
-				}
-			}
+			// if(ast.for_asgmt.cond.op == EQUAL_OP || ast.for_asgmt.cond.op == NOT_EQUAL_OP){  // ==
+			// 	strcatf(code, "\tMOVF %s, 0\n", ast.for_asgmt.cond.left); 
+			// 	if(ast.for_asgmt.cond.literal){
+			// 		strcatf(code, "\tXORLW %s\n", ast.for_asgmt.cond.right);
+			// 	} else {
+			// 		strcatf(code, "\tXORWF %s, 0\n", ast.for_asgmt.cond.right);
+			// 	}
+			// 	if(ast.for_asgmt.cond.op == NOT_EQUAL_OP){
+			// 		strcatf(code, "\tBTFSS STATUS, Z");
+			// 	} else {
+			// 		strcatf(code, "\tBTFSC STATUS, Z");
+			// 	}
+			// }
+			emit_stmt(code, ast.for_asgmt.cond, 1);
 			break;
 
 
 		case AST_IF_STATEMENT:
-			if(ast.cond.op == EQUAL_OP || ast.cond.op == NOT_EQUAL_OP){  // ==
-				strcatf(code, "\tMOVF %s, 0\n", ast.cond.left); 
-				if(ast.cond.literal){
-					strcatf(code, "\tXORLW %s\n", ast.cond.right);
-				} else {
-					strcatf(code, "\tXORWF %s, 0\n", ast.cond.right);
-				}
-				if(ast.cond.op == NOT_EQUAL_OP){
-					strcatf(code, "\tBTFSS STATUS, Z");
-				} else {
-					strcatf(code, "\tBTFSC STATUS, Z");
-				}
-				// *length = 3;
-			}
+			// if(ast.cond.op == EQUAL_OP || ast.cond.op == NOT_EQUAL_OP){  // ==
+			// 	strcatf(code, "\tMOVF %s, 0\n", ast.cond.left); 
+			// 	if(ast.cond.literal){
+			// 		strcatf(code, "\tXORLW %s\n", ast.cond.right);
+			// 	} else {
+			// 		strcatf(code, "\tXORWF %s, 0\n", ast.cond.right);
+			// 	}
+			// 	if(ast.cond.op == NOT_EQUAL_OP){
+			// 		strcatf(code, "\tBTFSC STATUS, Z");
+			// 	} else {
+			// 		strcatf(code, "\tBTFSS STATUS, Z");
+			// 	}
+			// }
+
+			emit_stmt(code, ast.for_asgmt.cond, 0);
 			break;
 
 		case AST_ELSE_STATEMENT:
