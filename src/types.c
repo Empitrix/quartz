@@ -311,13 +311,37 @@ typedef enum {
 	ITTERATIONAL_SNIP,
 } snip_t;
 
+typedef enum {
+	NO_ASSIGNMENT_ASG,
+	FUNCTION_ASSIGNMENT_ASG,
+	VARIABLE_ASSIGNMENT_ASG,
+	MACRO_ASSIGNMENT_ASG,
+} asg_t;
+
+
+typedef struct {
+	char name[NAME_MAX];
+	qvar_t type;
+	int addr;
+} Qarg;
+
+typedef struct {
+	Qarg args[MAX_ARG];
+	int arg_len;
+	qvar_t return_type;
+	char name[NAME_MAX];
+	TKNS body;
+} Qfunc;
+
 typedef struct {
 	snip_t type;
 	operator op;
 	Qvar left;
 	Qvar right;
-	int is_assigned;
+	asg_t assigne_type;
 	Qvar assigned;
+
+	Qfunc func;
 } SNIP;
 
 /*

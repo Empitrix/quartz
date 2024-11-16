@@ -366,30 +366,33 @@ static int global_q_idx = 0;
 static Qvar local_qvar[MAX_VAR_SZIE];  // Local Qvar
 static int local_q_idx = 0;
 
+static Qfunc global_qfunc[MAX_VAR_SZIE];  // Global Qfunc
+static int qfunc_idx = 0;
 
 
-int qvar_exists(Qvar q, Qstack stack){
+
+int qvar_exists(char name[], Qstack stack){
 	if(stack == GLOBAL_STACK){
 		for(int i = 0; i < global_q_idx; ++i){
-			if(strcmp(q.name, global_qvar[i].name) == 0){
+			if(strcmp(name, global_qvar[i].name) == 0){
 				return 1;
 			}
 		}
 	} else if (stack == LOCAL_STACK){
 		for(int i = 0; i < local_q_idx; ++i){
-			if(strcmp(q.name, local_qvar[i].name) == 0){
+			if(strcmp(name, local_qvar[i].name) == 0){
 				return 1;
 			}
 		}
 	} else {
 		// Check for Both Global/Local by recursive calling
 		int result = 0;
-		result = qvar_exists(q, GLOBAL_STACK);
+		result = qvar_exists(name, GLOBAL_STACK);
 
 		if(result){
 			return result;
 		} else {
-			return qvar_exists(q, LOCAL_STACK);
+			return qvar_exists(name, LOCAL_STACK);
 		}
 
 	}
@@ -398,7 +401,7 @@ int qvar_exists(Qvar q, Qstack stack){
 
 /* save_qvar: save Q-var return 0 if everything goes fine (not exitst) otherwise return 1 */
 int save_qvar(Qvar q, Qstack stack){
-	if(qvar_exists(q, GLOBAL_LOCAL_STACK)){ return 1; }
+	if(qvar_exists(q.name, GLOBAL_LOCAL_STACK)){ return 1; }
 
 	if(stack == GLOBAL_STACK || stack == GLOBAL_LOCAL_STACK){
 		global_qvar[global_q_idx++] = q;
@@ -431,3 +434,34 @@ int get_qvar(char name[], Qvar *q){
 	return 1;
 }
 
+
+int qfunc_exists(char name[]){
+	for(int i = 0; i < qfunc_idx; ++i){
+		if(strcmp(global_qfunc[i].name, name) == 0){
+			return 1;
+		}
+	}
+
+	if(qvar_exists(name, GLOBAL_LOCAL_STACK)){
+		return 2;
+	}
+
+	return 0;
+}
+
+int save_qfunc(Qfunc qf){
+	int result = 0;
+	if((result = qfunc_exists(qf.name))){ return result; }
+	global_qfunc[qfunc_idx++] = qf;
+	return 0;
+}
+
+int get_qfunc(char name[], Qfunc *qf){
+	for(int i = 0; i < qfunc_idx; ++i){
+		if(strcmp(global_qfunc[i].name, name) == 0){
+			*qf = global_qfunc[i];
+			return 0;
+		}
+	}
+	return 1;
+}

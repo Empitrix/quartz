@@ -806,16 +806,8 @@ SNIP get_snippet(TKNS *tkns){
 			tkns->idx++;
 			strcpy(snip.func.name, snip.assigned.name);
 			snip.func.return_type = snip.assigned.type;
+
 			snip.assigne_type = FUNCTION_ASSIGNMENT_ASG;
-
-
-			int result = save_qfunc(snip.func);
-			if(result == 1){
-				throw_err(tkns, "Function already exists", NULL);
-			} else if(result == 2) {
-				throw_err(tkns, "A variable with this name already exists", NULL);
-			}
-
 		}
 
 

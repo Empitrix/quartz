@@ -1,27 +1,10 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "types.h"
 #include "rules.h"
 #include "utility.h"
 #include "global.h"
 #include "helper.h"
 
-// RAM address
-static int ram_stack[MAX_RAM + 1] = {0xA, 0xB, 0xC, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x00};
-
-
-/* pop_ram: pop one ram address (if address is 0 it means that this is an invalid address)*/
-int pop_ram(){
-	int out = ram_stack[0];
-	for(int i = 0; i < MAX_RAM - 1; ++i){
-		ram_stack[i] = ram_stack[i + 1];
-	}
-	if(out == 0){
-		printf("Too many variable definition (out of ram)\n");
-		exit(0);
-	}
-	return out;
-}
 
 static int main_found = 0;
 

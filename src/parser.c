@@ -4,7 +4,6 @@
 #include "helper.h"
 #include "global.h"
 #include "utility.h"
-#include "emission.h"
 
 static var_t return_type = INT_VAR;
 
