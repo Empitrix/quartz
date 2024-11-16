@@ -70,47 +70,49 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 		// Check for varialbe assignments
 		if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0 || strcmp(tkns->tokens[tkns->idx].word, "char") == 0){
-			ASGMT asgmt = var_asgmt(tkns);
+			get_snippet(tkns);
+			
+			// ASGMT asgmt = var_asgmt(tkns);
 
-			if(asgmt.is_func){
-				return_type = asgmt.func.return_type;
-				// parser(&asgmt.func.body, 1, tidx);
-				body = asgmt.func.body;
-				save_func_global(asgmt.func);
-				ast.func = asgmt.func;
-				ast.type = AST_FUNCTION_ASSIGNMENT;
-				refer = AST_FUNCTION_ASSIGNMENT;
-				main_refer = AST_FUNCTION_ASSIGNMENT;
-				// push_refers(AST_FUNCTION_ASSIGNMENT);
-				refer_func = ast.func;
+			// if(asgmt.is_func){
+			// 	return_type = asgmt.func.return_type;
+			// 	// parser(&asgmt.func.body, 1, tidx);
+			// 	body = asgmt.func.body;
+			// 	save_func_global(asgmt.func);
+			// 	ast.func = asgmt.func;
+			// 	ast.type = AST_FUNCTION_ASSIGNMENT;
+			// 	refer = AST_FUNCTION_ASSIGNMENT;
+			// 	main_refer = AST_FUNCTION_ASSIGNMENT;
+			// 	// push_refers(AST_FUNCTION_ASSIGNMENT);
+			// 	refer_func = ast.func;
 
-			} else {
-				VAR v;
-				v.value = 0;
-				v.type = asgmt.type;
-				strcpy(v.name, asgmt.name);
-				if(asgmt.type == INT_VAR || asgmt.type == CHAR_VAR){
-					v.value = asgmt.value;
-				} else {
-					strcpy(v.str_value, asgmt.str);
-				}
-				if(refer == AST_NO_STATEMENT){
-					save_global_variable(v);
-				} else {
-					save_scoop_variable(v);
-				}
+			// } else {
+			// 	VAR v;
+			// 	v.value = 0;
+			// 	v.type = asgmt.type;
+			// 	strcpy(v.name, asgmt.name);
+			// 	if(asgmt.type == INT_VAR || asgmt.type == CHAR_VAR){
+			// 		v.value = asgmt.value;
+			// 	} else {
+			// 		strcpy(v.str_value, asgmt.str);
+			// 	}
+			// 	if(refer == AST_NO_STATEMENT){
+			// 		save_global_variable(v);
+			// 	} else {
+			// 		save_scoop_variable(v);
+			// 	}
 
-				asgmt.address = pop_ram();
-				ASM_VAR avar;
-				strcpy(avar.name, v.name);
-				avar.addr = asgmt.address;
-				add_asm_var(avar);
+			// 	asgmt.address = pop_ram();
+			// 	ASM_VAR avar;
+			// 	strcpy(avar.name, v.name);
+			// 	avar.addr = asgmt.address;
+			// 	add_asm_var(avar);
 
-				// ast.asgmt.name
-				ast.type = AST_VARIABLE_ASSIGNMENT;
-			}
+			// 	// ast.asgmt.name
+			// 	ast.type = AST_VARIABLE_ASSIGNMENT;
+			// }
 
-			ast.asgmt = asgmt;
+			// ast.asgmt = asgmt;
 
 		// Check for #include "..." & #define ... ...
 		} else if(tkns->tokens[tkns->idx].type == HASHTAG){
@@ -207,7 +209,7 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 			}
 			tkns->idx++;
 
-			skip_white_space(tkns);
+			skip_whitespace(tkns);
 			pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
 			strcpy(ast.raw_asm, raw_asm);
 			ast.type = AST_RAW_ASM;

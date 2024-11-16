@@ -214,6 +214,7 @@ int get_string(TKNS *tkns, char src[]){
 
 
 
+/* get_char_value: returns 0 if everything is fine otherwise returns 1 */
 int get_char_value(TKNS *tkns, char *value){
 	if(tkns->tokens[tkns->idx].type == WHITESPACE){ tkns->idx++; }
 
@@ -258,7 +259,6 @@ int get_char_value(TKNS *tkns, char *value){
 		return 0;
 	} else {
 		throw_err(tkns, "Invalid syntax", "'");
-		exit(0);
 	}
 	return 1;
 }

@@ -113,6 +113,34 @@ typedef struct {
 // 	STRING_CONST,
 // } cvar_t;
 
+typedef enum {
+	CONSTANT_STRING,    // Str "Something..."
+	CONSTANT_INTEGER,   // Int 123...
+	CONSTANT_CHAR,      // Char 'A'
+	QVAR_INT,           // Int
+	QVAR_CHAR,          // Char
+	QVAR_DEFINE,        // Define 
+} qvar_t;
+
+
+typedef struct {
+	char name[NAME_MAX];      // Name
+	int addr;                 // RAM's address
+	qvar_t type;              // Q-Var type
+	int numeric_value;        // Any kind of numeric value
+	char const_str[STR_MAX];  // Constant string
+} Qvar;
+
+Qvar empty_qvar(void){
+	Qvar q;
+	q.addr = 0;
+	strcpy(q.const_str, "");
+	strcpy(q.name, "");
+	q.type = CONSTANT_INTEGER;
+	q.numeric_value = 0;
+	return q;
+}
+
 
 typedef struct {
 	char name[NAME_MAX];
@@ -271,10 +299,50 @@ typedef struct AST{
 } AST;
 
 
-
-
 typedef struct {
 	char name[32];
 	int addr;
 } ASM_VAR;
+
+
+typedef enum {
+	NOT_EFFECTIVE_SNIP,  // Will be ignored by compiler (1 + 1;)
+	CONDITIONAL_SNIP,
+	ITTERATIONAL_SNIP,
+} snip_t;
+
+typedef struct {
+	snip_t type;
+	operator op;
+	Qvar left;
+	Qvar right;
+	int is_assigned;
+	Qvar assigned;
+} SNIP;
+
+/*
+int a = 12;
+char a = 'A';
+char buff[] = "Quartz...";
+a = 20;
+a = 'B';
+a = a | b;
+a = a + 1;
+
+a << 1;
+i++;
+i--;
+
+i < 10;
+
+a = 'A' + i;
+
+*/
+
+
+typedef enum {
+	LOCAL_STACK,
+	GLOBAL_STACK,
+	GLOBAL_LOCAL_STACK,
+} Qstack;
 

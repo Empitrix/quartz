@@ -15,12 +15,23 @@ void pass_by_type(TKNS *tkns, token_t type, const char *msg, const char *exp){
 }
 
 
-/* skip_white_space: skip white space */
-void skip_white_space(TKNS *tkns){
+/* skip_whitespace: skip white space */
+void skip_whitespace(TKNS *tkns){
 	if(tkns->tokens[tkns->idx].type == WHITESPACE){ tkns->idx++; }
 }
 
-/* skip_white_space: skip white space + Newline */
+/* check next two tokens if match return 1 otherwise return 0 (**no effect on TKNS.idx**)*/
+int see_forward(TKNS *tkns, int start, token_t a, token_t b){
+	start = tkns->idx + start;
+	if(tkns->tokens[start].type == a){
+		if(tkns->tokens[start + 1].type == b){
+			return 1;
+		}
+	}
+	return 0;
+}
+
+/* skip_whitespace: skip white space + Newline */
 void skip_gap(TKNS *tkns){
 	while (tkns->tokens[tkns->idx].type == WHITESPACE || tkns->tokens[tkns->idx].type == NEWLINE) {
 		tkns->idx++;
@@ -30,7 +41,7 @@ void skip_gap(TKNS *tkns){
 
 var_t get_type(TKNS *tkns){
 	var_t v = INT_VAR;
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == INT_KEYWORD){
 		tkns->idx++;
@@ -42,11 +53,11 @@ var_t get_type(TKNS *tkns){
 	if(tkns->tokens[tkns->idx].type == CHAR_KEYWORD){
 		tkns->idx++;
 		v = CHAR_VAR;
-		skip_white_space(tkns);
+		skip_whitespace(tkns);
 
 		if(tkns->tokens[tkns->idx].type == BRAKET_OPN){
 			tkns->idx++;
-			skip_white_space(tkns);
+			skip_whitespace(tkns);
 			pass_by_type(tkns, BRAKET_CLS, "Invalid syntax", "']'");
 			v = STR_VAR;
 			// str
@@ -65,9 +76,9 @@ var_t get_type(TKNS *tkns){
 int contains_str_type(TKNS *tkns, var_t *type){
 	if(tkns->tokens[tkns->idx].type == BRAKET_OPN){
 		tkns->idx++;
-		skip_white_space(tkns);
+		skip_whitespace(tkns);
 		pass_by_type(tkns, BRAKET_CLS, "Invalid syntax", "']'");
-		skip_white_space(tkns);
+		skip_whitespace(tkns);
 		*type = STR_VAR;
 		return 1;
 	}
@@ -78,7 +89,7 @@ int contains_str_type(TKNS *tkns, var_t *type){
 // /* cet_var_arg: get function arguments */
 // int get_var_arg(TKNS *tkns, char name[], var_t *type){
 // 
-// 	skip_white_space(tkns);
+// 	skip_whitespace(tkns);
 // 
 // 	if(tkns->tokens[tkns->idx].type == COMMA_SIGN){ return 0; }
 // 
@@ -95,7 +106,7 @@ int contains_str_type(TKNS *tkns, var_t *type){
 // 		}
 // 
 // 
-// 		skip_white_space(tkns);
+// 		skip_whitespace(tkns);
 // 
 // 		if(tkns->tokens[tkns->idx].type == IDENTIFIER){
 // 			strcpy(name, tkns->tokens[tkns->idx].word);  // update name
@@ -106,7 +117,7 @@ int contains_str_type(TKNS *tkns, var_t *type){
 // 			exit(0);
 // 		}
 // 
-// 		skip_white_space(tkns);
+// 		skip_whitespace(tkns);
 // 
 // 
 // 		if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
@@ -115,9 +126,9 @@ int contains_str_type(TKNS *tkns, var_t *type){
 // 
 // 		if(tkns->tokens[tkns->idx].type == BRAKET_OPN){
 // 			tkns->idx++;
-// 			skip_white_space(tkns);
+// 			skip_whitespace(tkns);
 // 			pass_by_type(tkns, BRAKET_CLS, "Invalid syntax", "']'");
-// 			skip_white_space(tkns);
+// 			skip_whitespace(tkns);
 // 			*type = STR_VAR;
 // 		}
 // 
@@ -141,20 +152,18 @@ void get_arg(TKNS *tkns, ARG args[], int *arg_len){
 
 	while(tkns->tokens[tkns->idx].type != PAREN_CLS){
 
-		skip_white_space(tkns);
+		skip_whitespace(tkns);
 
 		args[*arg_len].type = get_type(tkns);
-		skip_white_space(tkns);
+		skip_whitespace(tkns);
 
 		pass_by_type(tkns, IDENTIFIER, "Invalid name", NULL);
 		strcpy(args[*arg_len].name, tkns->tokens[tkns->idx - 1].word);
 		update_name_state(tkns, args[*arg_len].name, 1);
-		skip_white_space(tkns);
+		skip_whitespace(tkns);
 
 		contains_str_type(tkns, &args[*arg_len].type);
 
-		// args->addr = pop_ram();
-		// args->addr = 0;
 		*arg_len = *arg_len + 1;
 
 		if(tkns->tokens[tkns->idx].type == COMMA_SIGN){
@@ -298,26 +307,26 @@ CNST_VAR const_var(TKNS *tkns){
 void str_var_asgmt(TKNS *tkns, char *value){
 	// string
 	tkns->idx++;
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == BRAKET_CLS){
 		tkns->idx++;
 	} else { throw_err(tkns, "Invalid syntax", "]"); }
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 		tkns->idx++;
 	} else { throw_err(tkns, "Invalid syntax", "="); }
 
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(get_string(tkns, value) == 0){
 		tkns->idx++;
 	} else { throw_err(tkns, "Invalid syntax", NULL); }
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == END_SIGN){
 		++tkns->idx;
@@ -336,7 +345,7 @@ void u8_var_asgmt(TKNS *tkns, int *value, var_t type){
 		throw_err(tkns, "Invalid symbol", "=");
 	}
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(type == INT_VAR){
 		if(tkns->tokens[tkns->idx].type == INTEGER_VALUE && get_literal_value(tkns->tokens[tkns->idx].word, value) == 0){
@@ -349,7 +358,7 @@ void u8_var_asgmt(TKNS *tkns, int *value, var_t type){
 		get_char_value(tkns, (char *)value);
 	}
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == END_SIGN){
 		tkns->idx++;
@@ -369,9 +378,9 @@ ASGMT var_asgmt(TKNS *tkns){
 	ae.func.arg_len = 0;
 	ae.func.return_type = INT_VAR;
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 	ae.type = get_type(tkns);
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	// get varialbe name
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
@@ -382,7 +391,7 @@ ASGMT var_asgmt(TKNS *tkns){
 		throw_err(tkns, "Invalid varialbe name", NULL);
 	}
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == BRAKET_OPN){  // String detected
 		ae.type = STR_VAR;
@@ -402,7 +411,7 @@ ASGMT var_asgmt(TKNS *tkns){
 			save_scoop_variable(v);
 		}
 		pass_by_type(tkns, PAREN_CLS, "Invalid character", "')'");
-		skip_white_space(tkns);
+		skip_whitespace(tkns);
 		pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
 		get_brace_content(tkns, &ae.func.body);  // update function's body
 		skip_gap(tkns);
@@ -438,7 +447,7 @@ MACRO macro_asgmt(TKNS *tkns){
 
 	// int is_include = tkns->tokens[tkns->idx - 1].type == INCLUDE_KEYWORD;
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	/*
 	if(is_include){
@@ -461,7 +470,7 @@ MACRO macro_asgmt(TKNS *tkns){
 			tkns->idx++;
 		} else { throw_err(tkns, "A name required", NULL); }
 
-		skip_white_space(tkns);
+		skip_whitespace(tkns);
 		mcro.value = const_var(tkns);
 	}
 	*/
@@ -474,7 +483,7 @@ MACRO macro_asgmt(TKNS *tkns){
 		tkns->idx++;
 	} else { throw_err(tkns, "A name required", NULL); }
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 	// mcro.value = const_var(tkns);
 
 
@@ -495,7 +504,7 @@ MACRO macro_asgmt(TKNS *tkns){
 
 	mcro.value = cvar;
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == NEWLINE){
 		return mcro;
@@ -599,7 +608,7 @@ STMT get_statement(TKNS *tkns){
 	STMT st;
 	st.literal = 0;
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == END_SIGN){
 		st.op = NO_OP;
@@ -613,7 +622,7 @@ STMT get_statement(TKNS *tkns){
 	strcpy(st.left, tkns->tokens[tkns->idx - 1].word);
 	check_name(tkns, st.left, 1);
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(st.op == COMPLEMENT_OP){ return st; }
 
@@ -631,7 +640,7 @@ STMT get_statement(TKNS *tkns){
 			tkns->idx++;
 		}
 		skip_double_op(tkns, st.op);
-		skip_white_space(tkns);
+		skip_whitespace(tkns);
 
 		pass_by_type(tkns, INTEGER_VALUE, "Invalid syntax", "integer");
 		strcpy(st.right, tkns->tokens[tkns->idx - 1].word);
@@ -645,55 +654,142 @@ STMT get_statement(TKNS *tkns){
 }
 
 
+SNIP get_snippet(TKNS *tkns){
+	SNIP snip;
+	snip.op = NO_OP;
+	snip.left = empty_qvar();
+	snip.right = empty_qvar();
+	snip.assigned = empty_qvar();
+	snip.type = NOT_EFFECTIVE_SNIP;
+
+	token_t t;
+
+	// New Assignment
+	if((t = tkns->tokens[tkns->idx].type) == INT_KEYWORD || t == CHAR_KEYWORD){
+		tkns->idx++;
+
+		skip_whitespace(tkns);
+
+		if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+			strcpy(snip.assigned.name, tkns->tokens[tkns->idx].word);
+			tkns->idx++;
+		} else {
+			throw_err(tkns, "Invalid name", "identifier");
+		}
+
+		if(see_forward(tkns, 0, BRAKET_OPN, BRAKET_CLS)){
+			snip.assigned.type = CONSTANT_STRING;
+			tkns->idx = tkns->idx + 2;
+
+		} else if(t == INT_KEYWORD){
+			snip.assigned.type = QVAR_INT;
+		} else {
+			snip.assigned.type = QVAR_CHAR;
+		}
+		
+		skip_whitespace(tkns);
+		pass_by_type(tkns, EQUAL_SIGN, "Invalid syntax", "=");
+		skip_whitespace(tkns);
+
+		if(snip.assigned.type == CONSTANT_STRING){
+
+			pass_by_type(tkns, DOUBLE_QUOTE, "Invalid string", "\"");
+			while(tkns->tokens[tkns->idx].type != DOUBLE_QUOTE){
+				strcat(snip.assigned.const_str, tkns->tokens[tkns->idx].word);
+				tkns->idx++;
+			}
+			pass_by_type(tkns, DOUBLE_QUOTE, "Invalid string", "\"");
+		} else if (snip.assigned.type == QVAR_INT){
+			if(tkns->tokens[tkns->idx].type == INTEGER_VALUE){
+				if(get_literal_value(tkns->tokens[tkns->idx].word, &snip.assigned.numeric_value)){
+					throw_err(tkns, "Invalid numeric value", "integer");
+				}
+			}
+			tkns->idx++;
+		} else if (snip.assigned.type == QVAR_CHAR){
+			if(get_char_value(tkns, (char *)&snip.assigned.numeric_value)){
+				throw_err(tkns, "Invalid character", "single character");
+			}
+		} else {
+			throw_err(tkns, "Invalid statement", NULL);
+		}
+		
+		pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
+		if(save_qvar(snip.assigned, GLOBAL_LOCAL_STACK)){
+			throw_err(tkns, "Varialbe already exists", NULL);
+		}
+		snip.is_assigned = 1;
+		return snip;
+
+	} else {
+
+
+	}
+
+	// Existing Assignment
+
+	return snip;
+}
+
 
 FOR_ASGMT for_asgmt(TKNS *tkns){
 	FOR_ASGMT fr;
 	tkns->idx++;
-	skip_white_space(tkns);
 
-	// initial
-	pass_by_type(tkns, PAREN_OPN, "Invalid character", "'('");
-	skip_white_space(tkns);
-	fr.init = get_statement(tkns);
+	skip_whitespace(tkns);
 
-	skip_white_space(tkns);
+	pass_by_type(tkns, PAREN_OPN, "Invalid for loop", "'('");
+	skip_whitespace(tkns);
 
-	// condition
-	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
-	skip_white_space(tkns);
-	fr.cond = get_statement(tkns);
 
-	skip_white_space(tkns);
 
-	// iterator
-	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
-	skip_white_space(tkns);
-
-	fr.iter = get_statement(tkns);
-
-	skip_white_space(tkns);
-
-	// end ')'
-	pass_by_type(tkns, PAREN_CLS, "Invalid character", "')'");
-	skip_white_space(tkns);
-	// body
-	pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
-	get_brace_content(tkns, &fr.body);  // get everything in for loop as tokens
-	pass_by_type(tkns, BRACE_CLS, "Invalid character", "'}'");
-
-	// **DEBUG**
-	// for(int i = 0; i < fr.body.max; i++){
-	// 	printf("%s\n", fr.body.tokens[i].word);
-	// }
-
-	// tkns->idx++;  // ?
+	skip_whitespace(tkns);
+	pass_by_type(tkns, PAREN_CLS, "Invalid for loop", "')'");
 	return fr;
 }
+
+// FOR_ASGMT for_asgmt(TKNS *tkns){
+// 	FOR_ASGMT fr;
+// 	tkns->idx++;
+// 	skip_whitespace(tkns);
+// 
+// 	// initial
+// 	pass_by_type(tkns, PAREN_OPN, "Invalid character", "'('");
+// 	skip_whitespace(tkns);
+// 	fr.init = get_statement(tkns);
+// 
+// 	skip_whitespace(tkns);
+// 
+// 	// condition
+// 	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
+// 	skip_whitespace(tkns);
+// 	fr.cond = get_statement(tkns);
+// 
+// 	skip_whitespace(tkns);
+// 
+// 	// iterator
+// 	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
+// 	skip_whitespace(tkns);
+// 
+// 	fr.iter = get_statement(tkns);
+// 
+// 	skip_whitespace(tkns);
+// 
+// 	// end ')'
+// 	pass_by_type(tkns, PAREN_CLS, "Invalid character", "')'");
+// 	skip_whitespace(tkns);
+// 	// body
+// 	pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
+// 	get_brace_content(tkns, &fr.body);  // get everything in for loop as tokens
+// 	pass_by_type(tkns, BRACE_CLS, "Invalid character", "'}'");
+// 	// tkns->idx++;  // ?
+// 	return fr;
+// }
 
 
 
 // void get_cond(TKNS *tkns, TKNS *dst){
-// 	skip_white_space(tkns);
+// 	skip_whitespace(tkns);
 // 	pass_by_type(tkns, PAREN_OPN, "Invalid syntax", "(");
 // 	while(tkns->tokens[tkns->idx].type != PAREN_CLS)
 // 	pass_by_type(tkns, PAREN_CLS, "Invalid syntax", ")");
@@ -704,20 +800,20 @@ BODY_ASGMT body_asgmt(TKNS *tkns, body_t type){
 	wa.type = type;
 	// wa.cond.op = NO_OP;
 	tkns->idx++;
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	// (...), condition (test) part of the while loop
 	pass_by_type(tkns, PAREN_OPN, "Invalid character", "'('");
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 	// int tidx = tkns->id;
 	wa.cond = get_statement(tkns);
 	// tkns->idx = tidx;
 	// get_paren_content(tkns, &wa.cond.body);
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 	pass_by_type(tkns, PAREN_CLS, "Invalid character", "')'");
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	// body of the loop
 	pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
@@ -742,7 +838,7 @@ BODY_ASGMT else_asgmt(TKNS *tkns){
 	wa.cond.op = NO_OP;
 	tkns->idx++;
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	// body of the loop
 	pass_by_type(tkns, BRACE_OPN, "Invalid character", "'{'");
@@ -755,7 +851,7 @@ BODY_ASGMT else_asgmt(TKNS *tkns){
 
 CNST_VAR return_asgmt(TKNS *tkns, var_t return_type){
 	tkns->idx++;
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 	CNST_VAR vl;
 
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
@@ -781,7 +877,7 @@ CNST_VAR return_asgmt(TKNS *tkns, var_t return_type){
 		type_to_str(return_type, type);
 		throw_err(tkns, "Invalid return type", type);
 	}
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 	pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
 	return vl;
 }
@@ -832,7 +928,7 @@ side_t get_side(TKNS *tkns, token_t split){
 CNST_VAR skip_by_arg(TKNS *tkns, ARG arg){
 	CNST_VAR var;
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
 		if(variable_exits(tkns->tokens[tkns->idx].word, &var) == 0){
@@ -856,12 +952,12 @@ int function_call(TKNS *tkns, func_t *func, CNST_VAR *arguments, int *idx){
 	int tmpidx = tkns->idx;
 	// int idx = 0;
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
 
 		if(get_func(tkns->tokens[tkns->idx].word, func)){
 			tkns->idx++;
-			skip_white_space(tkns);
+			skip_whitespace(tkns);
 
 			pass_by_type(tkns, PAREN_OPN, "Invalid syntax", "'('");
 			// tkns->idx++;
@@ -876,7 +972,7 @@ int function_call(TKNS *tkns, func_t *func, CNST_VAR *arguments, int *idx){
 					*idx = *idx + 1;
 					// printf("IDX: %d\n", idx);
 
-					skip_white_space(tkns);
+					skip_whitespace(tkns);
 					if(i == func->arg_len - 1){
 						pass_by_type(tkns, PAREN_CLS, "Invalid syntax", "')'");
 						break;
@@ -921,7 +1017,7 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 
 
 	
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	int tmpidx = tkns->idx;
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
@@ -933,7 +1029,7 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 		strcpy(expr.assign_name, tkns->tokens[tkns->idx].word);
 		tkns->idx++;
 
-		skip_white_space(tkns);
+		skip_whitespace(tkns);
 		if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 			tkns->idx++;
 			expr.type = EXPR_ASSIGNABLE;
@@ -950,16 +1046,16 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 
 
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	expr.left = get_side(tkns, endtok);
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == endtok){ expr.mono_side = 0; return expr; }
 	
 
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 
 	expr.op = get_operator(tkns);
@@ -968,7 +1064,7 @@ EXPR get_expr(TKNS *tkns, token_t endtok){
 
 	tkns->idx++;
 	skip_double_op(tkns, expr.op);
-	skip_white_space(tkns);
+	skip_whitespace(tkns);
 
 	expr.right = get_side(tkns, endtok);
 

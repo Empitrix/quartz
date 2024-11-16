@@ -33,7 +33,7 @@ int main(int argc, char *argv[]){
 	// }
 	show_tree(asts, ast_len());
 
-	func_exists("main", 1);  // Check that if function 'main' exists (1 means exit if there is no 'main')
+	// func_exists("main", 1);  // Check that if function 'main' exists (1 means exit if there is no 'main')
 
 	generator();
 

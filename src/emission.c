@@ -113,7 +113,7 @@ void code_emission(AST ast, char code[], char label[]){
 			// 	}
 			// }
 
-			emit_stmt(code, ast.for_asgmt.cond, 0);
+			emit_stmt(code, ast.cond, 0);
 			break;
 
 		case AST_ELSE_STATEMENT:

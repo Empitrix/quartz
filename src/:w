@@ -370,7 +370,7 @@ static int local_q_idx = 0;
 
 int qvar_exists(Qvar q, Qstack stack){
 	if(stack == GLOBAL_STACK){
-		for(int i = 0; i < global_q_idx; ++i){
+		for(int i = 0; i < local_q_idx; ++i){
 			if(strcmp(q.name, global_qvar[i].name) == 0){
 				return 1;
 			}
@@ -385,7 +385,7 @@ int qvar_exists(Qvar q, Qstack stack){
 		// Check for Both Global/Local by recursive calling
 		int result = 0;
 		result = qvar_exists(q, GLOBAL_STACK);
-
+		printf("HERE\n");
 		if(result){
 			return result;
 		} else {
@@ -398,7 +398,9 @@ int qvar_exists(Qvar q, Qstack stack){
 
 /* save_qvar: save Q-var return 0 if everything goes fine (not exitst) otherwise return 1 */
 int save_qvar(Qvar q, Qstack stack){
-	if(qvar_exists(q, GLOBAL_LOCAL_STACK)){ return 1; }
+	if(qvar_exists(q, GLOBAL_LOCAL_STACK)){
+		return 1;
+	}
 
 	if(stack == GLOBAL_STACK || stack == GLOBAL_LOCAL_STACK){
 		global_qvar[global_q_idx++] = q;
