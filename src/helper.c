@@ -709,7 +709,6 @@ qvar_t get_qtype(TKNS *tkns, char name[]){
 
 int capture_arg(TKNS *tkns, Qarg *qarg){
 	token_t t;
-	printf("INPUT: %s\n", tkns->tokens[tkns->idx].word);
 	if((t = tkns->tokens[tkns->idx].type) == INT_KEYWORD || t == CHAR_KEYWORD){
 		qarg->type = get_qtype(tkns, qarg->name);
 		qarg->addr = pop_ram();
@@ -781,6 +780,8 @@ SNIP get_snippet(TKNS *tkns){
 				throw_err(tkns, "Varialbe already exists", NULL);
 			}
 
+		snip.type = ASSIGNMENT_SNIP;
+
 		} else if (tkns->tokens[tkns->idx].type == PAREN_OPN){
 			tkns->idx++;
 			while(tkns->tokens[tkns->idx].type != PAREN_CLS){
@@ -819,14 +820,28 @@ SNIP get_snippet(TKNS *tkns){
 		}
 
 
-		return snip;
+		snip.type = ASSIGNMENT_SNIP;
 
-	} else {
+	} else if(tkns->tokens[tkns->idx].type == HASHTAG){
+		tkns->idx++;
 
+		pass_by_type(tkns, DEFINE_KEYWORD, "Invalid syntax", "define");
+		skip_whitespace(tkns);
 
+		pass_by_type(tkns, IDENTIFIER, "Invalid define", "Valid name");
+		strcpy(snip.assigned.name, tkns->tokens[tkns->idx - 1].word);
+		skip_whitespace(tkns);
+
+		pass_by_type(tkns, INTEGER_VALUE, "Invalid define", "integer");
+		if(get_literal_value(tkns->tokens[tkns->idx - 1].word, &snip.assigned.addr)){
+			throw_err(tkns, "Invalid define value", "valid integer");
+		}
+		snip.assigned.numeric_value = snip.assigned.addr;
+		snip.assigned.type = QVAR_DEFINE;
+		snip.type = ASSIGNMENT_SNIP;
 	}
 
-	// Existing Assignment
+
 
 	return snip;
 }

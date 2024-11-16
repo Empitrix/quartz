@@ -309,6 +309,7 @@ typedef enum {
 	NOT_EFFECTIVE_SNIP,  // Will be ignored by compiler (1 + 1;)
 	CONDITIONAL_SNIP,
 	ITTERATIONAL_SNIP,
+	ASSIGNMENT_SNIP,
 } snip_t;
 
 typedef enum {

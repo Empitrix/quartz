@@ -68,7 +68,7 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 
 		// Check for varialbe assignments
-		if(strcmp(tkns->tokens[tkns->idx].word, "int") == 0 || strcmp(tkns->tokens[tkns->idx].word, "char") == 0){
+		if(tkns->tokens[tkns->idx].type == INT_KEYWORD || tkns->tokens[tkns->idx].type == CHAR_KEYWORD || tkns->tokens[tkns->idx].type == HASHTAG){
 			get_snippet(tkns);
 			
 			// ASGMT asgmt = var_asgmt(tkns);
@@ -114,23 +114,23 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 			// ast.asgmt = asgmt;
 
 		// Check for #include "..." & #define ... ...
-		} else if(tkns->tokens[tkns->idx].type == HASHTAG){
-			ast.macro = macro_asgmt(tkns);
-			ast.type = AST_MACRO;
+		// } else if(tkns->tokens[tkns->idx].type == HASHTAG){
+		// 	ast.macro = macro_asgmt(tkns);
+		// 	ast.type = AST_MACRO;
 
-			VAR v;
-			v.type = INT_VAR;
-			strcpy(v.name, ast.macro.name);
-			v.value = ast.macro.value.int_value;
-			v.type = MACRO_VAR;
-			save_global_variable(v);
+		// 	VAR v;
+		// 	v.type = INT_VAR;
+		// 	strcpy(v.name, ast.macro.name);
+		// 	v.value = ast.macro.value.int_value;
+		// 	v.type = MACRO_VAR;
+		// 	save_global_variable(v);
 
 
-			// asgmt.address = pop_ram();
-			ASM_VAR avar;
-			strcpy(avar.name, v.name);
-			avar.addr = ast.macro.value.int_value;
-			add_asm_var(avar);
+		// 	// asgmt.address = pop_ram();
+		// 	ASM_VAR avar;
+		// 	strcpy(avar.name, v.name);
+		// 	avar.addr = ast.macro.value.int_value;
+		// 	add_asm_var(avar);
 
 
 		// Check for 'for(...;...;...){...}'
