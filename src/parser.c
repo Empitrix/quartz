@@ -241,13 +241,16 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 		} else {
 			if(allow_expression){
-				EXPR xpr = get_expr(tkns, END_SIGN);
-				ast.expr = xpr;
-				ast.type = AST_STATEMENT;
-				if(ast.expr.type == EXPR_FUNCTION_CALL){
-					ast.type = AST_FUNCTION_CALL;
-					ast.func = xpr.caller;
-				}
+				// printf("%s\n", tkns->tokens[tkns->idx].word);
+				get_snippet(tkns);
+
+				// EXPR xpr = get_expr(tkns, END_SIGN);
+				// ast.expr = xpr;
+				// ast.type = AST_STATEMENT;
+				// if(ast.expr.type == EXPR_FUNCTION_CALL){
+				// 	ast.type = AST_FUNCTION_CALL;
+				// 	ast.func = xpr.caller;
+				// }
 
 			} else {
 				throw_err(tkns, "Invalid word", NULL);

@@ -131,6 +131,7 @@ typedef struct {
 	char const_str[STR_MAX];  // Constant string
 } Qvar;
 
+
 Qvar empty_qvar(void){
 	Qvar q;
 	q.addr = 0;
@@ -139,6 +140,15 @@ Qvar empty_qvar(void){
 	q.type = CONSTANT_INTEGER;
 	q.numeric_value = 0;
 	return q;
+}
+
+
+void copy_qvar(Qvar dst, Qvar src){
+	dst.addr = src.addr;
+	strcpy(dst.const_str, src.const_str);
+	strcpy(dst.name, src.name);
+	dst.type = src.type;
+	dst.numeric_value = src.numeric_value;
 }
 
 
@@ -181,6 +191,7 @@ typedef enum {
 	COMPLEMENT_OP,      // ~
 	AND_OP,             // &
 	OR_OP,              // |
+	XOR_OP,             // ^
 	ADD_ASSIGN_OP,      // +=
 	MINUS_ASSIGN_OP,    // -=
 	NO_OP,              // No operator
@@ -310,6 +321,7 @@ typedef enum {
 	CONDITIONAL_SNIP,
 	ITTERATIONAL_SNIP,
 	ASSIGNMENT_SNIP,
+	ARITHMETIC_SNIP,
 } snip_t;
 
 typedef enum {
@@ -317,6 +329,9 @@ typedef enum {
 	FUNCTION_ASSIGNMENT_ASG,
 	VARIABLE_ASSIGNMENT_ASG,
 	MACRO_ASSIGNMENT_ASG,
+	NEW_ASSIGNMENT_ASG,
+	ASSIGNMENT_ASG,
+	UPDATE_AST, // Define 
 } asg_t;
 
 

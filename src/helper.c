@@ -623,6 +623,16 @@ void skip_double_op(TKNS *tkns, operator op){
 	}
 }
 
+
+void get_string_value(TKNS *tkns, char buff[]){
+	pass_by_type(tkns, DOUBLE_QUOTE, "Invalid string", "\"");
+	while(tkns->tokens[tkns->idx].type != DOUBLE_QUOTE){
+		strcat(buff, tkns->tokens[tkns->idx].word);
+		tkns->idx++;
+	}
+	pass_by_type(tkns, DOUBLE_QUOTE, "Invalid string", "\"");
+}
+
 /* get_statement: detect: ...int a = 0;... in for loop*/
 STMT get_statement(TKNS *tkns){
 	STMT st;
@@ -718,6 +728,176 @@ int capture_arg(TKNS *tkns, Qarg *qarg){
 	return 0;
 }
 
+
+int pass_by_qvar(TKNS *tkns, Qvar *qvar){
+	*qvar = empty_qvar();
+
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		if(get_qvar(tkns->tokens[tkns->idx].word, qvar)){
+			throw_err(tkns, "Invlaid identifier", "valid variable name");
+		}
+		tkns->idx++;
+		return 0;
+
+	} else if(tkns->tokens[tkns->idx].type == INTEGER_VALUE){
+		if(get_literal_value(tkns->tokens[tkns->idx].word, &qvar->numeric_value)){
+			throw_err(tkns, "Invlaid identifier", "valid variable name");
+		}
+		tkns->idx++;
+		qvar->type = CONSTANT_INTEGER;
+		return 0;
+
+	} else if (tkns->tokens[tkns->idx].type == SINGLE_QUOTE){
+		if(get_char_value(tkns, (char *)&qvar->numeric_value)){
+			throw_err(tkns, "Invlaid identifier", "valid variable name");
+		}
+		qvar->type = CONSTANT_CHAR;
+		return 0;
+
+	} else if (tkns->tokens[tkns->idx].type == DOUBLE_QUOTE){
+		get_string_value(tkns, qvar->const_str);
+		qvar->type = CONSTANT_STRING;
+		return 0;
+
+	} else {
+		return 1;
+	}
+
+	return 0;
+}
+
+
+
+
+
+
+	// EQUAL_OP,           // ==
+	// NOT_EQUAL_OP,       // !=
+	// ASSIGN_OP,          // =
+	// SMALLER_OP,         // <
+	// GREATOR_OP,         // >
+	// SMALLER_EQ_OP,      // <=
+	// GREATOR_EQ_OP,      // >=
+	// ADD_OP,             // +
+	// MINUS_OP,           // -
+	// INCREMENT_OP,       // ++
+	// DECREMENT_OP,       // --
+	// SHIFT_RIGHT_OP,     // >>
+	// SHIFT_LEFT_OP,      // <<
+	// COMPLEMENT_OP,      // ~
+	// AND_OP,             // &
+	// OR_OP,              // |
+	// ADD_ASSIGN_OP,      // +=
+	// MINUS_ASSIGN_OP,    // -=
+	// NO_OP,              // No operator
+	// INVALID_OP          // invalid(err) operator
+
+
+operator capture_operator(TKNS *tkns, snip_t *st){
+	if(see_forward(tkns, 0, EQUAL_SIGN, EQUAL_SIGN)){                // ==
+		*st = CONDITIONAL_SNIP;
+		tkns->idx = tkns->idx + 2;
+		return EQUAL_OP;
+
+	} else if(see_forward(tkns, 0, EXCLAMATION_SIGN, EQUAL_SIGN)){   // !=
+		*st = CONDITIONAL_SNIP;
+		tkns->idx = tkns->idx + 2;
+		return NOT_EQUAL_OP;
+
+	} else if(see_forward(tkns, 0, LEFT_SIGN, EQUAL_SIGN)){          // <=
+		*st = CONDITIONAL_SNIP;
+		tkns->idx = tkns->idx + 2;
+		return SMALLER_EQ_OP;
+
+	} else if(see_forward(tkns, 0, RIGHT_SIGN, EQUAL_SIGN)){         // >=
+		*st = CONDITIONAL_SNIP;
+		tkns->idx = tkns->idx + 2;
+		return GREATOR_OP;
+
+	} else if(see_forward(tkns, 0, PLUS_SIGN, EQUAL_SIGN)){          // +=
+		*st = ASSIGNMENT_SNIP;
+		tkns->idx = tkns->idx + 2;
+		return ADD_ASSIGN_OP;
+
+	} else if(see_forward(tkns, 0, MINUS_SIGN, EQUAL_SIGN)){         // -=
+		*st = ASSIGNMENT_SNIP;
+		tkns->idx = tkns->idx + 2;
+		return MINUS_ASSIGN_OP;
+
+	} else if(see_forward(tkns, 0, PLUS_SIGN, PLUS_SIGN)){           // ++
+		*st = ITTERATIONAL_SNIP;
+		tkns->idx = tkns->idx + 2;
+		return INCREMENT_OP;
+
+	} else if(see_forward(tkns, 0, MINUS_SIGN, MINUS_SIGN)){         // --
+		*st = ITTERATIONAL_SNIP;
+		tkns->idx = tkns->idx + 2;
+		return DECREMENT_OP;
+
+	} else if(see_forward(tkns, 0, LEFT_SIGN, LEFT_SIGN)){           // <<
+		*st = ARITHMETIC_SNIP;
+		tkns->idx = tkns->idx + 2;
+		return SHIFT_LEFT_OP;
+
+	} else if(see_forward(tkns, 0, RIGHT_SIGN, RIGHT_SIGN)){         // >>
+		*st = ARITHMETIC_SNIP;
+		tkns->idx = tkns->idx + 2;
+		return SHIFT_RIGHT_OP;
+
+	} else if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){           // =
+		*st = ASSIGNMENT_SNIP;
+		tkns->idx++;
+		return ASSIGN_OP;
+
+	} else if(tkns->tokens[tkns->idx].type == LEFT_SIGN){            // <
+		*st = CONDITIONAL_SNIP;
+		tkns->idx++;
+		return SMALLER_OP;
+
+	} else if(tkns->tokens[tkns->idx].type == RIGHT_SIGN){           // >
+		*st = CONDITIONAL_SNIP;
+		tkns->idx++;
+		return GREATOR_OP;
+
+	} else if(tkns->tokens[tkns->idx].type == PLUS_SIGN){            // +
+		*st = ARITHMETIC_SNIP;
+		tkns->idx++;
+		return ADD_OP;
+
+	} else if(tkns->tokens[tkns->idx].type == MINUS_SIGN){           // -
+		*st = ARITHMETIC_SNIP;
+		tkns->idx++;
+		return MINUS_OP;
+
+	} else if(tkns->tokens[tkns->idx].type == TILDE_SIGN){           // ~
+		*st = ARITHMETIC_SNIP;
+		tkns->idx++;
+		return COMPLEMENT_OP;
+
+	} else if(tkns->tokens[tkns->idx].type == AND_SIGN){             // &
+		*st = ARITHMETIC_SNIP;
+		tkns->idx++;
+		return AND_OP;
+
+	} else if(tkns->tokens[tkns->idx].type == OR_SIGN){              // |
+		*st = ARITHMETIC_SNIP;
+		tkns->idx++;
+		return OR_OP;
+
+	} else if(tkns->tokens[tkns->idx].type == CARET_SIGN){           // ^
+		*st = ARITHMETIC_SNIP;
+		tkns->idx++;
+		return XOR_OP;
+
+	}
+	return INVALID_OP;
+}
+
+
+
+
+
+
 /* get_snippet get block of code */
 SNIP get_snippet(TKNS *tkns){
 	SNIP snip;
@@ -744,12 +924,14 @@ SNIP get_snippet(TKNS *tkns){
 
 			// Get const string (char []) value "..."
 			if(snip.assigned.type == CONSTANT_STRING){
-				pass_by_type(tkns, DOUBLE_QUOTE, "Invalid string", "\"");
-				while(tkns->tokens[tkns->idx].type != DOUBLE_QUOTE){
-					strcat(snip.assigned.const_str, tkns->tokens[tkns->idx].word);
-					tkns->idx++;
-				}
-				pass_by_type(tkns, DOUBLE_QUOTE, "Invalid string", "\"");
+				get_string_value(tkns, snip.assigned.const_str);
+
+				// pass_by_type(tkns, DOUBLE_QUOTE, "Invalid string", "\"");
+				// while(tkns->tokens[tkns->idx].type != DOUBLE_QUOTE){
+				// 	strcat(snip.assigned.const_str, tkns->tokens[tkns->idx].word);
+				// 	tkns->idx++;
+				// }
+				// pass_by_type(tkns, DOUBLE_QUOTE, "Invalid string", "\"");
 
 			// Get (int) value 123..
 			} else if (snip.assigned.type == QVAR_INT){
@@ -839,9 +1021,40 @@ SNIP get_snippet(TKNS *tkns){
 		snip.assigned.numeric_value = snip.assigned.addr;
 		snip.assigned.type = QVAR_DEFINE;
 		snip.type = ASSIGNMENT_SNIP;
+
+		snip.assigne_type = MACRO_ASSIGNMENT_ASG;
 	}
 
+	if(snip.type == ASSIGNMENT_SNIP){ return snip; }
 
+
+	pass_by_qvar(tkns, &snip.left);
+	skip_whitespace(tkns);
+
+	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
+		copy_qvar(snip.assigned, snip.left);
+		snip.left = empty_qvar();  // Clear 'snip.left'
+		snip.assigne_type = UPDATE_AST;
+
+		tkns->idx++;
+
+		skip_whitespace(tkns);
+		pass_by_qvar(tkns, &snip.left);
+		skip_whitespace(tkns);
+		snip.op = capture_operator(tkns, &snip.type);
+		skip_whitespace(tkns);
+		pass_by_qvar(tkns, &snip.right);
+
+	} else {
+
+		skip_whitespace(tkns);
+		snip.op = capture_operator(tkns, &snip.type);
+		skip_whitespace(tkns);
+		pass_by_qvar(tkns, &snip.right);
+	}
+
+	skip_whitespace(tkns);
+	pass_by_type(tkns, END_SIGN, "Invalid expression", ";");
 
 	return snip;
 }
