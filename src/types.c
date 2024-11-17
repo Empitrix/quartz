@@ -386,3 +386,24 @@ typedef enum {
 	GLOBAL_LOCAL_STACK,
 } Qstack;
 
+typedef struct {
+	SNIP init;
+	SNIP cond;
+	SNIP iter;
+	TKNS body;
+} Qfor;
+
+
+typedef struct {
+	SNIP cond;
+	TKNS body;
+} Qwhile;
+
+
+typedef struct {
+	SNIP cond;
+	TKNS if_body;
+	int contains_else;
+	TKNS else_body;
+} Qif;
+

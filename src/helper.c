@@ -794,7 +794,8 @@ int pass_by_qvar(TKNS *tkns, Qvar *qvar){
 
 
 operator capture_operator(TKNS *tkns, snip_t *st){
-	if(see_forward(tkns, 0, EQUAL_SIGN, EQUAL_SIGN)){                // ==
+	if(see_forward(tkns, 0, EQUAL_SIGN, EQUAL_SIGN) ||
+			see_forward(tkns, -1, EQUAL_SIGN, EQUAL_SIGN)){                // ==
 		*st = CONDITIONAL_SNIP;
 		tkns->idx = tkns->idx + 2;
 		return EQUAL_OP;
@@ -899,7 +900,7 @@ operator capture_operator(TKNS *tkns, snip_t *st){
 
 
 /* get_snippet get block of code */
-SNIP get_snippet(TKNS *tkns){
+SNIP get_snippet(TKNS *tkns, token_t endtok){
 	SNIP snip;
 	snip.op = NO_OP;                        // NO operator
 	snip.left = empty_qvar();               // Empty left side
@@ -919,19 +920,11 @@ SNIP get_snippet(TKNS *tkns){
 		// If there is = means it's varialbe assignment otherwise it's for function assignment
 		if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
 			tkns->idx++;
-
 			skip_whitespace(tkns);
 
 			// Get const string (char []) value "..."
 			if(snip.assigned.type == CONSTANT_STRING){
 				get_string_value(tkns, snip.assigned.const_str);
-
-				// pass_by_type(tkns, DOUBLE_QUOTE, "Invalid string", "\"");
-				// while(tkns->tokens[tkns->idx].type != DOUBLE_QUOTE){
-				// 	strcat(snip.assigned.const_str, tkns->tokens[tkns->idx].word);
-				// 	tkns->idx++;
-				// }
-				// pass_by_type(tkns, DOUBLE_QUOTE, "Invalid string", "\"");
 
 			// Get (int) value 123..
 			} else if (snip.assigned.type == QVAR_INT){
@@ -951,7 +944,8 @@ SNIP get_snippet(TKNS *tkns){
 				throw_err(tkns, "Invalid statement", NULL);
 			}
 			
-			pass_by_type(tkns, END_SIGN, "Invalid syntax", ";");
+
+			pass_by_type(tkns, endtok, "Invalid syntax", "EOF");
 
 
 			snip.assigned.addr = pop_ram();
@@ -1041,8 +1035,16 @@ SNIP get_snippet(TKNS *tkns){
 		skip_whitespace(tkns);
 		pass_by_qvar(tkns, &snip.left);
 		skip_whitespace(tkns);
+
 		snip.op = capture_operator(tkns, &snip.type);
 		skip_whitespace(tkns);
+	
+		if(snip.type == ITTERATIONAL_SNIP){
+			pass_by_type(tkns, endtok, "Invalid expression", "EOF");
+			return snip;
+		}
+
+
 		pass_by_qvar(tkns, &snip.right);
 
 	} else {
@@ -1050,30 +1052,115 @@ SNIP get_snippet(TKNS *tkns){
 		skip_whitespace(tkns);
 		snip.op = capture_operator(tkns, &snip.type);
 		skip_whitespace(tkns);
+
+		if(snip.type == ITTERATIONAL_SNIP){
+			pass_by_type(tkns, endtok, "Invalid expression", "EOF");
+			return snip;
+		}
+
+
 		pass_by_qvar(tkns, &snip.right);
 	}
 
 	skip_whitespace(tkns);
-	pass_by_type(tkns, END_SIGN, "Invalid expression", ";");
+	pass_by_type(tkns, endtok, "Invalid expression", "EOF");
 
 	return snip;
 }
 
 
-FOR_ASGMT for_asgmt(TKNS *tkns){
-	FOR_ASGMT fr;
+Qfor for_asgmt(TKNS *tkns){
+	Qfor qfor;
 	tkns->idx++;
-
 	skip_whitespace(tkns);
 
 	pass_by_type(tkns, PAREN_OPN, "Invalid for loop", "'('");
 	skip_whitespace(tkns);
 
-
-
+	qfor.init = get_snippet(tkns, END_SIGN);
 	skip_whitespace(tkns);
-	pass_by_type(tkns, PAREN_CLS, "Invalid for loop", "')'");
-	return fr;
+	if(qfor.init.type != ASSIGNMENT_SNIP && qfor.init.type != NOT_EFFECTIVE_SNIP){
+		throw_err(tkns, "Invalid conditional statement", NULL);
+	}
+
+	qfor.cond = get_snippet(tkns, END_SIGN);
+	skip_whitespace(tkns);
+	if(qfor.cond.type != CONDITIONAL_SNIP && qfor.cond.type != NOT_EFFECTIVE_SNIP){
+		throw_err(tkns, "Invalid conditional statement", NULL);
+	}
+
+	qfor.iter = get_snippet(tkns, PAREN_CLS);
+	skip_whitespace(tkns);
+	if(qfor.iter.type != ITTERATIONAL_SNIP && qfor.iter.type != NOT_EFFECTIVE_SNIP){
+		throw_err(tkns, "Invalid conditional statement", NULL);
+	}
+
+	pass_by_type(tkns, BRACE_OPN, "Invalid syntax", "{");
+	get_brace_content(tkns, &qfor.body);
+	tkns->idx++;
+
+	return qfor;
+}
+
+
+/* parse: while(...condition...){ ... }*/
+Qwhile while_asgmt(TKNS *tkns){
+	Qwhile qwhile;
+	tkns->idx++;
+	skip_whitespace(tkns);
+
+	pass_by_type(tkns, PAREN_OPN, "Invalid while loop", "'('");
+	skip_whitespace(tkns);
+
+	qwhile.cond = get_snippet(tkns, PAREN_CLS);
+	skip_whitespace(tkns);
+
+	if(qwhile.cond.type != CONDITIONAL_SNIP){
+		printf("%d\n", qwhile.cond.type);
+		throw_err(tkns, "Invalid conditional statement", NULL);
+	}
+
+	pass_by_type(tkns, BRACE_OPN, "Invalid syntax", "{");
+	get_brace_content(tkns, &qwhile.body);
+	tkns->idx++;
+
+	return qwhile;
+}
+
+
+Qif if_asgmt(TKNS *tkns){
+	Qif qif;
+	qif.contains_else = 0;
+	tkns->idx++;
+	skip_whitespace(tkns);
+
+	pass_by_type(tkns, PAREN_OPN, "Invalid if", "'('");
+	skip_whitespace(tkns);
+
+	qif.cond = get_snippet(tkns, PAREN_CLS);
+	skip_whitespace(tkns);
+
+	if(qif.cond.type != CONDITIONAL_SNIP){
+		printf("%d\n", qif.cond.type);
+		throw_err(tkns, "Invalid conditional statement", NULL);
+	}
+
+	pass_by_type(tkns, BRACE_OPN, "Invalid syntax", "{");
+	get_brace_content(tkns, &qif.if_body);
+	tkns->idx++;
+	skip_whitespace(tkns);
+
+	if(tkns->tokens[tkns->idx].type == ELSE_KEYWORD){
+		qif.contains_else = 1;
+		tkns->idx++;
+		skip_whitespace(tkns);
+
+		pass_by_type(tkns, BRACE_OPN, "Invalid syntax", "{");
+		get_brace_content(tkns, &qif.else_body);
+		tkns->idx++;
+	}
+
+	return qif;
 }
 
 // FOR_ASGMT for_asgmt(TKNS *tkns){

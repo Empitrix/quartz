@@ -69,7 +69,7 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 		// Check for varialbe assignments
 		if(tkns->tokens[tkns->idx].type == INT_KEYWORD || tkns->tokens[tkns->idx].type == CHAR_KEYWORD || tkns->tokens[tkns->idx].type == HASHTAG){
-			get_snippet(tkns);
+			get_snippet(tkns, END_SIGN);
 			
 			// ASGMT asgmt = var_asgmt(tkns);
 
@@ -135,25 +135,28 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 		// Check for 'for(...;...;...){...}'
 		} else if(tkns->tokens[tkns->idx].type == FOR_KEYWORD){
-			FOR_ASGMT fa = for_asgmt(tkns);
-			body = fa.body;
-			ast.type = AST_FOR_LOOP_ASSIGNMENT;
-			ast.for_asgmt = fa;
-			// ast.init = fa.init;
-			// ast.cond = fa.cond;
+			for_asgmt(tkns);
 
-			refer = AST_FOR_LOOP_ASSIGNMENT;
+			// FOR_ASGMT fa = for_asgmt(tkns);
+			// body = fa.body;
+			// ast.type = AST_FOR_LOOP_ASSIGNMENT;
+			// ast.for_asgmt = fa;
+			// // ast.init = fa.init;
+			// // ast.cond = fa.cond;
+
+			// refer = AST_FOR_LOOP_ASSIGNMENT;
 
 			// main_refer = AST_FOR_LOOP_ASSIGNMENT;
 			// push_refers(AST_FOR_LOOP_ASSIGNMENT);
 
 		// Check for 'while(...){...}'
 		} else if(tkns->tokens[tkns->idx].type == WHILE_KEYWORD){
-			BODY_ASGMT ba = body_asgmt(tkns, WHILE_BODY);
-			body = ba.body;
-			ast.cond = ba.cond;
-			ast.type = AST_WHILE_LOOP_ASSIGNMENT;
-			refer = AST_WHILE_LOOP_ASSIGNMENT;
+			while_asgmt(tkns);
+			// BODY_ASGMT ba = body_asgmt(tkns, WHILE_BODY);
+			// body = ba.body;
+			// ast.cond = ba.cond;
+			// ast.type = AST_WHILE_LOOP_ASSIGNMENT;
+			// refer = AST_WHILE_LOOP_ASSIGNMENT;
 
 		} else if(tkns->tokens[tkns->idx].type == BACKTICK_SIGN){
 			tkns->idx++;
@@ -216,19 +219,20 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 
 		// Check for 'if(...){...}'
 		} else if(tkns->tokens[tkns->idx].type == IF_KEYWORD){
-			BODY_ASGMT ba = body_asgmt(tkns, IF_BODY);
-			body = ba.body;
-			ast.cond = ba.cond;
-			ast.type = AST_IF_STATEMENT;
-			refer = AST_IF_STATEMENT;
-			if_detected = 1;
+			if_asgmt(tkns);
+			// BODY_ASGMT ba = body_asgmt(tkns, IF_BODY);
+			// body = ba.body;
+			// ast.cond = ba.cond;
+			// ast.type = AST_IF_STATEMENT;
+			// refer = AST_IF_STATEMENT;
+			// if_detected = 1;
 
 		// Check for 'else {...}'
-		} else if(tkns->tokens[tkns->idx].type == ELSE_KEYWORD && if_detected){
-			BODY_ASGMT ba = else_asgmt(tkns);
-			body = ba.body;
-			ast.type = AST_ELSE_STATEMENT;
-			refer = AST_ELSE_STATEMENT;
+		// } else if(tkns->tokens[tkns->idx].type == ELSE_KEYWORD && if_detected){
+		// 	BODY_ASGMT ba = else_asgmt(tkns);
+		// 	body = ba.body;
+		// 	ast.type = AST_ELSE_STATEMENT;
+		// 	refer = AST_ELSE_STATEMENT;
 
 		// Check for 'return ...;'
 		} else if(tkns->tokens[tkns->idx].type == RETURN_KEYWORD){
@@ -242,7 +246,7 @@ void parser(TKNS *tkns, int allow_expression, int *tidx, ast_t refer){
 		} else {
 			if(allow_expression){
 				// printf("%s\n", tkns->tokens[tkns->idx].word);
-				get_snippet(tkns);
+				get_snippet(tkns, END_SIGN);
 
 				// EXPR xpr = get_expr(tkns, END_SIGN);
 				// ast.expr = xpr;
