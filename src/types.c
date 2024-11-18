@@ -1,5 +1,7 @@
 #include "rules.h"
 #include <limits.h>
+#include <stdio.h>
+
 
 
 typedef struct GFLAG {
@@ -50,7 +52,7 @@ typedef enum token_t {
 	EXCLAMATION_SIGN,  // !
 	COMMA_SIGN,        // ,
 	BACKTICK_SIGN,     // `
-	UNKNOWN,           // Unknown `, ! ...
+	UNKNOWN,           // Unknown
 } token_t;
 
 
@@ -68,50 +70,31 @@ typedef struct {
 	int idx;
 } TKNS;
 
-
+// expressions
 typedef enum {
-	INT_VAR,
-	CHAR_VAR,
-	STR_VAR,
-	MACRO_VAR,
-} var_t;
+	EQUAL_OP,           // ==
+	NOT_EQUAL_OP,       // !=
+	ASSIGN_OP,          // =
+	SMALLER_OP,         // <
+	GREATOR_OP,         // >
+	SMALLER_EQ_OP,      // <=
+	GREATOR_EQ_OP,      // >=
+	ADD_OP,             // +
+	MINUS_OP,           // -
+	INCREMENT_OP,       // ++
+	DECREMENT_OP,       // --
+	SHIFT_RIGHT_OP,     // >>
+	SHIFT_LEFT_OP,      // <<
+	COMPLEMENT_OP,      // ~
+	AND_OP,             // &
+	OR_OP,              // |
+	XOR_OP,             // ^
+	ADD_ASSIGN_OP,      // +=
+	MINUS_ASSIGN_OP,    // -=
+	NO_OP,              // No operator
+	INVALID_OP          // invalid(err) operator
+} operator;
 
-
-typedef struct {
-	char name[NAME_MAX];
-	var_t type;
-	int addr;
-} ARG;
-
-
-typedef struct{
-	ARG args[MAX_ARG];
-	char name[NAME_MAX];
-	int arg_len;
-	TKNS body;
-	var_t return_type;
-} func_t;
-
-
-typedef struct {
-	char name[NAME_MAX];   // name
-	char str[STR_MAX];     // string value
-	int value;             // int/char value
-	int is_func;           // is function
-	int is_str;            // is string
-	int address;           // RAM's Address
-	func_t func;           // function's object
-	var_t type;            // vairlabes type
-} ASGMT;
-
-
-
-
-// typedef enum {
-// 	INT_CONST,
-// 	CHAR_CONST,
-// 	STRING_CONST,
-// } cvar_t;
 
 typedef enum {
 	CONSTANT_STRING,    // Str "Something..."
@@ -152,132 +135,6 @@ void copy_qvar(Qvar dst, Qvar src){
 }
 
 
-typedef struct {
-	char name[NAME_MAX];
-	char str_value[STR_MAX];
-	int int_value;
-	char char_value;
-	var_t type;
-} CNST_VAR;
-
-
-typedef enum {
-	INCLUDE_MACRO,
-	DEFINE_MACRO,
-} mcro_t;
-
-typedef struct {
-	char name[NAME_MAX];
-	CNST_VAR value;
-	mcro_t type;
-} MACRO;
-
-
-// expressions
-typedef enum {
-	EQUAL_OP,           // ==
-	NOT_EQUAL_OP,       // !=
-	ASSIGN_OP,          // =
-	SMALLER_OP,         // <
-	GREATOR_OP,         // >
-	SMALLER_EQ_OP,      // <=
-	GREATOR_EQ_OP,      // >=
-	ADD_OP,             // +
-	MINUS_OP,           // -
-	INCREMENT_OP,       // ++
-	DECREMENT_OP,       // --
-	SHIFT_RIGHT_OP,     // >>
-	SHIFT_LEFT_OP,      // <<
-	COMPLEMENT_OP,      // ~
-	AND_OP,             // &
-	OR_OP,              // |
-	XOR_OP,             // ^
-	ADD_ASSIGN_OP,      // +=
-	MINUS_ASSIGN_OP,    // -=
-	NO_OP,              // No operator
-	INVALID_OP          // invalid(err) operator
-} operator;
-
-typedef struct {
-	char left[STR_MAX];
-	char right[STR_MAX];
-	int literal;
-	operator op;
-} STMT;
-
-
-typedef struct{
-	STMT init;
-	STMT cond;
-	STMT iter;
-	TKNS body;
-} FOR_ASGMT;
-
-
-typedef enum {
-	IF_BODY,
-	ELSE_BODY,
-	WHILE_BODY,
-} body_t;
-
-typedef struct{
-	STMT cond;
-	TKNS body;
-	body_t type;
-} BODY_ASGMT;
-
-typedef struct {
-	char name[NAME_MAX];
-	int value;
-	char str_value[STR_MAX];
-	var_t type;
-} VAR;
-
-
-typedef enum {
-	ID_FUNCTION_NAME,
-	ID_VARIABLE_NAME,
-	ID_SCOOP_NAME,
-	ID_MACRO_NAME,
-} id_type;
-
-
-typedef enum {
-	GLOBAL_TARGET,
-	SCOOP_TARGET,
-} target_t;
-
-
-typedef struct {
-	int complement;   // is complemented (contains '~')
-	int arithmetic;   // -1: decrement, 0: no arithmetic, 1: increment
-	int value;
-	CNST_VAR var;
-} side_t;
-
-
-typedef enum {
-	EXPR_EMPTY,
-	EXPR_ASSIGNABLE,
-	EXPR_FUNCTION_CALL,
-} expr_t;
-
-typedef struct {
-	side_t left;
-	side_t right;
-	operator op;
-	int mono_side;
-	char assign_name[NAME_MAX];
-	// int is_assign;
-	// int is_call;
-	expr_t type;
-	func_t caller;
-	CNST_VAR args[10];
-	int args_len;
-} EXPR;
-
-
-
 /* Abstract Syntax Tree (AST) type */
 typedef enum {
 	AST_NO_STATEMENT,             // no statement <empty>
@@ -293,21 +150,6 @@ typedef enum {
 	AST_RAW_ASM,                  // raw assembly
 	AST_MACRO,                    // macro (define)
 } ast_t;
-
-
-typedef struct AST{
-	func_t func;
-	ASGMT asgmt;
-	ast_t type;
-	EXPR expr;
-	char raw_asm[128];
-	CNST_VAR value;
-	ast_t refer;
-	STMT cond;
-	STMT init;
-	FOR_ASGMT for_asgmt;
-	MACRO macro;
-} AST;
 
 
 typedef struct {
@@ -362,6 +204,20 @@ typedef struct {
 	int arg_len;         // Argument's length
 } SNIP;
 
+SNIP empty_snip(){
+	SNIP s;
+	s.op = NO_OP;
+	s.left = empty_qvar();
+	s.right = empty_qvar();
+	s.assigned = empty_qvar();
+	s.arg_len = 0;
+	s.assigne_type = NO_ASSIGNMENT_ASG;
+	s.type = NOT_EFFECTIVE_SNIP;
+	s.func.arg_len = 0;
+	s.func.return_type = CONSTANT_INTEGER;
+	return s;
+}
+
 
 typedef enum {
 	LOCAL_STACK,
@@ -393,3 +249,36 @@ typedef struct {
 	TKNS else_body;
 } Qif;
 
+
+typedef struct {
+	SNIP snip;
+	Qvar var;
+	Qwhile qwhile;
+	Qif qif;
+	Qfor qfor;
+	char rasm[124];
+
+	ast_t type;
+	ast_t refer;
+	int indent;
+} Qast;
+
+
+static Qast qasts[500];
+static int qast_idx = 0;
+
+
+Qast *empty_ast(){
+	Qast *ast = &qasts[qast_idx];
+	qast_idx++;
+	ast->snip.arg_len = 0;
+	ast->var = empty_qvar();
+	ast->qwhile.cond = empty_snip();
+	ast->qif.cond = empty_snip();
+	ast->qif.contains_else = 0;
+	ast->qfor.cond = empty_snip();
+	ast->type = AST_NO_STATEMENT;
+	ast->refer = AST_NO_STATEMENT;
+	ast->indent = 0;
+	return ast;
+}

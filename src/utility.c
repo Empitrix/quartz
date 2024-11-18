@@ -264,64 +264,6 @@ int get_char_value(TKNS *tkns, char *value){
 }
 
 
-
-
-void type_to_str(var_t type, char dst[]){
-	switch (type) {
-		case INT_VAR: strcpy(dst, "int"); break;
-		case CHAR_VAR: strcpy(dst, "char"); break;
-		case STR_VAR: strcpy(dst, "char[]"); break;
-	}
-}
-
-
-
-
-void convert_var_to_const(VAR *var, CNST_VAR *cnst){
-	cnst->type = var->type;
-	strcpy(cnst->name, var->name);
-
-	switch(var->type){
-		case INT_VAR:
-			cnst->int_value = var->value;
-			break;
-
-		case CHAR_VAR:
-			cnst->char_value = var->value;
-			break;
-
-		case STR_VAR:
-			strcpy(cnst->str_value, var->str_value);
-			break;
-	}
-
-}
-
-
-int get_arighmetic(TKNS *tkns){
-	token_t tmp = WHITESPACE;
-
-	if(tkns->tokens[tkns->idx].type == PLUS_SIGN || tkns->tokens[tkns->idx].type == MINUS_SIGN){
-		tkns->idx++;
-		tmp = tkns->tokens[tkns->idx].type;
-		if(tkns->tokens[tkns->idx].type == tmp){
-			if(tkns->tokens[tkns->idx].type == PLUS_SIGN){
-				tkns->idx++;
-				return 1;
-			} else {
-				tkns->idx++;
-				return -1;
-			}
-		} else {
-			throw_err(tkns, "Invalid arithmetic symbols", "++ or --");
-			exit(0);
-		}
-	}
-
-	return 0;
-}
-
-
 void show_ast_t(ast_t t, int flush){
 	switch(t){
 	case AST_VARIABLE_ASSIGNMENT:
@@ -362,12 +304,6 @@ void show_ast_t(ast_t t, int flush){
 		break;
 	}
 	if(flush) putchar('\n');
-}
-
-void show_ast_info(AST ast){
-	show_ast_t(ast.type, 0);
-	printf(" -> ");
-	show_ast_t(ast.refer, 1);
 }
 
 
@@ -471,19 +407,20 @@ void update_tree_lines(char code[]){
 
 const char *ast_f(ast_t t){
 	switch(t){
-	case AST_VARIABLE_ASSIGNMENT: return "VARIABLE_ASSIGNMENT";
-	case AST_FOR_LOOP_ASSIGNMENT: return "FOR_LOOP_ASSIGNEMNT";
-	case AST_WHILE_LOOP_ASSIGNMENT: return "WHILE_LOOP_ASSIGNEMNT";
-	case AST_IF_STATEMENT: return "IF_STATEMENT";
-	case AST_ELSE_STATEMENT: return "ELSE_STATEMENT";
-	case AST_FUNCTION_ASSIGNMENT: return "FUNCTION_ASSIGNEMNT";
-	case AST_RETURN_STATEMENT: return "RETURN_STATEMENT";
-	case AST_FUNCTION_CALL: return "FUNCTION_CALL";
-	case AST_STATEMENT: return "STATEMENT";
-	case AST_NO_STATEMENT: return "NO_STATEMENT";
-	case AST_RAW_ASM: return "RAW_ASM";
-	case AST_MACRO: return "MACRO";
+		case AST_VARIABLE_ASSIGNMENT: return "VARIABLE_ASSIGNMENT";
+		case AST_FOR_LOOP_ASSIGNMENT: return "FOR_LOOP_ASSIGNEMNT";
+		case AST_WHILE_LOOP_ASSIGNMENT: return "WHILE_LOOP_ASSIGNEMNT";
+		case AST_IF_STATEMENT: return "IF_STATEMENT";
+		case AST_ELSE_STATEMENT: return "ELSE_STATEMENT";
+		case AST_FUNCTION_ASSIGNMENT: return "FUNCTION_ASSIGNEMNT";
+		case AST_RETURN_STATEMENT: return "RETURN_STATEMENT";
+		case AST_FUNCTION_CALL: return "FUNCTION_CALL";
+		case AST_STATEMENT: return "STATEMENT";
+		case AST_NO_STATEMENT: return "NO_STATEMENT";
+		case AST_RAW_ASM: return "RAW_ASM";
+		case AST_MACRO: return "MACRO";
 	}
+	return "";
 }
 
 void show_tab(int siz){
@@ -493,33 +430,18 @@ void show_tab(int siz){
 }
 
 
-void show_tree(AST asts[], int len) {
-	int indent = 0;
-	ast_t current_parent = AST_NO_STATEMENT;
-
-	for (int i = 0; i < len; ++i) {
-		if (asts[i].refer != current_parent) {
-			if (asts[i].refer == AST_NO_STATEMENT) {
-				indent = 0;
-			} else if (asts[i].refer == asts[i - 1].type) {
-				indent++;
-			} else if (asts[i].refer != asts[i - 1].refer) {
-				indent = 1;
-			}
-			current_parent = asts[i].refer;
-		}
-		show_tab(indent);
-		printf("%s\n", ast_f(asts[i].type));
+void show_tree(){
+	int i = 0;
+	for(i = 0; i < qast_idx; ++i){
+		show_tab(qasts[i].indent);
+		printf("%s\n", ast_f(qasts[i].type));
 	}
 
-	printf("\n\n\n\n\n\n\n\n\n\n\n");
-
-	for(int i = 0; i < len; ++i){
-		printf("%s -> %s\n", ast_f(asts[i].type), ast_f(asts[i].refer));
+	printf("\n\n\n\nRefer:\n");
+	for(int i = 0; i < qast_idx; ++i){
+		printf("%s -> %s\n", ast_f(qasts[i].type), ast_f(qasts[i].refer));
 	}
-
 }
-
 
 
 int arg_exists(Qarg args[], int len, Qarg arg){
@@ -530,14 +452,6 @@ int arg_exists(Qarg args[], int len, Qarg arg){
 	}
 	return 0;
 }
-
-
-	// CONSTANT_STRING,    // Str "Something..."
-	// CONSTANT_INTEGER,   // Int 123...
-	// CONSTANT_CHAR,      // Char 'A'
-	// QVAR_INT,           // Int
-	// QVAR_CHAR,          // Char
-	// QVAR_DEFINE,        // Define 
 
 int same_type_arg(Qvar var, Qarg arg){
 	if(var.type == CONSTANT_INTEGER && arg.type == QVAR_INT){
@@ -551,3 +465,25 @@ int same_type_arg(Qvar var, Qarg arg){
 	return var.type == arg.type;
 }
 
+
+int empty_body(TKNS *tkns){
+	int counter = 0;
+	for(int i = 0; i < tkns->max; ++i){
+		if(tkns->tokens[i].type == WHITESPACE ||
+				tkns->tokens[i].type == NEWLINE ||
+				tkns->tokens[i].type == COMMENT_TOK){ continue; }
+		counter++;
+	}
+	return counter == 0;
+}
+
+
+int skip_empty_tok(TOKEN t){
+	if(t.type == WHITESPACE ||
+			t.type == COMMENT_TOK ||
+			t.type == END_SIGN ||
+			t.type == NEWLINE){
+		return 1;
+	}
+	return 0;
+}

@@ -10,6 +10,9 @@ windows:
 zbuild:
 	@ zig cc ./main.c -o ./quartz
 
+cl:
+	@ clang ./main.c -o ./quartz
+
 # check for memory leak and warnings in source code
 debug:
 	@ gcc -g -fanalyzer -Wall -Wextra -pedantic -fsanitize=undefined,address,leak ./main.c -lm -o ./quartz
