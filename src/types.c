@@ -318,10 +318,11 @@ typedef struct {
 
 typedef enum {
 	NOT_EFFECTIVE_SNIP,  // Will be ignored by compiler (1 + 1;)
-	CONDITIONAL_SNIP,
-	ITTERATIONAL_SNIP,
-	ASSIGNMENT_SNIP,
-	ARITHMETIC_SNIP,
+	CONDITIONAL_SNIP,    // Conditional snippet (==, !=, <=, >=, <, >)
+	ITTERATIONAL_SNIP,   // itterational snippet (++, --)
+	ASSIGNMENT_SNIP,     // Assigned snippet (+=, -=, =)
+	ARITHMETIC_SNIP,     // Arithmetic snippet (+, -, >>, <<, ~, ^)
+	FUNCTION_CALL_SNIP,  // Function call
 } snip_t;
 
 typedef enum {
@@ -331,53 +332,35 @@ typedef enum {
 	MACRO_ASSIGNMENT_ASG,
 	NEW_ASSIGNMENT_ASG,
 	ASSIGNMENT_ASG,
-	UPDATE_AST, // Define 
+	UPDATE_AST,
 } asg_t;
 
 
 typedef struct {
-	char name[NAME_MAX];
-	qvar_t type;
-	int addr;
+	char name[NAME_MAX];  // Argument's name
+	qvar_t type;          // Argument's type
+	int addr;             // Argument's Address (RAM)
 } Qarg;
 
 typedef struct {
-	Qarg args[MAX_ARG];
-	int arg_len;
-	qvar_t return_type;
-	char name[NAME_MAX];
-	TKNS body;
+	char name[NAME_MAX];  // Function name
+	Qarg args[MAX_ARG];   // Arguments for function
+	int arg_len;          // Number of arguments
+	qvar_t return_type;   // Return type
+	TKNS body;            // Body's token
 } Qfunc;
 
 typedef struct {
-	snip_t type;
-	operator op;
-	Qvar left;
-	Qvar right;
-	asg_t assigne_type;
-	Qvar assigned;
-
-	Qfunc func;
+	snip_t type;         // Snippet type
+	operator op;         // Operator that used between left and right
+	Qvar left;           // Left Q-var
+	Qvar right;          // Right Q-var
+	asg_t assigne_type;  // Assignment type
+	Qvar assigned;       // Assigned Q-var
+	Qfunc func;          // Function
+	Qvar args[MAX_ARG];  // Function arguments
+	int arg_len;         // Argument's length
 } SNIP;
-
-/*
-int a = 12;
-char a = 'A';
-char buff[] = "Quartz...";
-a = 20;
-a = 'B';
-a = a | b;
-a = a + 1;
-
-a << 1;
-i++;
-i--;
-
-i < 10;
-
-a = 'A' + i;
-
-*/
 
 
 typedef enum {
@@ -386,6 +369,7 @@ typedef enum {
 	GLOBAL_LOCAL_STACK,
 } Qstack;
 
+// For
 typedef struct {
 	SNIP init;
 	SNIP cond;
@@ -394,12 +378,14 @@ typedef struct {
 } Qfor;
 
 
+// While
 typedef struct {
 	SNIP cond;
 	TKNS body;
 } Qwhile;
 
 
+// If-Else
 typedef struct {
 	SNIP cond;
 	TKNS if_body;

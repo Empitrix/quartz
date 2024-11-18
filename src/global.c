@@ -457,6 +457,7 @@ int save_qfunc(Qfunc qf){
 }
 
 int get_qfunc(char name[], Qfunc *qf){
+	if(qfunc_exists(name) == 0){ return 1; }  // Func not exists
 	for(int i = 0; i < qfunc_idx; ++i){
 		if(strcmp(global_qfunc[i].name, name) == 0){
 			*qf = global_qfunc[i];

@@ -909,6 +909,9 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 	snip.type = NOT_EFFECTIVE_SNIP;         // Useless block of code (conditional, itration...)
 	snip.assigne_type = NO_ASSIGNMENT_ASG;  // No varialbe placed or defined
 
+	snip.func.arg_len = 0;
+	snip.arg_len = 0;
+
 	token_t t;
 
 	// Check that starts with (int or char) it means it's for varialbe or function assignment
@@ -962,9 +965,15 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 			tkns->idx++;
 			while(tkns->tokens[tkns->idx].type != PAREN_CLS){
 				skip_whitespace(tkns);
-				int success = capture_arg(tkns, &snip.func.args[snip.func.arg_len++]) == 0;
-
+				int success = capture_arg(tkns, &snip.func.args[snip.func.arg_len]) == 0;
 				if(success){
+
+					// Check that every argument's name is unique
+					if(arg_exists(snip.func.args, snip.func.arg_len, snip.func.args[snip.func.arg_len])){
+						throw_err(tkns, "Argument with this name already exists", NULL);
+					}
+
+					snip.func.arg_len++;
 					if(tkns->tokens[tkns->idx].type == COMMA_SIGN){ tkns->idx++; continue; }
 				} else {
 					if(tkns->tokens[tkns->idx].type == PAREN_CLS ||
@@ -1020,6 +1029,49 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 	}
 
 	if(snip.type == ASSIGNMENT_SNIP){ return snip; }
+
+
+	// Check for function call
+	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
+		if(get_qfunc(tkns->tokens[tkns->idx].word, &snip.func) == 0){
+			tkns->idx++;
+
+			skip_whitespace(tkns);
+			pass_by_type(tkns, PAREN_OPN, "Invalid function call", "'('");
+			skip_whitespace(tkns);
+
+			// Get Function Arguments
+			if(snip.func.arg_len != 0){
+				for(int a = 0; a < snip.func.arg_len; ++a){
+					Qvar q;
+
+					if(pass_by_qvar(tkns, &q)){
+						throw_err(tkns, "Invalid function argument", NULL);
+					}
+
+					if(same_type_arg(q, snip.func.args[a]) == 0){
+						throw_err(tkns, "Invalid argument type", NULL);
+					}
+
+					// matched
+					snip.args[snip.arg_len++] = q;
+
+					if(a != snip.func.arg_len - 1){
+						skip_whitespace(tkns);
+						pass_by_type(tkns, COMMA_SIGN, "Invalid function argument", ",");
+						skip_whitespace(tkns);
+					}
+				}
+			}
+
+			skip_whitespace(tkns);
+			pass_by_type(tkns, PAREN_CLS, "Invalid function call", "')'");
+			skip_whitespace(tkns);
+			pass_by_type(tkns, endtok, "Invalid expression", "EOF");
+			snip.type = FUNCTION_CALL_SNIP;
+			return snip;
+		}
+	}
 
 
 	pass_by_qvar(tkns, &snip.left);

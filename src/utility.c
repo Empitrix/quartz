@@ -519,3 +519,35 @@ void show_tree(AST asts[], int len) {
 	}
 
 }
+
+
+
+int arg_exists(Qarg args[], int len, Qarg arg){
+	for(int i = 0; i < len; ++i){
+		if(strcmp(args[i].name, arg.name) == 0){
+			return 1;
+		}
+	}
+	return 0;
+}
+
+
+	// CONSTANT_STRING,    // Str "Something..."
+	// CONSTANT_INTEGER,   // Int 123...
+	// CONSTANT_CHAR,      // Char 'A'
+	// QVAR_INT,           // Int
+	// QVAR_CHAR,          // Char
+	// QVAR_DEFINE,        // Define 
+
+int same_type_arg(Qvar var, Qarg arg){
+	if(var.type == CONSTANT_INTEGER && arg.type == QVAR_INT){
+		return 1;
+	}
+
+	if(var.type == CONSTANT_CHAR && arg.type == QVAR_CHAR){
+		return 1;
+	}
+
+	return var.type == arg.type;
+}
+
