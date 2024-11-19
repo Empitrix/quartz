@@ -44,6 +44,10 @@ void qparser(TKNS *tkns, int allow_expr, ast_t refer){
 			ast->var = handle_return(tkns);
 			ast->type = AST_RETURN_STATEMENT;
 
+		} else if (tkns->tokens[tkns->idx].type == BACKTICK_SIGN){
+			handle_rasm(tkns, ast->rasm);
+			ast->type = AST_RAW_ASM;
+
 		} else {
 			if(allow_expr){
 

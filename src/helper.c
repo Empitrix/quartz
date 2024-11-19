@@ -66,10 +66,18 @@ void get_brace_content(TKNS *tkns, TKNS *save){
 	save->max = 0;
 	int sidx = tkns->idx;
 
+	int in_quote = 0;
+
 	while(tkns->tokens[tkns->idx].type != BRACE_CLS || open != 0){
 
-		if(tkns->tokens[tkns->idx].type == BRACE_OPN){ open++; }
-		if(tkns->tokens[tkns->idx].type == BRACE_CLS){ open--; }
+		// Detect qoute (toggle)
+		if(tkns->tokens[tkns->idx].type == SINGLE_QUOTE){ in_quote = in_quote == 0; }
+
+		// Detect "{" or "}" if there is no qoute (')
+		if(in_quote == 0){
+			if(tkns->tokens[tkns->idx].type == BRACE_OPN){ open++; }
+			if(tkns->tokens[tkns->idx].type == BRACE_CLS){ open--; }
+		}
 
 		if(tkns->idx >= tkns->max){
 			tkns->idx = sidx;
@@ -410,6 +418,10 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 		snip.type = ASSIGNMENT_SNIP;
 
 		snip.assigne_type = MACRO_ASSIGNMENT_ASG;
+
+		if(save_qvar(snip.assigned, GLOBAL_LOCAL_STACK)){
+			throw_err(tkns, "Varialbe already exists", NULL);
+		}
 	}
 
 	if(snip.type == ASSIGNMENT_SNIP){ return snip; }
@@ -609,4 +621,66 @@ Qvar handle_return(TKNS *tkns){
 	skip_whitespace(tkns);
 	pass_by_type(tkns, END_SIGN, "Invalid return statement", ";");
 	return q;
+}
+
+
+/* Handle Raw Assembly code e.g. `MOVLW 'A' `*/
+void handle_rasm(TKNS *tkns, char buff[]){
+	tkns->idx++;
+
+	int quote = 0;
+	int brace = 0;
+
+	while(tkns->tokens[tkns->idx].type != BACKTICK_SIGN){
+
+		// Toggle qoute
+		if(tkns->tokens[tkns->idx].type == SINGLE_QUOTE){ quote = quote == 0; }
+
+		if(tkns->tokens[tkns->idx].type == BRACE_OPN && quote == 0){
+			brace = 1;
+			tkns->idx++;
+			continue;
+		}
+
+		if(tkns->tokens[tkns->idx].type == BRACE_CLS && quote == 0){
+			brace = 0;
+			tkns->idx++;
+			continue;
+		}
+		
+		// Skip whitespaces between {...}
+		if(brace && tkns->tokens[tkns->idx].type == WHITESPACE){
+			tkns->idx++;
+			continue;
+		}
+
+		if(brace && tkns->tokens[tkns->idx].type != WHITESPACE){
+			Qvar q;
+
+			if(pass_by_qvar(tkns, &q)){
+				throw_err(tkns, "Invalid assembly syntax", "");
+			}
+			if(qvar_defined(&q)){
+				strcatf(buff, "0x%x", q.addr);
+			} else {
+				strcatf(buff, "0x%x", q.numeric_value);
+			}
+
+			continue;
+		}
+
+		strcatf(buff, "%s", tkns->tokens[tkns->idx].word);
+
+
+		if(tkns->tokens[tkns->idx].type == NEWLINE){
+			throw_err(tkns, "Assembly code must be in a single line", "");
+		}
+
+		tkns->idx++;
+	}
+
+	skip_whitespace(tkns);
+	pass_by_type(tkns, BACKTICK_SIGN, "Invalid assembly syntax", "`");
+	skip_whitespace(tkns);
+	pass_by_type(tkns, END_SIGN, "Invalid assembly syntax", ";");
 }

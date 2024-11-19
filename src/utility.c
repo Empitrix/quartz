@@ -487,3 +487,11 @@ int skip_empty_tok(TOKEN t){
 	}
 	return 0;
 }
+
+
+int qvar_defined(Qvar *v){
+	if(v->type == QVAR_INT || v->type == QVAR_CHAR){
+		return 1;
+	}
+	return 0;
+}
