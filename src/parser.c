@@ -2,7 +2,7 @@
 #include "helper.h"
 #include <stdio.h>
 
-static int gindent = 0;
+static int indent = 0;
 
 void qparser(TKNS *tkns, int allow_expr, ast_t refer){
 	if(empty_body(tkns)){ return; }
@@ -66,25 +66,25 @@ void qparser(TKNS *tkns, int allow_expr, ast_t refer){
 			}
 		}
 
-		ast->indent = gindent;
+		ast->depth = indent;
 		ast->refer = refer;
 
 
 		if(body != NULL && body->max != 0){
-			gindent++;
+			indent++;
 			qparser(body, 1, ast->type);
-			gindent--;
+			indent--;
 
 			if(ast->type == AST_IF_STATEMENT && ast->qif.contains_else){
 				// create a dummy "else"
 				Qast *a = empty_ast();
-				a->indent = gindent;
+				a->depth = indent;
 				a->type = AST_ELSE_STATEMENT;
 
 				// capture "else" body
-				gindent++;
+				indent++;
 				qparser(&ast->qif.else_body, 1, AST_ELSE_STATEMENT);
-				gindent--;
+				indent--;
 			}
 		}
 

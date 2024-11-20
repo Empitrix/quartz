@@ -160,7 +160,7 @@ int pass_by_qvar(TKNS *tkns, Qvar *qvar){
 
 	} else if(tkns->tokens[tkns->idx].type == INTEGER_VALUE){
 		if(get_literal_value(tkns->tokens[tkns->idx].word, &qvar->numeric_value)){
-			throw_err(tkns, "Invlaid identifier", "valid variable name");
+			throw_err(tkns, "Invlaid literal value", NULL);
 		}
 		tkns->idx++;
 		qvar->type = CONSTANT_INTEGER;
@@ -168,7 +168,7 @@ int pass_by_qvar(TKNS *tkns, Qvar *qvar){
 
 	} else if (tkns->tokens[tkns->idx].type == SINGLE_QUOTE){
 		if(get_char_value(tkns, (char *)&qvar->numeric_value)){
-			throw_err(tkns, "Invlaid identifier", "valid variable name");
+			throw_err(tkns, "Invlaid character value", NULL);
 		}
 		qvar->type = CONSTANT_CHAR;
 		return 0;
@@ -364,6 +364,11 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 					// Check that every argument's name is unique
 					if(arg_exists(snip.func.args, snip.func.arg_len, snip.func.args[snip.func.arg_len])){
 						throw_err(tkns, "Argument with this name already exists", NULL);
+					} else {
+
+						if(save_qarg(snip.func.args[snip.func.arg_len], GLOBAL_LOCAL_STACK)){
+							throw_err(tkns, "Varialbe already exists", NULL);
+						}
 					}
 
 					snip.func.arg_len++;
@@ -661,9 +666,9 @@ void handle_rasm(TKNS *tkns, char buff[]){
 				throw_err(tkns, "Invalid assembly syntax", "");
 			}
 			if(qvar_defined(&q)){
-				strcatf(buff, "0x%x", q.addr);
+				strcatf(buff, "0x%.2X", q.addr);
 			} else {
-				strcatf(buff, "0x%x", q.numeric_value);
+				strcatf(buff, "0x%.2X", q.numeric_value);
 			}
 
 			continue;
@@ -684,3 +689,13 @@ void handle_rasm(TKNS *tkns, char buff[]){
 	skip_whitespace(tkns);
 	pass_by_type(tkns, END_SIGN, "Invalid assembly syntax", ";");
 }
+
+
+
+int const_type(qvar_t t){
+	if(t == CONSTANT_INTEGER || t == CONSTANT_CHAR){
+		return 1;
+	}
+	return 0;
+}
+

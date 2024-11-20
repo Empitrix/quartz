@@ -1,6 +1,5 @@
 #include "rules.h"
 #include <limits.h>
-#include <stdio.h>
 
 
 
@@ -257,10 +256,9 @@ typedef struct {
 	Qif qif;
 	Qfor qfor;
 	char rasm[124];
-
 	ast_t type;
 	ast_t refer;
-	int indent;
+	int depth;
 } Qast;
 
 
@@ -279,6 +277,6 @@ Qast *empty_ast(){
 	ast->qfor.cond = empty_snip();
 	ast->type = AST_NO_STATEMENT;
 	ast->refer = AST_NO_STATEMENT;
-	ast->indent = 0;
+	ast->depth = 0;
 	return ast;
 }

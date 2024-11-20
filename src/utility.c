@@ -383,26 +383,26 @@ void add_tree(const char inpt[]){ strcpy(tree[tree_idx++], inpt); }
 // }
 
 // break down lines that contains '\n' e.g. "MOVLW 12\nMOVWF i" to separate lines
-void update_tree_lines(char code[]){
-	char lines[10][128] = { 0 };
-	char temp[128] = { 0 };
-	int tidx = 0;
-	int pointer = 0;
-	int idx = 0;
-
-	while(code[idx] != '\0'){
-		temp[tidx++] = code[idx];
-		if(code[idx++] == '\n' || code[idx] == '\0' ){
-			if(temp[tidx - 1] == '\n'){ tidx--; }
-			temp[tidx] = '\0';
-			strcpy(lines[pointer++], temp);
-			tidx = 0;
-		}
-	}
-	for(int i = 0; i < pointer; i++){
-		add_to_tree(lines[i]);
-	}
-}
+// void update_tree_lines(char code[]){
+// 	char lines[10][128] = { 0 };
+// 	char temp[128] = { 0 };
+// 	int tidx = 0;
+// 	int pointer = 0;
+// 	int idx = 0;
+// 
+// 	while(code[idx] != '\0'){
+// 		temp[tidx++] = code[idx];
+// 		if(code[idx++] == '\n' || code[idx] == '\0' ){
+// 			if(temp[tidx - 1] == '\n'){ tidx--; }
+// 			temp[tidx] = '\0';
+// 			strcpy(lines[pointer++], temp);
+// 			tidx = 0;
+// 		}
+// 	}
+// 	for(int i = 0; i < pointer; i++){
+// 		add_to_tree(lines[i]);
+// 	}
+// }
 
 
 const char *ast_f(ast_t t){
@@ -423,23 +423,39 @@ const char *ast_f(ast_t t){
 	return "";
 }
 
-void show_tab(int siz){
-	for(int i = 0; i < siz; ++i){
-		printf("\t");
+const char *ast_str(ast_t t){
+	switch(t){
+		case AST_VARIABLE_ASSIGNMENT: return "variable assignment";
+		case AST_FOR_LOOP_ASSIGNMENT: return "for loop";
+		case AST_WHILE_LOOP_ASSIGNMENT: return "while loop";
+		case AST_IF_STATEMENT: return "if";
+		case AST_ELSE_STATEMENT: return "else";
+		case AST_FUNCTION_ASSIGNMENT: return "function assignemnt";
+		case AST_RETURN_STATEMENT: return "return";
+		case AST_FUNCTION_CALL: return "function call";
+		case AST_STATEMENT: return "statement";
+		case AST_NO_STATEMENT: return "<EMPTY>";
+		case AST_RAW_ASM: return "asm";
+		case AST_MACRO: return "macro";
 	}
+	return "";
 }
 
-
-void show_tree(){
-	int i = 0;
+/* print_tree: visualize AST tree */
+void print_tree(void){
+	int i;
 	for(i = 0; i < qast_idx; ++i){
-		show_tab(qasts[i].indent);
-		printf("%s\n", ast_f(qasts[i].type));
-	}
+		for (int j = 0; j < qasts[i].depth; j++) {
+			printf("│   ");
+		}
 
-	printf("\n\n\n\nRefer:\n");
-	for(int i = 0; i < qast_idx; ++i){
-		printf("%s -> %s\n", ast_f(qasts[i].type), ast_f(qasts[i].refer));
+		if(qasts[i].depth == 0 && i == 0){
+			printf("┌── %s\n", ast_str(qasts[i].type));
+		} else if(qasts[i].depth > qasts[i + 1].depth){
+			printf("└── %s\n", ast_str(qasts[i].type));
+		} else {
+			printf("├── %s\n", ast_str(qasts[i].type));
+		}
 	}
 }
 
@@ -494,4 +510,24 @@ int qvar_defined(Qvar *v){
 		return 1;
 	}
 	return 0;
+}
+
+
+
+static char arg_names[256][NAME_MAX];
+static char arg_name_idx = 0;
+
+int assign_name_exists(char *name){
+	for(int i = 0; i < arg_name_idx; ++i){
+		if(strcmp(arg_names[i], name) == 0){
+			return 1;
+		}
+	}
+	return 0;
+}
+
+void assign_var(char *name, int addr){
+	if(assign_name_exists(name)){ return; }
+	strcpy(arg_names[arg_name_idx++], name);
+	attf("\t%s EQU 0x%.2X", name, addr);
 }

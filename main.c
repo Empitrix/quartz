@@ -22,18 +22,12 @@ int main(int argc, char *argv[]){
 		add_tree("C EQU 0x00       ; Added by Compiler (only for pic10f200)");
 	}
 
-	// parser(&tkns, 1, AST_NO_STATEMENT);  // Parse tokens & check for errors
-	// parser(&tkns, 0, &tree_idx);  // Parse tokens & check for errors
 
 	qparser(&tkns, 0, AST_NO_STATEMENT);
 
-	// printf("AST Len: %d\n", ast_len());
-	// for(int i = 0; i < ast_len(); ++i){
-	// 	printf("%d%-3s", i + 1, ". ");
-	// 	show_ast_info(asts[i]);
-	// }
+	print_tree();
 
-	show_tree();
+	generator(qasts, 0, qast_idx);
 
 	// show_tree(asts, ast_len());
 

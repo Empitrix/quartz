@@ -3,36 +3,29 @@
 #include <string.h>
 
 
-char tree[1024][128];
+char tree[1024][128] = { 0 };
 int tree_idx = 0;
 
 
-void add_to_tree(char inpt[]){
-	strcpy(tree[tree_idx++], inpt);
-}
+// void add_to_tree(char inpt[]){
+// 	strcpy(tree[tree_idx++], inpt);
+// }
 
+/* add to tree (formated) */
 void attf(const char * frmt, ...){
 	char tmp[1024];
 	va_list arglist;
 	va_start(arglist, frmt);
 	vsprintf(tmp, frmt, arglist);
 	va_end(arglist);
-
 	strcpy(tree[tree_idx++], tmp);
 }
 
-int get_tree_len(void){ return tree_idx; }
+int tree_len(void){ return tree_idx; }
 
 
-char shift_addr[128] = { 0 };
-int shift_type = 11;
-int shifted = 0;
-
-
-// 
-
+/* Label */
 static int ncall = 0;
-
 static char buffer[256][20];
 
 const char *get_label(void){
@@ -44,3 +37,4 @@ const char *get_label(void){
 void get_label_buff(char name[]){
 	sprintf(name, ".L%d", ncall++);
 }
+
