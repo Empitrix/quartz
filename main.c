@@ -1,4 +1,3 @@
-#include "src/global.h"
 #include "src/utility.h"
 #include "src/tokenizer.h"
 #include "src/generator.h"
@@ -25,7 +24,7 @@ int main(int argc, char *argv[]){
 
 	qparser(&tkns, 0, AST_NO_STATEMENT);
 
-	print_tree();
+	visualize_tree();
 
 	generator(qasts, 0, qast_idx);
 

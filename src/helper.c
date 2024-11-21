@@ -187,8 +187,7 @@ int pass_by_qvar(TKNS *tkns, Qvar *qvar){
 
 
 operator capture_operator(TKNS *tkns, snip_t *st){
-	if(see_forward(tkns, 0, EQUAL_SIGN, EQUAL_SIGN) ||
-			see_forward(tkns, -1, EQUAL_SIGN, EQUAL_SIGN)){                // ==
+	if(see_forward(tkns, 0, EQUAL_SIGN, EQUAL_SIGN)){                // ==
 		*st = CONDITIONAL_SNIP;
 		tkns->idx = tkns->idx + 2;
 		return EQUAL_OP;
@@ -478,7 +477,7 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 	pass_by_qvar(tkns, &snip.left);
 	skip_whitespace(tkns);
 
-	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
+	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN && tkns->tokens[tkns->idx + 1].type != EQUAL_SIGN){
 		copy_qvar(snip.assigned, snip.left);
 		snip.left = empty_qvar();  // Clear 'snip.left'
 		snip.assigne_type = UPDATE_AST;
@@ -603,12 +602,13 @@ Qif if_asgmt(TKNS *tkns){
 	tkns->idx++;
 	skip_whitespace(tkns);
 
+
 	if(tkns->tokens[tkns->idx].type == ELSE_KEYWORD){
 		qif.contains_else = 1;
 		tkns->idx++;
 		skip_whitespace(tkns);
 
-		pass_by_type(tkns, BRACE_OPN, "Invalid syntax", "{");
+		pass_by_type(tkns, BRACE_OPN, "Invalid else syntax", "{");
 		get_brace_content(tkns, &qif.else_body);
 		tkns->idx++;
 	}

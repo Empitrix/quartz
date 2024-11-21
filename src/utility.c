@@ -348,7 +348,7 @@ void reorder(void){
 	int end = 0;
 	int check = 1;
 
-	char tmp[1000][100];
+	char tmp[1000][100] = { 0 };
 	int tmp_idx = 0;
 
 	while(check){
@@ -441,9 +441,14 @@ const char *ast_str(ast_t t){
 	return "";
 }
 
-/* print_tree: visualize AST tree */
-void print_tree(void){
+/* visualize_tree: visualize AST tree */
+void visualize_tree(void){
 	int i;
+
+	// for(i = 0; i < qast_idx; ++i){
+	// 	printf("%s -> %s\n", ast_str(qasts[i].type), ast_str(qasts[i].refer));
+	// }
+
 	for(i = 0; i < qast_idx; ++i){
 		for (int j = 0; j < qasts[i].depth; j++) {
 			printf("│   ");
