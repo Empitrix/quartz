@@ -59,16 +59,16 @@ int save_qvar(Qvar q, Qstack stack){
 }
 
 
-Qvar arg_to_var(Qarg *arg){
-	Qvar v = empty_qvar();
-	strcpy(v.name, arg->name);
-	v.addr = arg->addr;
-	v.type = arg->type;
-	return v;
+void arg_to_var(Qarg *arg, Qvar *v){
+	empty_qvar(v);
+	strcpy(v->name, arg->name);
+	v->addr = arg->addr;
+	v->type = arg->type;
 }
 
 int save_qarg(Qarg arg, Qstack stack){
-	Qvar q = arg_to_var(&arg);
+	Qvar q;
+	arg_to_var(&arg, &q);
 	if(qvar_exists(q.name, GLOBAL_LOCAL_STACK)){ return 1; }
 
 	if(stack == GLOBAL_STACK || stack == GLOBAL_LOCAL_STACK){

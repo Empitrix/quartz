@@ -14,7 +14,7 @@ void qparser(TKNS *tkns, int allow_expr, ast_t refer){
 		Qast *ast = empty_ast();
 
 		if(tkns->tokens[tkns->idx].type == INT_KEYWORD || tkns->tokens[tkns->idx].type == CHAR_KEYWORD || tkns->tokens[tkns->idx].type == HASHTAG){
-			ast->snip = get_snippet(tkns, END_SIGN);
+			get_snippet(tkns, END_SIGN, &ast->snip);
 
 			if(ast->snip.assigne_type == FUNCTION_ASSIGNMENT_ASG){
 				body = &ast->snip.func.body;
@@ -26,7 +26,7 @@ void qparser(TKNS *tkns, int allow_expr, ast_t refer){
 
 
 		} else if (tkns->tokens[tkns->idx].type == FOR_KEYWORD){
-			ast->qfor = for_asgmt(tkns);
+			for_asgmt(tkns, &ast->qfor);
 			ast->type = AST_FOR_LOOP_ASSIGNMENT;
 			body = &ast->qfor.body;
 
@@ -41,7 +41,7 @@ void qparser(TKNS *tkns, int allow_expr, ast_t refer){
 			body = &ast->qwhile.body;
 
 		} else if (tkns->tokens[tkns->idx].type == RETURN_KEYWORD){
-			ast->var = handle_return(tkns);
+			handle_return(tkns, &ast->var);
 			ast->type = AST_RETURN_STATEMENT;
 
 		} else if (tkns->tokens[tkns->idx].type == BACKTICK_SIGN){
@@ -51,7 +51,7 @@ void qparser(TKNS *tkns, int allow_expr, ast_t refer){
 		} else {
 			if(allow_expr){
 
-				ast->snip = get_snippet(tkns, END_SIGN);
+				get_snippet(tkns, END_SIGN, &ast->snip);
 
 				if(ast->snip.type == FUNCTION_CALL_SNIP){
 					ast->type = AST_FUNCTION_CALL;

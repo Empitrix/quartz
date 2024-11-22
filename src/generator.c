@@ -2,6 +2,7 @@
 #include "types.h"
 #include "utility.h"
 #include "helper.h"
+#include "emission.h"
 
 
 void generate_for(Qast *asts, int *i, ast_t type, int move_back);
@@ -55,6 +56,21 @@ void generator(Qast *asts, int start, int end){
 				generate_for(asts, &i, asts[i].type, 0);
 			}
 			attf("%s:", skip_l);  // set "SKIP" label
+
+
+		} else if(asts[i].type == AST_FOR_LOOP_ASSIGNMENT){
+			const char *top_loop = get_label();
+			const char *skip_loop = get_label();
+
+			gen_assign(&asts[i].qfor.init);           // generate init part
+			attf("%s:", top_loop);                    // Set top of the loop label (no init part)
+			set_condition(&asts[i].qfor.cond, 0);     // set conditions
+			attf("\tGOTO %s", skip_loop);             // skip the loop (if not valid)
+			int save = i;
+			generate_for(asts, &i, asts[i].type, 0);  // Generate for body
+			gen_iter(&asts[save].qfor.iter);          // Generate iter part
+			attf("\tGOTO %s", top_loop);              // Goto top of the loop
+			attf("%s:", skip_loop);                   // label to skip the loop
 
 
 		} else if(asts[i].type == AST_FUNCTION_CALL){
@@ -131,15 +147,7 @@ Qvar *load_to_w(Qvar *a, Qvar *b){
 	return ret;
 };
 
-void set_cond_test(operator op, int reverse){
-	if(op == EQUAL_OP){
-		if(reverse){
-			attf("\tBTFSC STATUS, Z");
-		} else {
-			attf("\tBTFSS STATUS, Z");
-		}
-	}
-}
+
 
 void set_condition(SNIP *snip, int reverse){
 	if(snip->type != CONDITIONAL_SNIP){ return ; }
@@ -148,7 +156,12 @@ void set_condition(SNIP *snip, int reverse){
 
 	if(snip->op == EQUAL_OP){
 		attf("\tXORWF %s, W", q->name);
-		set_cond_test(snip->op, reverse);
+		attf("\tBTFSC STATUS, Z");
+
+	} else if(snip->op == SMALLER_EQ_OP){
+		attf("\tSUBWF %s, W", q->name);
+		attf("\tBTFSC STATUS, C");
+
 	}
 
 

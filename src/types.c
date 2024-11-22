@@ -114,23 +114,21 @@ typedef struct {
 } Qvar;
 
 
-Qvar empty_qvar(void){
-	Qvar q;
-	q.addr = 0;
-	strcpy(q.const_str, "");
-	strcpy(q.name, "");
-	q.type = CONSTANT_INTEGER;
-	q.numeric_value = 0;
-	return q;
+void empty_qvar(Qvar *q){
+	q->addr = 0;
+	strcpy(q->const_str, "");
+	strcpy(q->name, "");
+	q->type = CONSTANT_INTEGER;
+	q->numeric_value = 0;
 }
 
 
-void copy_qvar(Qvar dst, Qvar src){
-	dst.addr = src.addr;
-	strcpy(dst.const_str, src.const_str);
-	strcpy(dst.name, src.name);
-	dst.type = src.type;
-	dst.numeric_value = src.numeric_value;
+void copy_qvar(Qvar *dst, Qvar *src){
+	dst->addr = src->addr;
+	strcpy(dst->const_str, src->const_str);
+	strcpy(dst->name, src->name);
+	dst->type = src->type;
+	dst->numeric_value = src->numeric_value;
 }
 
 
@@ -203,18 +201,16 @@ typedef struct {
 	int arg_len;         // Argument's length
 } SNIP;
 
-SNIP empty_snip(){
-	SNIP s;
-	s.op = NO_OP;
-	s.left = empty_qvar();
-	s.right = empty_qvar();
-	s.assigned = empty_qvar();
-	s.arg_len = 0;
-	s.assigne_type = NO_ASSIGNMENT_ASG;
-	s.type = NOT_EFFECTIVE_SNIP;
-	s.func.arg_len = 0;
-	s.func.return_type = CONSTANT_INTEGER;
-	return s;
+void empty_snip(SNIP *s){
+	s->op = NO_OP;
+	empty_qvar(&s->left);
+	empty_qvar(&s->right);
+	empty_qvar(&s->assigned);
+	s->arg_len = 0;
+	s->assigne_type = NO_ASSIGNMENT_ASG;
+	s->type = NOT_EFFECTIVE_SNIP;
+	s->func.arg_len = 0;
+	s->func.return_type = CONSTANT_INTEGER;
 }
 
 
@@ -270,11 +266,11 @@ Qast *empty_ast(){
 	Qast *ast = &qasts[qast_idx];
 	qast_idx++;
 	ast->snip.arg_len = 0;
-	ast->var = empty_qvar();
-	ast->qwhile.cond = empty_snip();
-	ast->qif.cond = empty_snip();
+	empty_qvar(&ast->var);
+	empty_snip(&ast->qwhile.cond);
+	empty_snip(&ast->qif.cond);
 	ast->qif.contains_else = 0;
-	ast->qfor.cond = empty_snip();
+	empty_snip(&ast->qfor.cond);
 	ast->type = AST_NO_STATEMENT;
 	ast->refer = AST_NO_STATEMENT;
 	ast->depth = 0;

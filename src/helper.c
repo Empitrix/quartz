@@ -149,7 +149,7 @@ int capture_arg(TKNS *tkns, Qarg *qarg){
 
 
 int pass_by_qvar(TKNS *tkns, Qvar *qvar){
-	*qvar = empty_qvar();
+	empty_qvar(qvar);
 
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
 		if(get_qvar(tkns->tokens[tkns->idx].word, qvar)){
@@ -292,17 +292,8 @@ operator capture_operator(TKNS *tkns, snip_t *st){
 
 
 /* get_snippet get block of code */
-SNIP get_snippet(TKNS *tkns, token_t endtok){
-	SNIP snip;
-	snip.op = NO_OP;                        // NO operator
-	snip.left = empty_qvar();               // Empty left side
-	snip.right = empty_qvar();              // Empty right side
-	snip.assigned = empty_qvar();           // Empty assigned variable
-	snip.type = NOT_EFFECTIVE_SNIP;         // Useless block of code (conditional, itration...)
-	snip.assigne_type = NO_ASSIGNMENT_ASG;  // No varialbe placed or defined
-
-	snip.func.arg_len = 0;
-	snip.arg_len = 0;
+void get_snippet(TKNS *tkns, token_t endtok, SNIP *snip){
+	empty_snip(snip);
 
 	token_t t;
 
@@ -310,7 +301,7 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 	if((t = tkns->tokens[tkns->idx].type) == INT_KEYWORD || t == CHAR_KEYWORD){
 
 		// Get the var's name & return type (int a, char a, char a[])
-		snip.assigned.type = get_qtype(tkns, snip.assigned.name);
+		snip->assigned.type = get_qtype(tkns, snip->assigned.name);
 
 		// If there is = means it's varialbe assignment otherwise it's for function assignment
 		if(tkns->tokens[tkns->idx].type == EQUAL_SIGN){
@@ -318,21 +309,21 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 			skip_whitespace(tkns);
 
 			// Get const string (char []) value "..."
-			if(snip.assigned.type == CONSTANT_STRING){
-				get_string_value(tkns, snip.assigned.const_str);
+			if(snip->assigned.type == CONSTANT_STRING){
+				get_string_value(tkns, snip->assigned.const_str);
 
 			// Get (int) value 123..
-			} else if (snip.assigned.type == QVAR_INT){
+			} else if (snip->assigned.type == QVAR_INT){
 				if(tkns->tokens[tkns->idx].type == INTEGER_VALUE){
-					if(get_literal_value(tkns->tokens[tkns->idx].word, &snip.assigned.numeric_value)){
+					if(get_literal_value(tkns->tokens[tkns->idx].word, &snip->assigned.numeric_value)){
 						throw_err(tkns, "Invalid numeric value", "integer");
 					}
 				}
 				tkns->idx++;
 
 			// Get (char) value '.'
-			} else if (snip.assigned.type == QVAR_CHAR){
-				if(get_char_value(tkns, (char *)&snip.assigned.numeric_value)){
+			} else if (snip->assigned.type == QVAR_CHAR){
+				if(get_char_value(tkns, (char *)&snip->assigned.numeric_value)){
 					throw_err(tkns, "Invalid character", "single character");
 				}
 			} else {
@@ -343,34 +334,34 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 			pass_by_type(tkns, endtok, "Invalid syntax", "EOF");
 
 
-			snip.assigned.addr = pop_ram();
-			snip.assigne_type = VARIABLE_ASSIGNMENT_ASG;
+			snip->assigned.addr = pop_ram();
+			snip->assigne_type = VARIABLE_ASSIGNMENT_ASG;
 
 
-			if(save_qvar(snip.assigned, GLOBAL_LOCAL_STACK)){
+			if(save_qvar(snip->assigned, GLOBAL_LOCAL_STACK)){
 				throw_err(tkns, "Varialbe already exists", NULL);
 			}
 
-		snip.type = ASSIGNMENT_SNIP;
+		snip->type = ASSIGNMENT_SNIP;
 
 		} else if (tkns->tokens[tkns->idx].type == PAREN_OPN){
 			tkns->idx++;
 			while(tkns->tokens[tkns->idx].type != PAREN_CLS){
 				skip_whitespace(tkns);
-				int success = capture_arg(tkns, &snip.func.args[snip.func.arg_len]) == 0;
+				int success = capture_arg(tkns, &snip->func.args[snip->func.arg_len]) == 0;
 				if(success){
 
 					// Check that every argument's name is unique
-					if(arg_exists(snip.func.args, snip.func.arg_len, snip.func.args[snip.func.arg_len])){
+					if(arg_exists(snip->func.args, snip->func.arg_len, snip->func.args[snip->func.arg_len])){
 						throw_err(tkns, "Argument with this name already exists", NULL);
 					} else {
 
-						if(save_qarg(snip.func.args[snip.func.arg_len], GLOBAL_LOCAL_STACK)){
+						if(save_qarg(snip->func.args[snip->func.arg_len], GLOBAL_LOCAL_STACK)){
 							throw_err(tkns, "Varialbe already exists", NULL);
 						}
 					}
 
-					snip.func.arg_len++;
+					snip->func.arg_len++;
 					if(tkns->tokens[tkns->idx].type == COMMA_SIGN){ tkns->idx++; continue; }
 				} else {
 					if(tkns->tokens[tkns->idx].type == PAREN_CLS ||
@@ -384,14 +375,14 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 
 			pass_by_type(tkns, BRACE_OPN, "Invalid syntax", "{");
 
-			get_brace_content(tkns, &snip.func.body);
+			get_brace_content(tkns, &snip->func.body);
 			tkns->idx++;
-			strcpy(snip.func.name, snip.assigned.name);
-			snip.func.return_type = snip.assigned.type;
-			snip.assigne_type = FUNCTION_ASSIGNMENT_ASG;
+			strcpy(snip->func.name, snip->assigned.name);
+			snip->func.return_type = snip->assigned.type;
+			snip->assigne_type = FUNCTION_ASSIGNMENT_ASG;
 
 
-			int result = save_qfunc(snip.func);
+			int result = save_qfunc(snip->func);
 			if(result == 1){
 				throw_err(tkns, "Function already exists", NULL);
 			} else if(result == 2) {
@@ -401,7 +392,7 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 		}
 
 
-		snip.type = ASSIGNMENT_SNIP;
+		snip->type = ASSIGNMENT_SNIP;
 
 	} else if(tkns->tokens[tkns->idx].type == HASHTAG){
 		tkns->idx++;
@@ -410,30 +401,30 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 		skip_whitespace(tkns);
 
 		pass_by_type(tkns, IDENTIFIER, "Invalid define", "Valid name");
-		strcpy(snip.assigned.name, tkns->tokens[tkns->idx - 1].word);
+		strcpy(snip->assigned.name, tkns->tokens[tkns->idx - 1].word);
 		skip_whitespace(tkns);
 
 		pass_by_type(tkns, INTEGER_VALUE, "Invalid define", "integer");
-		if(get_literal_value(tkns->tokens[tkns->idx - 1].word, &snip.assigned.addr)){
+		if(get_literal_value(tkns->tokens[tkns->idx - 1].word, &snip->assigned.addr)){
 			throw_err(tkns, "Invalid define value", "valid integer");
 		}
-		snip.assigned.numeric_value = snip.assigned.addr;
-		snip.assigned.type = QVAR_DEFINE;
-		snip.type = ASSIGNMENT_SNIP;
+		snip->assigned.numeric_value = snip->assigned.addr;
+		snip->assigned.type = QVAR_DEFINE;
+		snip->type = ASSIGNMENT_SNIP;
 
-		snip.assigne_type = MACRO_ASSIGNMENT_ASG;
+		snip->assigne_type = MACRO_ASSIGNMENT_ASG;
 
-		if(save_qvar(snip.assigned, GLOBAL_LOCAL_STACK)){
+		if(save_qvar(snip->assigned, GLOBAL_LOCAL_STACK)){
 			throw_err(tkns, "Varialbe already exists", NULL);
 		}
 	}
 
-	if(snip.type == ASSIGNMENT_SNIP){ return snip; }
+	if(snip->type == ASSIGNMENT_SNIP){ return; }
 
 
 	// Check for function call
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
-		if(get_qfunc(tkns->tokens[tkns->idx].word, &snip.func) == 0){
+		if(get_qfunc(tkns->tokens[tkns->idx].word, &snip->func) == 0){
 			tkns->idx++;
 
 			skip_whitespace(tkns);
@@ -441,22 +432,22 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 			skip_whitespace(tkns);
 
 			// Get Function Arguments
-			if(snip.func.arg_len != 0){
-				for(int a = 0; a < snip.func.arg_len; ++a){
+			if(snip->func.arg_len != 0){
+				for(int a = 0; a < snip->func.arg_len; ++a){
 					Qvar q;
 
 					if(pass_by_qvar(tkns, &q)){
 						throw_err(tkns, "Invalid function argument", NULL);
 					}
 
-					if(same_type_arg(q, snip.func.args[a]) == 0){
+					if(same_type_arg(q, snip->func.args[a]) == 0){
 						throw_err(tkns, "Invalid argument type", NULL);
 					}
 
 					// matched
-					snip.args[snip.arg_len++] = q;
+					snip->args[snip->arg_len++] = q;
 
-					if(a != snip.func.arg_len - 1){
+					if(a != snip->func.arg_len - 1){
 						skip_whitespace(tkns);
 						pass_by_type(tkns, COMMA_SIGN, "Invalid function argument", ",");
 						skip_whitespace(tkns);
@@ -468,90 +459,86 @@ SNIP get_snippet(TKNS *tkns, token_t endtok){
 			pass_by_type(tkns, PAREN_CLS, "Invalid function call", "')'");
 			skip_whitespace(tkns);
 			pass_by_type(tkns, endtok, "Invalid expression", "EOF");
-			snip.type = FUNCTION_CALL_SNIP;
-			return snip;
+			snip->type = FUNCTION_CALL_SNIP;
+			return;
 		}
 	}
 
 
-	pass_by_qvar(tkns, &snip.left);
+	pass_by_qvar(tkns, &snip->left);
 	skip_whitespace(tkns);
 
 	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN && tkns->tokens[tkns->idx + 1].type != EQUAL_SIGN){
-		copy_qvar(snip.assigned, snip.left);
-		snip.left = empty_qvar();  // Clear 'snip.left'
-		snip.assigne_type = UPDATE_AST;
+		copy_qvar(&snip->assigned, &snip->left);
+		empty_qvar(&snip->left);  // Clear 'snip.left'
+		snip->assigne_type = UPDATE_AST;
 
 		tkns->idx++;
 
 		skip_whitespace(tkns);
-		pass_by_qvar(tkns, &snip.left);
+		pass_by_qvar(tkns, &snip->left);
 		skip_whitespace(tkns);
 
-		snip.op = capture_operator(tkns, &snip.type);
+		snip->op = capture_operator(tkns, &snip->type);
 		skip_whitespace(tkns);
 	
-		if(snip.type == ITTERATIONAL_SNIP){
+		if(snip->type == ITTERATIONAL_SNIP){
 			pass_by_type(tkns, endtok, "Invalid expression", "EOF");
-			return snip;
+			return;
 		}
 
 
-		pass_by_qvar(tkns, &snip.right);
+		pass_by_qvar(tkns, &snip->right);
 
 	} else {
 
 		skip_whitespace(tkns);
-		snip.op = capture_operator(tkns, &snip.type);
+		snip->op = capture_operator(tkns, &snip->type);
 		skip_whitespace(tkns);
 
-		if(snip.type == ITTERATIONAL_SNIP){
+		if(snip->type == ITTERATIONAL_SNIP){
 			pass_by_type(tkns, endtok, "Invalid expression", "EOF");
-			return snip;
+			return;
 		}
 
-
-		pass_by_qvar(tkns, &snip.right);
+		pass_by_qvar(tkns, &snip->right);
 	}
 
 	skip_whitespace(tkns);
 	pass_by_type(tkns, endtok, "Invalid expression", "EOF");
 
-	return snip;
+	return;
 }
 
 
-Qfor for_asgmt(TKNS *tkns){
-	Qfor qfor;
+void for_asgmt(TKNS *tkns, Qfor *qfor){
 	tkns->idx++;
 	skip_whitespace(tkns);
 
 	pass_by_type(tkns, PAREN_OPN, "Invalid for loop", "'('");
 	skip_whitespace(tkns);
 
-	qfor.init = get_snippet(tkns, END_SIGN);
+	get_snippet(tkns, END_SIGN, &qfor->init);
 	skip_whitespace(tkns);
-	if(qfor.init.type != ASSIGNMENT_SNIP && qfor.init.type != NOT_EFFECTIVE_SNIP){
+	if(qfor->init.type != ASSIGNMENT_SNIP && qfor->init.type != NOT_EFFECTIVE_SNIP){
 		throw_err(tkns, "Invalid conditional statement", NULL);
 	}
 
-	qfor.cond = get_snippet(tkns, END_SIGN);
+	get_snippet(tkns, END_SIGN, &qfor->cond);
 	skip_whitespace(tkns);
-	if(qfor.cond.type != CONDITIONAL_SNIP && qfor.cond.type != NOT_EFFECTIVE_SNIP){
+	if(qfor->cond.type != CONDITIONAL_SNIP && qfor->cond.type != NOT_EFFECTIVE_SNIP){
 		throw_err(tkns, "Invalid conditional statement", NULL);
 	}
 
-	qfor.iter = get_snippet(tkns, PAREN_CLS);
+	get_snippet(tkns, PAREN_CLS, &qfor->iter);
 	skip_whitespace(tkns);
-	if(qfor.iter.type != ITTERATIONAL_SNIP && qfor.iter.type != NOT_EFFECTIVE_SNIP){
+	if(qfor->iter.type != ITTERATIONAL_SNIP && qfor->iter.type != NOT_EFFECTIVE_SNIP){
 		throw_err(tkns, "Invalid conditional statement", NULL);
 	}
 
 	pass_by_type(tkns, BRACE_OPN, "Invalid syntax", "{");
-	get_brace_content(tkns, &qfor.body);
+	get_brace_content(tkns, &qfor->body);
 	tkns->idx++;
-
-	return qfor;
 }
 
 
@@ -564,7 +551,7 @@ Qwhile while_asgmt(TKNS *tkns){
 	pass_by_type(tkns, PAREN_OPN, "Invalid while loop", "'('");
 	skip_whitespace(tkns);
 
-	qwhile.cond = get_snippet(tkns, PAREN_CLS);
+	get_snippet(tkns, PAREN_CLS, &qwhile.cond);
 	skip_whitespace(tkns);
 
 	if(qwhile.cond.type != CONDITIONAL_SNIP){
@@ -589,7 +576,7 @@ Qif if_asgmt(TKNS *tkns){
 	pass_by_type(tkns, PAREN_OPN, "Invalid if", "'('");
 	skip_whitespace(tkns);
 
-	qif.cond = get_snippet(tkns, PAREN_CLS);
+	get_snippet(tkns, PAREN_CLS, &qif.cond);
 	skip_whitespace(tkns);
 
 	if(qif.cond.type != CONDITIONAL_SNIP){
@@ -618,14 +605,13 @@ Qif if_asgmt(TKNS *tkns){
 
 
 
-Qvar handle_return(TKNS *tkns){
-	Qvar q = empty_qvar();
+void handle_return(TKNS *tkns, Qvar *q){
+	empty_qvar(q);
 	tkns->idx++;  // Skip "RETURN" keyword
 	skip_whitespace(tkns);
-	pass_by_qvar(tkns, &q);
+	pass_by_qvar(tkns, q);
 	skip_whitespace(tkns);
 	pass_by_type(tkns, END_SIGN, "Invalid return statement", ";");
-	return q;
 }
 
 
