@@ -3,7 +3,6 @@
 #include "utility.h"
 #include "helper.h"
 #include "emission.h"
-#include <stdio.h>
 
 
 // void generate_for(Qast *asts, int *i, ast_t type, int move_back);
@@ -176,8 +175,9 @@ Qvar *load_to_w(Qvar *a, Qvar *b){
 		ret = a;
 
 	} else {
-		attf("\tMOVF 0x%.2X, 0", a->addr);
-		ret = b;
+		// attf("\tMOVF 0x%.2X, 0", a->addr);
+		attf("\tMOVF %s, W", b->name);
+		ret = a;
 	}
 
 	return ret;
@@ -206,7 +206,5 @@ void set_condition(SNIP *snip, int reverse){
 		attf("\t%s STATUS, C", get_test(reverse));
 
 	}
-
-
 }
 
