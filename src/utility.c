@@ -483,6 +483,11 @@ int same_type_arg(Qvar var, Qarg arg){
 		return 1;
 	}
 
+	// beacuse it's 8 bit
+	if(var.type == QVAR_INT && arg.type == QVAR_CHAR){
+		return 1;
+	}
+
 	return var.type == arg.type;
 }
 

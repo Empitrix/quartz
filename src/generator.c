@@ -3,12 +3,15 @@
 #include "utility.h"
 #include "helper.h"
 #include "emission.h"
+#include <stdio.h>
 
 
 // void generate_for(Qast *asts, int *i, ast_t type, int move_back);
 void generate_for(Qast *asts, int *i);
 void assign_func_arg(Qast *ast);
 void set_condition(SNIP *, int);
+
+void load_var(Qvar *);
 
 
 static int main_detect = 0;
@@ -104,6 +107,17 @@ void generator(Qast *asts, int start, int end){
 		} else if(asts[i].type == AST_STATEMENT){
 			if(asts[i].snip.type == ITTERATIONAL_SNIP){
 				gen_iter(&asts[i].snip);
+
+			} else {
+				if(asts[i].snip.assigne_type != UPDATE_ASG){ continue; }
+
+				// =
+				if(asts[i].snip.op == ASSIGN_OP){
+					if(const_type(asts[i].snip.assigned.type) == 0){
+						load_var(&asts[i].snip.left);
+						attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
+					}
+				}
 			}
 		}
 
@@ -131,6 +145,15 @@ void assign_func_arg(Qast *ast){
 			attf("\tMOVF %s, W", ast->snip.args[j].name);
 		}
 		attf("\tMOVWF %s", ast->snip.func.args[j].name);
+	}
+}
+
+
+void load_var(Qvar *v){
+	if(const_type(v->type)){
+		attf("\tMOVLW 0x%.2X", v->numeric_value);
+	} else {
+		attf("\tMOVF 0x%.2X, W", v->addr);
 	}
 }
 

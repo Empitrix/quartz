@@ -471,13 +471,19 @@ void get_snippet(TKNS *tkns, token_t endtok, SNIP *snip){
 	if(tkns->tokens[tkns->idx].type == EQUAL_SIGN && tkns->tokens[tkns->idx + 1].type != EQUAL_SIGN){
 		copy_qvar(&snip->assigned, &snip->left);
 		empty_qvar(&snip->left);  // Clear 'snip.left'
-		snip->assigne_type = UPDATE_AST;
+		snip->assigne_type = UPDATE_ASG;
 
 		tkns->idx++;
 
 		skip_whitespace(tkns);
 		pass_by_qvar(tkns, &snip->left);
 		skip_whitespace(tkns);
+
+		if(tkns->tokens[tkns->idx].type == endtok){
+			tkns->idx++;
+			snip->op = ASSIGN_OP;
+			return;
+		}
 
 		snip->op = capture_operator(tkns, &snip->type);
 		skip_whitespace(tkns);

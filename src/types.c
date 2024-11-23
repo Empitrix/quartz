@@ -171,7 +171,7 @@ typedef enum {
 	MACRO_ASSIGNMENT_ASG,
 	NEW_ASSIGNMENT_ASG,
 	ASSIGNMENT_ASG,
-	UPDATE_AST,
+	UPDATE_ASG,
 } asg_t;
 
 
@@ -199,6 +199,7 @@ typedef struct {
 	Qfunc func;          // Function
 	Qvar args[MAX_ARG];  // Function arguments
 	int arg_len;         // Argument's length
+	// int single_side;
 } SNIP;
 
 void empty_snip(SNIP *s){
@@ -211,6 +212,7 @@ void empty_snip(SNIP *s){
 	s->type = NOT_EFFECTIVE_SNIP;
 	s->func.arg_len = 0;
 	s->func.return_type = CONSTANT_INTEGER;
+	// s->single_side = 0;
 }
 
 

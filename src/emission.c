@@ -7,7 +7,7 @@ void gen_assign(SNIP *snip){
 	if((snip->type != ASSIGNMENT_SNIP || snip->type != NOT_EFFECTIVE_SNIP) &&
 		snip->assigne_type == NO_ASSIGNMENT_ASG){ return; }
 
-	if(snip->assigne_type == UPDATE_AST){
+	if(snip->assigne_type == UPDATE_ASG){
 		
 		attf("\tMOVLW 0x%.2X", snip->left.numeric_value);
 		attf("\tMOVWF %s", snip->assigned.name);
