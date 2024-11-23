@@ -520,7 +520,7 @@ int qvar_defined(Qvar *v){
 
 
 static char arg_names[256][NAME_MAX];
-static char arg_name_idx = 0;
+static int arg_name_idx = 0;
 
 int assign_name_exists(char *name){
 	for(int i = 0; i < arg_name_idx; ++i){

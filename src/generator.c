@@ -3,7 +3,6 @@
 #include "utility.h"
 #include "helper.h"
 #include "emission.h"
-#include <stdio.h>
 
 
 // void generate_for(Qast *asts, int *i, ast_t type, int move_back);
@@ -74,6 +73,17 @@ void generator(Qast *asts, int start, int end){
 			attf("%s:", skip_loop);                   // label to skip the loop
 
 
+		} else if(asts[i].type == AST_WHILE_LOOP_ASSIGNMENT){
+			const char *top_loop = get_label();
+			const char *skip_loop = get_label();
+			attf("%s:", top_loop);                      // Set a label for top of the loop
+			set_condition(&asts[i].qwhile.cond, 0);     // Set conditions
+			attf("\tGOTO %s", skip_loop);               // Exit the loop (test failed)
+			generate_for(asts, &i);                     // Generate for "while" body
+			attf("\tGOTO %s", top_loop);                // Goto top of the loop
+			attf("%s:", skip_loop);                     // Set a label to skip the loop
+
+
 		} else if(asts[i].type == AST_FUNCTION_CALL){
 			assign_func_arg(&asts[i]);
 			attf("\tCALL %s", asts[i].snip.func.name);
@@ -89,7 +99,14 @@ void generator(Qast *asts, int start, int end){
 			} else {
 				attf("\tRETLW 0x%.2X", asts[i].var.numeric_value);
 			}
+
+
+		} else if(asts[i].type == AST_STATEMENT){
+			if(asts[i].snip.type == ITTERATIONAL_SNIP){
+				gen_iter(&asts[i].snip);
+			}
 		}
+
 
 	}
 
@@ -141,8 +158,15 @@ Qvar *load_to_w(Qvar *a, Qvar *b){
 	}
 
 	return ret;
-};
+}
 
+
+const char *get_test(int reverse){
+	if(reverse){
+		return "BTFSS";
+	}
+	return "BTFSC";
+}
 
 
 void set_condition(SNIP *snip, int reverse){
@@ -152,11 +176,11 @@ void set_condition(SNIP *snip, int reverse){
 
 	if(snip->op == EQUAL_OP){
 		attf("\tXORWF %s, W", q->name);
-		attf("\tBTFSS STATUS, Z");
+		attf("\t%s STATUS, Z", get_test(reverse == 0));
 
 	} else if(snip->op == SMALLER_EQ_OP){
 		attf("\tSUBWF %s, W", q->name);
-		attf("\tBTFSC STATUS, C");
+		attf("\t%s STATUS, C", get_test(reverse));
 
 	}
 

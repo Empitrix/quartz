@@ -543,27 +543,24 @@ void for_asgmt(TKNS *tkns, Qfor *qfor){
 
 
 /* parse: while(...condition...){ ... }*/
-Qwhile while_asgmt(TKNS *tkns){
-	Qwhile qwhile;
+void while_asgmt(TKNS *tkns, Qwhile *qwhile){
 	tkns->idx++;
 	skip_whitespace(tkns);
 
 	pass_by_type(tkns, PAREN_OPN, "Invalid while loop", "'('");
 	skip_whitespace(tkns);
 
-	get_snippet(tkns, PAREN_CLS, &qwhile.cond);
+	get_snippet(tkns, PAREN_CLS, &qwhile->cond);
 	skip_whitespace(tkns);
 
-	if(qwhile.cond.type != CONDITIONAL_SNIP){
-		printf("%d\n", qwhile.cond.type);
+	if(qwhile->cond.type != CONDITIONAL_SNIP){
+		printf("%d\n", qwhile->cond.type);
 		throw_err(tkns, "Invalid conditional statement", NULL);
 	}
 
 	pass_by_type(tkns, BRACE_OPN, "Invalid syntax", "{");
-	get_brace_content(tkns, &qwhile.body);
+	get_brace_content(tkns, &qwhile->body);
 	tkns->idx++;
-
-	return qwhile;
 }
 
 

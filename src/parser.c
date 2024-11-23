@@ -36,7 +36,7 @@ void qparser(TKNS *tkns, int allow_expr, ast_t refer){
 			body = &ast->qif.if_body;
 
 		} else if (tkns->tokens[tkns->idx].type == WHILE_KEYWORD){
-			ast->qwhile = while_asgmt(tkns);
+			while_asgmt(tkns, &ast->qwhile);
 			ast->type = AST_WHILE_LOOP_ASSIGNMENT;
 			body = &ast->qwhile.body;
 
