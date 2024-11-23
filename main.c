@@ -23,6 +23,7 @@ int main(int argc, char *argv[]){
 
 
 	qparser(&tkns, 0, AST_NO_STATEMENT);
+	update_children();
 
 	visualize_tree();
 

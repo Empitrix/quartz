@@ -571,6 +571,10 @@ Qif if_asgmt(TKNS *tkns){
 	Qif qif;
 	qif.contains_else = 0;
 	tkns->idx++;
+
+	qif.if_body.max = 0;
+	qif.else_body.max = 0;
+
 	skip_whitespace(tkns);
 
 	pass_by_type(tkns, PAREN_OPN, "Invalid if", "'('");

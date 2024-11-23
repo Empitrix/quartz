@@ -96,6 +96,21 @@ void qparser(TKNS *tkns, int allow_expr, ast_t refer){
 
 
 
+void update_children(){
+	int i = 0;
+	int j = 0;
+	for(i = 0; i < qast_idx; ++i){
+		for(j = 1; j < qast_idx; ++j){
+			int save = qasts[i].children;
+			if(qasts[i].depth < qasts[i + j].depth){
+				qasts[i].children++;
+			}
+			if(save == qasts[i].children){ break; }
+		}
+	}
+}
+
+
 // void parser(TKNS *tkns, int allow_expr, ast_t refer){
 // 	AST ast;
 // 

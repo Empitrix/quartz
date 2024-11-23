@@ -455,11 +455,11 @@ void visualize_tree(void){
 		}
 
 		if(qasts[i].depth == 0 && i == 0){
-			printf("┌── %s\n", ast_str(qasts[i].type));
+			printf("┌── %s (%d)\n", ast_str(qasts[i].type), qasts[i].children);
 		} else if(qasts[i].depth > qasts[i + 1].depth){
-			printf("└── %s\n", ast_str(qasts[i].type));
+			printf("└── %s (%d)\n", ast_str(qasts[i].type), qasts[i].children);
 		} else {
-			printf("├── %s\n", ast_str(qasts[i].type));
+			printf("├── %s (%d)\n", ast_str(qasts[i].type), qasts[i].children);
 		}
 	}
 }
@@ -488,14 +488,14 @@ int same_type_arg(Qvar var, Qarg arg){
 
 
 int empty_body(TKNS *tkns){
-	int counter = 0;
 	for(int i = 0; i < tkns->max; ++i){
-		if(tkns->tokens[i].type == WHITESPACE ||
-				tkns->tokens[i].type == NEWLINE ||
-				tkns->tokens[i].type == COMMENT_TOK){ continue; }
-		counter++;
+		if(tkns->tokens[i].type != WHITESPACE &&
+				tkns->tokens[i].type != NEWLINE &&
+				tkns->tokens[i].type != COMMENT_TOK){
+			return 0;
+		}
 	}
-	return counter == 0;
+	return 1;
 }
 
 

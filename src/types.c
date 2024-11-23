@@ -186,7 +186,7 @@ typedef struct {
 	Qarg args[MAX_ARG];   // Arguments for function
 	int arg_len;          // Number of arguments
 	qvar_t return_type;   // Return type
-	TKNS body;            // Body's token
+	TKNS body;           // Body's token
 } Qfunc;
 
 typedef struct {
@@ -255,6 +255,7 @@ typedef struct {
 	ast_t type;
 	ast_t refer;
 	int depth;
+	int children;
 } Qast;
 
 
@@ -274,5 +275,6 @@ Qast *empty_ast(){
 	ast->type = AST_NO_STATEMENT;
 	ast->refer = AST_NO_STATEMENT;
 	ast->depth = 0;
+	ast->children = 0;
 	return ast;
 }

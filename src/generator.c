@@ -3,17 +3,19 @@
 #include "utility.h"
 #include "helper.h"
 #include "emission.h"
+#include <stdio.h>
 
 
-void generate_for(Qast *asts, int *i, ast_t type, int move_back);
+// void generate_for(Qast *asts, int *i, ast_t type, int move_back);
+void generate_for(Qast *asts, int *i);
 void assign_func_arg(Qast *ast);
 void set_condition(SNIP *, int);
 
 
+static int main_detect = 0;
 
 void generator(Qast *asts, int start, int end){
 	int i;
-	int main_detect = 0;
 
 	for(i = start; i < end; ++i){
 
@@ -27,7 +29,7 @@ void generator(Qast *asts, int start, int end){
 		} else if(asts[i].type == AST_FUNCTION_ASSIGNMENT){
 			attf("%s:", asts[i].snip.assigned.name);
 			main_detect = strcmp(asts[i].snip.assigned.name, "main") == 0;
-			generate_for(asts, &i, asts[i].type, 1);  // move back by 1 becase we need to handle "return"
+			generate_for(asts, &i);
 
 
 		} else if(asts[i].type == AST_IF_STATEMENT){
@@ -35,25 +37,24 @@ void generator(Qast *asts, int start, int end){
 			const char *if_l = get_label();
 			const char *else_l = get_label();
 			const char *skip_l = get_label();
-			attf("\tGOTO %s", if_l);
-			attf("\tGOTO %s", else_l);
-			attf("%s:", if_l);
-
+			attf("\tGOTO %s", if_l);             // Goto EQUAL
+			attf("\tGOTO %s", else_l);           // Goto NOT EQUAL
+			attf("%s:", if_l);                   // Set "if" label
 			int save = i;
 			if(empty_body(&asts[i].qif.if_body)){
 				attf("\tNOP ; empty \"if\" body");
 			} else {
-				generate_for(asts, &i, asts[i].type, 0);
+				generate_for(asts, &i);
 			}
 
-			attf("\tGOTO %s", skip_l);  // GOTO skip label
-			attf("%s:", else_l);
+			attf("\tGOTO %s", skip_l);           // GOTO skip labe (end of equal)
+			attf("%s:", else_l);                 // Set "else" label
 
 			if(empty_body(&asts[save].qif.else_body)){
 				attf("\tNOP ; empty \"else\" body");
 			} else {
 				++i;  // SKIP "else" keyword
-				generate_for(asts, &i, asts[i].type, 0);
+				generate_for(asts, &i);
 			}
 			attf("%s:", skip_l);  // set "SKIP" label
 
@@ -67,7 +68,7 @@ void generator(Qast *asts, int start, int end){
 			set_condition(&asts[i].qfor.cond, 0);     // set conditions
 			attf("\tGOTO %s", skip_loop);             // skip the loop (if not valid)
 			int save = i;
-			generate_for(asts, &i, asts[i].type, 0);  // Generate for body
+			generate_for(asts, &i);                   // Generate for body
 			gen_iter(&asts[save].qfor.iter);          // Generate iter part
 			attf("\tGOTO %s", top_loop);              // Goto top of the loop
 			attf("%s:", skip_loop);                   // label to skip the loop
@@ -95,16 +96,11 @@ void generator(Qast *asts, int start, int end){
 }
 
 
-/* generate_for: looks nodes after the current on that have a type of "type" and generate code for them */
-void generate_for(Qast *asts, int *idx, ast_t type, int move_back){
-	int i = *idx;
-	i++;  // skip itself
-	while(asts[i].refer == type){
-		++i;
-	}
-
-	generator(asts, *idx + 1, i - move_back);
-	*idx = i - (move_back + 1);
+/* generate_for: looks nodes after the current one that have a type of "type" and generate code for them */
+void generate_for(Qast *asts, int *idx){
+	int save = *idx;
+	generator(asts, save + 1, *idx + asts[save].children + 1);
+	*idx = *idx + asts[save].children;
 }
 
 
@@ -156,7 +152,7 @@ void set_condition(SNIP *snip, int reverse){
 
 	if(snip->op == EQUAL_OP){
 		attf("\tXORWF %s, W", q->name);
-		attf("\tBTFSC STATUS, Z");
+		attf("\tBTFSS STATUS, Z");
 
 	} else if(snip->op == SMALLER_EQ_OP){
 		attf("\tSUBWF %s, W", q->name);
