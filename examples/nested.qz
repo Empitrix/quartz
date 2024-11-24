@@ -1,0 +1,46 @@
+// OUTPUT:
+// *
+// **
+// ***
+// ****
+// *****
+// ******
+// 
+// ABCDEFGHIJK
+
+
+#define GPIO 0x06  // Set 0x06 as GPIO
+
+int i = 0;
+int j = 0;
+
+// put a character into the console
+int putchar(char c){
+  `MOVF { c }, W`;     // Put "c" into W register
+  `MOVWF { GPIO }`;    // Move value of W register to "GPIO"
+  `BSF { GPIO }, 7`;   // Set bit 7 of "GPIO"
+  `CLRF { GPIO }`;     // Set value of "GPIO" to 0
+  return 0;
+}
+
+
+int main(){
+
+  for(i = 0; i <= 5; i++){
+    for(j = 0; j <= i; j++){
+      putchar('*');
+    }
+    putchar('\n');
+  }
+
+  putchar('\n');
+
+  i = 'A';
+  while(i <= 'K'){
+    putchar(i);
+    i++;
+  }
+
+  return 0;
+}
+

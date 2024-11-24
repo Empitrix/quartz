@@ -473,6 +473,7 @@ void get_snippet(TKNS *tkns, token_t endtok, SNIP *snip){
 		empty_qvar(&snip->left);  // Clear 'snip.left'
 		snip->assigne_type = UPDATE_ASG;
 
+
 		tkns->idx++;
 
 		skip_whitespace(tkns);
@@ -507,13 +508,17 @@ void get_snippet(TKNS *tkns, token_t endtok, SNIP *snip){
 			return;
 		}
 
+		// Make sure that += and -= are part of assigned snips
+		if(snip->op == ADD_ASSIGN_OP || snip->op == MINUS_ASSIGN_OP){
+			// snip->type = ASSIGNMENT_SNIP;
+			snip->assigne_type = ASSIGNMENT_ASG;
+		}
 		pass_by_qvar(tkns, &snip->right);
 	}
 
 	skip_whitespace(tkns);
 	pass_by_type(tkns, endtok, "Invalid expression", "EOF");
 
-	return;
 }
 
 

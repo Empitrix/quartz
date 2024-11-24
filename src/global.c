@@ -134,3 +134,15 @@ int get_qfunc(char name[], Qfunc *qf){
 	}
 	return 1;
 }
+
+
+/* func_exists: checks if func exists or not */
+int func_exists(const char *name){
+	for(int i = 0; i < qfunc_idx; ++i){
+		if(strcmp(global_qfunc[i].name, name) == 0){
+			return 1;
+		}
+	}
+	return 0;
+}
+

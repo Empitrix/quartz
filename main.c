@@ -25,15 +25,15 @@ int main(int argc, char *argv[]){
 	qparser(&tkns, 0, AST_NO_STATEMENT);
 	update_children();
 
+	if(qfunc_exists("main") != 1){
+		printf("Function \"main\" does not exists!\n");
+		exit(0);
+	}
+
 	visualize_tree();
 
 	generator(qasts, 0, qast_idx);
 
-	// show_tree(asts, ast_len());
-
-	// func_exists("main", 1);  // Check that if function 'main' exists (1 means exit if there is no 'main')
-
-	// generator();
 
 	reorder();  // Reorder functions for assembler
 

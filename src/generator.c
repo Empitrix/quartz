@@ -9,8 +9,13 @@
 void generate_for(Qast *asts, int *i);
 void assign_func_arg(Qast *ast);
 void set_condition(SNIP *, int);
-
+Qvar *load_to_w(Qvar *a, Qvar *b);
 void load_var(Qvar *);
+
+
+// Between a and a loads var with no address to W (if both have address load one of them to W)
+Qvar *lltw(Qvar *a, Qvar *b);
+Qvar *lftw(Qvar *a, Qvar *b);
 
 
 static int main_detect = 0;
@@ -104,19 +109,59 @@ void generator(Qast *asts, int start, int end){
 
 
 		} else if(asts[i].type == AST_STATEMENT){
+
+
 			if(asts[i].snip.type == ITTERATIONAL_SNIP){
+				// ++ and --
 				gen_iter(&asts[i].snip);
 
-			} else {
-				if(asts[i].snip.assigne_type != UPDATE_ASG){ continue; }
+			} else if(asts[i].snip.assigne_type == UPDATE_ASG){
+				// if(asts[i].snip.assigne_type != UPDATE_ASG){ continue; }
+				if(const_type(asts[i].snip.assigned.type) != 0){ continue; }
+
 
 				// =
 				if(asts[i].snip.op == ASSIGN_OP){
-					if(const_type(asts[i].snip.assigned.type) == 0){
-						load_var(&asts[i].snip.left);
-						attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
-					}
+					load_var(&asts[i].snip.left);
+					attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
+
+				// +
+				} else if(asts[i].snip.op == ADD_OP){
+					Qvar *lq = load_to_w(&asts[i].snip.left, &asts[i].snip.right);
+					attf("\tADDWF 0x%.2X, W", lq->addr);
+					attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
+
+				// &
+				} else if(asts[i].snip.op == AND_OP){
+					Qvar *lq = load_to_w(&asts[i].snip.left, &asts[i].snip.right);
+					attf("\tANDWF 0x%.2X, W", lq->addr);
+					attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
+
+				// |
+				} else if(asts[i].snip.op == OR_OP){
+					Qvar *lq = load_to_w(&asts[i].snip.left, &asts[i].snip.right);
+					attf("\tIORWF 0x%.2X, W", lq->addr);
+					attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
+
+				// ^
+				} else if(asts[i].snip.op == XOR_OP){
+					Qvar *lq = load_to_w(&asts[i].snip.left, &asts[i].snip.right);
+					attf("\tXORWF 0x%.2X, W", lq->addr);
+					attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
 				}
+
+
+			} else if(asts[i].snip.assigne_type == ASSIGNMENT_ASG){
+				if(asts[i].snip.op == ADD_ASSIGN_OP){
+					load_var(&asts[i].snip.right);
+					attf("\tADDWF 0x%.2X, F", asts[i].snip.left.addr);
+
+				} else if(asts[i].snip.op == MINUS_ASSIGN_OP){
+					load_var(&asts[i].snip.right);
+					attf("\tSUBWF 0x%.2X, F", asts[i].snip.left.addr);
+
+				}
+
 			}
 		}
 
@@ -200,6 +245,10 @@ void set_condition(SNIP *snip, int reverse){
 	if(snip->op == EQUAL_OP){
 		attf("\tXORWF %s, W", q->name);
 		attf("\t%s STATUS, Z", get_test(reverse == 0));
+	} else if(snip->op == NOT_EQUAL_OP){
+		attf("\tXORWF %s, W", q->name);
+		attf("\t%s STATUS, Z", get_test(reverse == 0));
+
 
 	} else if(snip->op == SMALLER_EQ_OP){
 		attf("\tSUBWF %s, W", q->name);
