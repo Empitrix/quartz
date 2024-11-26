@@ -16,6 +16,7 @@
 #define MAX_RAM 15  // Total is 16 but the last address is reserved for compiler (0x19)
 
 #define CRAM 0x19   // Compiler reserved RAM
+#define CRAMS "CRAM"    // Compiler reserved RAM (STRING)
 
 #include "rules.c"
 #endif

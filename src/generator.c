@@ -3,6 +3,7 @@
 #include "utility.h"
 #include "helper.h"
 #include "emission.h"
+#include <stdio.h>
 
 
 void generator(Qast *asts, int start, int end);
@@ -31,9 +32,13 @@ void generator(Qast *asts, int start, int end){
 
 		// Variable and macro
 		if(asts[i].type == AST_VARIABLE_ASSIGNMENT){
-			attf("%s EQU 0x%.2X", asts[i].snip.assigned.name, asts[i].snip.assigned.addr);
-			attf("MOVLW 0x%.2X", asts[i].snip.assigned.numeric_value);
-			attf("MOVWF %s", asts[i].snip.assigned.name);
+			if(asts[i].snip.assigne_type == MACRO_ASSIGNMENT_ASG){
+				attf("%s EQU 0x%.2X", asts[i].snip.assigned.name, asts[i].snip.assigned.addr);
+			} else {
+				attf("%s EQU 0x%.2X", asts[i].snip.assigned.name, asts[i].snip.assigned.addr);
+				attf("MOVLW 0x%.2X", asts[i].snip.assigned.numeric_value);
+				attf("MOVWF %s", asts[i].snip.assigned.name);
+			}
 
 
 		} else if(asts[i].type == AST_FUNCTION_ASSIGNMENT){
@@ -151,11 +156,19 @@ void generator(Qast *asts, int start, int end){
 					Qvar *lq = load_to_w(&asts[i].snip.left, &asts[i].snip.right);
 					attf("\tXORWF 0x%.2X, W", lq->addr);
 					attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
+
+				// -
+				} else if(asts[i].snip.op == MINUS_OP){
+					load_cram(&asts[i].snip.left);
+					load_var(&asts[i].snip.right);
+					attf("\tSUBWF 0x%.2X, W", CRAM);
+					attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
+
 				}
 
 
 			} else if(asts[i].snip.assigne_type == ASSIGNMENT_ASG){
-				if(const_type(asts[i].snip.assigned.type) != 0){ continue; }
+				if(const_type(asts[i].snip.assigned.type) == 0){ continue; }
 
 				if(asts[i].snip.op == ADD_ASSIGN_OP){
 					load_var(&asts[i].snip.right);
@@ -164,7 +177,6 @@ void generator(Qast *asts, int start, int end){
 				} else if(asts[i].snip.op == MINUS_ASSIGN_OP){
 					load_var(&asts[i].snip.right);
 					attf("\tSUBWF 0x%.2X, F", asts[i].snip.left.addr);
-
 
 				}
 

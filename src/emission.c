@@ -99,32 +99,49 @@ const char *get_test(int reverse){
 void set_condition(SNIP *snip, int reverse){
 	if(snip->type != CONDITIONAL_SNIP){ return ; }
 
+	// ==
 	if(snip->op == EQUAL_OP){
 		Qvar *q = load_to_w(&snip->left, &snip->right);
 		attf("\tXORWF %s, W", q->name);
 		attf("\t%s STATUS, Z", get_test(reverse == 0));
 
+	// !=
 	} else if(snip->op == NOT_EQUAL_OP){
 		Qvar *q = load_to_w(&snip->left, &snip->right);
 		attf("\tXORWF %s, W", q->name);
 		attf("\t%s STATUS, Z", get_test(reverse == 0));
 
+	// <=
 	} else if(snip->op == SMALLER_EQ_OP){
 		load_cram(&snip->right);
 		load_var(&snip->left);
 		attf("\tSUBWF 0x%.2X, W", CRAM);
 		attf("\t%s STATUS, C", get_test(reverse == 1));
 
+	// <
 	} else if(snip->op == SMALLER_OP){
+		// load_var(&snip->right);
+		// attf("\tSUBWF %s, W", snip->left.name);
+		// attf("\t%s STATUS, C", get_test(reverse == 0));
+
+		load_cram(&snip->left);
 		load_var(&snip->right);
-		attf("\tSUBWF %s, W", snip->left.name);
+		attf("\tSUBWF %s, W", CRAMS);
 		attf("\t%s STATUS, C", get_test(reverse == 0));
 
+	// >=
 	} else if(snip->op == GREATOR_EQ_OP){
-		Qvar *q = load_to_w(&snip->left, &snip->right);
-		attf("\tSUBWF %s, W", q->name);
-		attf("\t%s STATUS, Z", get_test(reverse));
-		attf("\t%s STATUS, C", get_test(reverse));
+		load_cram(&snip->left);
+		load_var(&snip->right);
+		attf("\tSUBWF 0x%.2X, W", CRAM);
+		attf("\t%s STATUS, C", get_test(reverse == 1));
+
+	// >
+	} else if(snip->op == GREATOR_OP){
+		load_cram(&snip->right);
+		load_var(&snip->left);
+		attf("\tSUBWF %s, W", CRAMS);
+		attf("\t%s STATUS, C", get_test(reverse == 0));
 
 	}
 }

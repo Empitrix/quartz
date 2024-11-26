@@ -20,6 +20,7 @@ int main(int argc, char *argv[]){
 		add_tree("Z EQU 0x02       ; Added by Compiler (only for pic10f200)");
 		add_tree("C EQU 0x00       ; Added by Compiler (only for pic10f200)");
 	}
+	add_tree("CRAM EQU 0x19    ; Compiler Reserved Address");
 
 
 	qparser(&tkns, 0, AST_NO_STATEMENT);
