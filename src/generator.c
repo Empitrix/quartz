@@ -5,17 +5,21 @@
 #include "emission.h"
 
 
-// void generate_for(Qast *asts, int *i, ast_t type, int move_back);
-void generate_for(Qast *asts, int *i);
-void assign_func_arg(Qast *ast);
-void set_condition(SNIP *, int);
-Qvar *load_to_w(Qvar *a, Qvar *b);
-void load_var(Qvar *);
+void generator(Qast *asts, int start, int end);
 
 
-// Between a and a loads var with no address to W (if both have address load one of them to W)
-Qvar *lltw(Qvar *a, Qvar *b);
-Qvar *lftw(Qvar *a, Qvar *b);
+/* generate_for: looks nodes after the current one that have a type of "type" and generate code for them */
+void generate_for(Qast *asts, int *idx){
+	int save = *idx;
+	generator(asts, save + 1, *idx + asts[save].children + 1);
+	*idx = *idx + asts[save].children;
+}
+
+
+
+// // Between a and a loads var with no address to W (if both have address load one of them to W)
+// Qvar *lltw(Qvar *a, Qvar *b);
+// Qvar *lftw(Qvar *a, Qvar *b);
 
 
 static int main_detect = 0;
@@ -116,7 +120,6 @@ void generator(Qast *asts, int start, int end){
 				gen_iter(&asts[i].snip);
 
 			} else if(asts[i].snip.assigne_type == UPDATE_ASG){
-				// if(asts[i].snip.assigne_type != UPDATE_ASG){ continue; }
 				if(const_type(asts[i].snip.assigned.type) != 0){ continue; }
 
 
@@ -152,6 +155,8 @@ void generator(Qast *asts, int start, int end){
 
 
 			} else if(asts[i].snip.assigne_type == ASSIGNMENT_ASG){
+				if(const_type(asts[i].snip.assigned.type) != 0){ continue; }
+
 				if(asts[i].snip.op == ADD_ASSIGN_OP){
 					load_var(&asts[i].snip.right);
 					attf("\tADDWF 0x%.2X, F", asts[i].snip.left.addr);
@@ -160,100 +165,17 @@ void generator(Qast *asts, int start, int end){
 					load_var(&asts[i].snip.right);
 					attf("\tSUBWF 0x%.2X, F", asts[i].snip.left.addr);
 
+
 				}
 
+
 			}
+
+
 		}
 
 
 	}
 
-}
-
-
-/* generate_for: looks nodes after the current one that have a type of "type" and generate code for them */
-void generate_for(Qast *asts, int *idx){
-	int save = *idx;
-	generator(asts, save + 1, *idx + asts[save].children + 1);
-	*idx = *idx + asts[save].children;
-}
-
-
-/* set or load values / variable to calling function address */
-void assign_func_arg(Qast *ast){
-	for(int j = 0; j < ast->snip.func.arg_len; ++j){
-		assign_var(ast->snip.func.args[j].name, ast->snip.func.args[j].addr);
-		if(const_type(ast->snip.args[j].type)){
-			attf("\tMOVLW 0x%.2X", ast->snip.args[j].numeric_value);
-		} else {
-			attf("\tMOVF %s, W", ast->snip.args[j].name);
-		}
-		attf("\tMOVWF %s", ast->snip.func.args[j].name);
-	}
-}
-
-
-void load_var(Qvar *v){
-	if(const_type(v->type)){
-		attf("\tMOVLW 0x%.2X", v->numeric_value);
-	} else {
-		attf("\tMOVF 0x%.2X, W", v->addr);
-	}
-}
-
-
-/* loads the literal (const) to W and return the var that has an address */
-/* if both of the have a valid address loads one into W and returns the other */
-Qvar *load_to_w(Qvar *a, Qvar *b){
-	Qvar *ret = a;
-	int a_lit = 0, b_lit = 0;
-
-	if(const_type(a->type)){ a_lit = 1; }
-	if(const_type(b->type)){ b_lit = 1; }
-
-	if(a_lit){
-		attf("\tMOVLW 0x%.2X", a->numeric_value);
-		ret = b;
-
-	} else if(b_lit){
-		attf("\tMOVLW 0x%.2X", b->numeric_value);
-		ret = a;
-
-	} else {
-		// attf("\tMOVF 0x%.2X, 0", a->addr);
-		attf("\tMOVF %s, W", b->name);
-		ret = a;
-	}
-
-	return ret;
-}
-
-
-const char *get_test(int reverse){
-	if(reverse){
-		return "BTFSS";
-	}
-	return "BTFSC";
-}
-
-
-void set_condition(SNIP *snip, int reverse){
-	if(snip->type != CONDITIONAL_SNIP){ return ; }
-	
-	Qvar *q = load_to_w(&snip->left, &snip->right);
-
-	if(snip->op == EQUAL_OP){
-		attf("\tXORWF %s, W", q->name);
-		attf("\t%s STATUS, Z", get_test(reverse == 0));
-	} else if(snip->op == NOT_EQUAL_OP){
-		attf("\tXORWF %s, W", q->name);
-		attf("\t%s STATUS, Z", get_test(reverse == 0));
-
-
-	} else if(snip->op == SMALLER_EQ_OP){
-		attf("\tSUBWF %s, W", q->name);
-		attf("\t%s STATUS, C", get_test(reverse));
-
-	}
 }
 

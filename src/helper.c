@@ -7,7 +7,7 @@
 
 
 // RAM address
-static int ram_stack[MAX_RAM + 1] = {0xA, 0xB, 0xC, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x00};
+static int ram_stack[MAX_RAM + 1] = {0xA, 0xB, 0xC, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, /*compiler reserved: 0x19,*/ 0x00};
 
 
 /* pop_ram: pop one ram address (if address is 0 it means that this is an invalid address)*/
@@ -205,7 +205,7 @@ operator capture_operator(TKNS *tkns, snip_t *st){
 	} else if(see_forward(tkns, 0, RIGHT_SIGN, EQUAL_SIGN)){         // >=
 		*st = CONDITIONAL_SNIP;
 		tkns->idx = tkns->idx + 2;
-		return GREATOR_OP;
+		return GREATOR_EQ_OP;
 
 	} else if(see_forward(tkns, 0, PLUS_SIGN, EQUAL_SIGN)){          // +=
 		*st = ASSIGNMENT_SNIP;
