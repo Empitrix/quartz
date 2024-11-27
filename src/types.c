@@ -7,6 +7,12 @@ typedef struct GFLAG {
 	char output[PATH_MAX];
 	char input[PATH_MAX];
 	char target[100];
+
+	int lexer_view;
+	int parser_view;
+	int gen_view;
+	int delete;
+	int linker_verbose;
 } GFLAG;
 
 

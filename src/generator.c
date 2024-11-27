@@ -3,7 +3,6 @@
 #include "utility.h"
 #include "helper.h"
 #include "emission.h"
-#include <stdio.h>
 
 
 void generator(Qast *asts, int start, int end);

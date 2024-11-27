@@ -18,6 +18,13 @@ void lower_str(char buff[]){
 
 /* Setup General Flags */
 void update_glfag(GFLAG *gflag, int argc, char *argv[]){
+
+	gflag->gen_view = 0;
+	gflag->lexer_view = 0;
+	gflag->parser_view = 0;
+	gflag->delete = 1;
+	gflag->linker_verbose = 0;
+
 	if(argc == 1){
 		printf("%s: fatal error: no input files\ncompilation terminated.\n", argv[0]);
 		exit(0);
@@ -67,6 +74,21 @@ void update_glfag(GFLAG *gflag, int argc, char *argv[]){
 				switch(argv[i][j]){
 					case 'o':
 						get_output = 1;
+						break;
+					case 'L':
+						gflag->lexer_view = 1;
+						break;
+					case 'G':
+						gflag->gen_view = 1;
+						break;
+					case 'P':
+						gflag->parser_view = 1;
+						break;
+					case 'v':
+						gflag->linker_verbose = 1;
+						break;
+					case 'U':
+						gflag->delete = 1;
 						break;
 					default:
 						break;
@@ -540,4 +562,102 @@ void assign_var(char *name, int addr){
 	if(assign_name_exists(name)){ return; }
 	strcpy(arg_names[arg_name_idx++], name);
 	attf("\t%s EQU 0x%.2X", name, addr);
+}
+
+
+
+/* convert token type to string */
+const char *tknstr(token_t *t){
+	switch(*t){
+		case INT_KEYWORD:      return "INT_KEYWORD";
+		case CHAR_KEYWORD:     return "CHAR_KEYWORD";
+		case IDENTIFIER:       return "IDENTIFIER";
+		case INTEGER_VALUE:    return "INTEGER_VALUE";
+		case EQUAL_SIGN:       return "EQUAL_SIGN";
+		case SEMICOLON_SIGN:   return "SEMICOLON_SIGN";
+		case END_SIGN:         return "END_SIGN";
+		case BRAKET_OPN:       return "BRAKET_OPN";
+		case BRAKET_CLS:       return "BRAKET_CLS";
+		case BRACE_OPN:        return "BRACE_OPN";
+		case BRACE_CLS:        return "BRACE_CLS";
+		case PAREN_OPN:        return "PAREN_OPN";
+		case PAREN_CLS:        return "PAREN_CLS";
+		case SINGLE_QUOTE:     return "SINGLE_QUOTE";
+		case DOUBLE_QUOTE:     return "DOUBLE_QUOTE";
+		case HASHTAG:          return "HASHTAG";
+		case WHITESPACE:       return "WHITESPACE";
+		case NEWLINE:          return "NEWLINE";
+		case TYPE_KEYWORDS:    return "TYPE_KEYWORDS";
+		case INCLUDE_KEYWORD:  return "INCLUDE_KEYWORD";
+		case DEFINE_KEYWORD:   return "DEFINE_KEYWORD";
+		case IF_KEYWORD:       return "IF_KEYWORD";
+		case ELSE_KEYWORD:     return "ELSE_KEYWORD";
+		case RETURN_KEYWORD:   return "RETURN_KEYWORD";
+		case VOID_KEYWORD:     return "VOID_KEYWORD";
+		case GOTO_KEYWORD:     return "GOTO_KEYWORD";
+		case FOR_KEYWORD:      return "FOR_KEYWORD";
+		case WHILE_KEYWORD:    return "WHILE_KEYWORD";
+		case COMMENT_TOK:      return "COMMENT_TOK";
+		case LEFT_SIGN:        return "LEFT_SIGN";
+		case RIGHT_SIGN:       return "RIGHT_SIGN";
+		case PLUS_SIGN:        return "PLUS_SIGN";
+		case MINUS_SIGN:       return "MINUS_SIGN";
+		case TILDE_SIGN:       return "TILDE_SIGN";
+		case CARET_SIGN:       return "CARET_SIGN";
+		case AND_SIGN:         return "AND_SIGN";
+		case OR_SIGN:          return "OR_SIGN";
+		case EXCLAMATION_SIGN: return "EXCLAMATION_SIGN";
+		case COMMA_SIGN:       return "COMMA_SIGN";
+		case BACKTICK_SIGN:    return "BACKTICK_SIGN";
+		case UNKNOWN:          return "UNKNOWN";
+	}
+}
+
+
+/* show lexer output */
+void show_lexer(TKNS *tkns){
+	for(tkns->idx = 0; tkns->idx < tkns->max; tkns->idx++){
+		TOKEN *t = &tkns->tokens[tkns->idx];
+		// printf("[%-2d, %-2d]: %s: %-20s\"%s\"\n", t->row, t->col, "", tknstr(&t->type), t->word);
+		printf("[%-2d,%2d] - %s: \"%s\"\n", t->row, t->col, tknstr(&t->type), t->word);
+	}
+	tkns->idx = 0;
+}
+
+
+/* show generated assembly */
+void show_asm_gen(){
+	for(int i = 0; i < tree_idx; ++i){
+		printf("%s\n", tree[i]);
+	}
+}
+
+/* execute command (save result in 'output')*/
+void exec_cmd(char *output, const char *frmt, ...){
+	char buff[1024];
+	va_list arglist;
+	va_start(arglist, frmt);
+	vsprintf(buff, frmt, arglist);
+	va_end(arglist);
+
+	FILE *fp = popen(buff, "r");
+	if(fp == NULL){ return; }
+	while (fgets(output, sizeof(output), fp) != NULL);
+	pclose(fp);
+}
+
+/* generate binary using linker */
+void linker(GFLAG *gflag){
+	char buff[1024] = { 0 };
+	exec_cmd(buff, "./linker %s -v -o %s", COMPILE_NAME, gflag->output);
+
+	if(gflag->linker_verbose){
+		printf("%s\n", buff);
+	}
+
+	if(gflag->delete){
+		char dbuff[1024] = { 0 };
+		sprintf(dbuff, "rm %s", COMPILE_NAME);
+		system(dbuff);
+	}
 }

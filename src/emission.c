@@ -1,7 +1,6 @@
 #include "rules.h"
 #include "types.h"
 #include "helper.h"
-#include <stdio.h>
 
 
 void gen_assign(SNIP *snip){

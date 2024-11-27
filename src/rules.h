@@ -18,6 +18,8 @@
 #define CRAM 0x19   // Compiler reserved RAM
 #define CRAMS "CRAM"    // Compiler reserved RAM (STRING)
 
+#define COMPILE_NAME "a.asm"
+
 #include "rules.c"
 #endif
 

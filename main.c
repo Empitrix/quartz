@@ -1,5 +1,5 @@
 #include "src/utility.h"
-#include "src/tokenizer.h"
+#include "src/lexer.h"
 #include "src/generator.h"
 #include "src/parser.h"
 
@@ -8,9 +8,11 @@ int main(int argc, char *argv[]){
 	GFLAG gflag;
 	update_glfag(&gflag, argc, argv);
 
+	// Read Input File
 	char buff[MAXFILE] = { 0 };
 	read_file(gflag.input, buff);
 
+	//
 	TKNS tkns;
 	tokenizer(buff, &tkns);  // break down the source code into tokens
 
@@ -22,23 +24,27 @@ int main(int argc, char *argv[]){
 	}
 	add_tree("CRAM EQU 0x19    ; Compiler Reserved Address");
 
-
+	// Parse TKNS
 	qparser(&tkns, 0, AST_NO_STATEMENT);
 	update_children();
 
+	// Check function main exists
 	if(qfunc_exists("main") != 1){
 		printf("Function \"main\" does not exists!\n");
 		exit(0);
 	}
 
-	visualize_tree();
+	generator(qasts, 0, qast_idx);  // Generate Assembley code
+	reorder();                      // Reorder functions for linker
 
-	generator(qasts, 0, qast_idx);
+	// Flags
+	if(gflag.parser_view){ visualize_tree(); }
+	if(gflag.lexer_view){ show_lexer(&tkns); }
+	if(gflag.gen_view){ show_asm_gen(); }
 
-
-	reorder();  // Reorder functions for assembler
-
-	write_tree(gflag.output);
+	// Generate binary using linker
+	write_tree(COMPILE_NAME);
+	linker(&gflag);
 	return 0;
 }
 
