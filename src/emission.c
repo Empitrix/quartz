@@ -1,6 +1,7 @@
 #include "rules.h"
 #include "types.h"
 #include "helper.h"
+#include <stdio.h>
 
 
 void gen_assign(SNIP *snip){
@@ -39,11 +40,17 @@ void assign_func_arg(Qast *ast){
 	}
 }
 
+void set_com(Qvar *v){
+	if(v->com && const_type(v->type) == 0){
+		attf("\tCOMF %s, F", v->name);
+	}
+}
 
 void load_var(Qvar *v){
 	if(const_type(v->type)){
 		attf("\tMOVLW 0x%.2X", v->numeric_value);
 	} else {
+		set_com(v);
 		attf("\tMOVF 0x%.2X, W", v->addr);
 	}
 }
@@ -120,10 +127,6 @@ void set_condition(SNIP *snip, int reverse){
 
 	// <
 	} else if(snip->op == SMALLER_OP){
-		// load_var(&snip->right);
-		// attf("\tSUBWF %s, W", snip->left.name);
-		// attf("\t%s STATUS, C", get_test(reverse == 0));
-
 		load_cram(&snip->left);
 		load_var(&snip->right);
 		attf("\tSUBWF %s, W", CRAMS);
@@ -146,3 +149,27 @@ void set_condition(SNIP *snip, int reverse){
 	}
 }
 
+
+// operate shift '<<' and '>>'
+void set_shift(SNIP *snip, const char *opcode){
+	const char *ltop = get_label();
+	const char *ldwn = get_label();
+	attf("%s:", ltop);
+
+
+	load_cram(&snip->right);
+	int tram = pop_ram();
+	attf("\tMOVF 0x%.2X, W", tram);
+	attf("\tXORWF %s, W", CRAMS);
+	attf("\tBTFSC STATUS, Z");
+	attf("\tGOTO %s", ldwn);
+	// body
+	attf("\t%s %s, W", opcode, snip->left.name);
+	attf("\tMOVWF %s", snip->assigned.name);
+	attf("\tINCF 0x%.2X, F", tram);
+	attf("\tGOTO %s", ltop);
+
+	attf("%s:", ldwn);
+	push_ram();  // Free tram
+	attf("\tCLRF 0x%.2X", tram);
+}

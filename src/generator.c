@@ -127,11 +127,11 @@ void generator(Qast *asts, int start, int end){
 			} else if(asts[i].snip.assigne_type == UPDATE_ASG){
 				if(const_type(asts[i].snip.assigned.type) != 0){ continue; }
 
-
 				// =
 				if(asts[i].snip.op == ASSIGN_OP){
 					load_var(&asts[i].snip.left);
-					attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
+					attf("\tMOVWF %s", asts[i].snip.assigned.name);
+					// attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
 
 				// +
 				} else if(asts[i].snip.op == ADD_OP){
@@ -164,20 +164,27 @@ void generator(Qast *asts, int start, int end){
 					attf("\tSUBWF 0x%.2X, W", CRAM);
 					attf("\tMOVWF 0x%.2X", asts[i].snip.assigned.addr);
 
+				} else if(asts[i].snip.op == SHIFT_LEFT_OP){
+					set_shift(&asts[i].snip, "RLF");
+
+				} else if(asts[i].snip.op == SHIFT_RIGHT_OP){
+					set_shift(&asts[i].snip, "RRF");
+
 				}
 
 
 			} else if(asts[i].snip.assigne_type == ASSIGNMENT_ASG){
 				if(const_type(asts[i].snip.assigned.type) == 0){ continue; }
 
+				// +=
 				if(asts[i].snip.op == ADD_ASSIGN_OP){
 					load_var(&asts[i].snip.right);
 					attf("\tADDWF 0x%.2X, F", asts[i].snip.left.addr);
 
+				// -=
 				} else if(asts[i].snip.op == MINUS_ASSIGN_OP){
 					load_var(&asts[i].snip.right);
 					attf("\tSUBWF 0x%.2X, F", asts[i].snip.left.addr);
-
 				}
 
 

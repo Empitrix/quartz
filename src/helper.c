@@ -24,6 +24,15 @@ int pop_ram(){
 }
 
 
+void push_ram(void){
+	int pop = ram_stack[0];
+	if(pop == 0){ pop = 0x19; }
+	for (int i = MAX_RAM - 1; i > 0; --i) {
+		ram_stack[i] = ram_stack[i - 1];
+	}
+	ram_stack[0] = pop - 1;
+}
+
 
 /* pass_by_type: Check if the token has the given type; if it does, move to the next one; otherwise, throw an error. */
 void pass_by_type(TKNS *tkns, token_t type, const char *msg, const char *exp){
@@ -151,11 +160,21 @@ int capture_arg(TKNS *tkns, Qarg *qarg){
 int pass_by_qvar(TKNS *tkns, Qvar *qvar){
 	empty_qvar(qvar);
 
+	skip_whitespace(tkns);
+
+	int com = 0;
+	if(tkns->tokens[tkns->idx].type == TILDE_SIGN){
+		qvar->com = 1;
+		com = 1;
+		tkns->idx++;
+	}
+
 	if(tkns->tokens[tkns->idx].type == IDENTIFIER){
 		if(get_qvar(tkns->tokens[tkns->idx].word, qvar)){
 			throw_err(tkns, "Invlaid identifier", "valid variable name");
 		}
 		tkns->idx++;
+		qvar->com = com;
 		return 0;
 
 	} else if(tkns->tokens[tkns->idx].type == INTEGER_VALUE){

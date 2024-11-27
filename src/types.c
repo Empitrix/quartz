@@ -111,11 +111,13 @@ typedef struct {
 	qvar_t type;              // Q-Var type
 	int numeric_value;        // Any kind of numeric value
 	char const_str[STR_MAX];  // Constant string
+	int com;                  // complement
 } Qvar;
 
 
 void empty_qvar(Qvar *q){
 	q->addr = 0;
+	q->com = 0;
 	strcpy(q->const_str, "");
 	strcpy(q->name, "");
 	q->type = CONSTANT_INTEGER;
