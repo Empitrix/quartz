@@ -3,7 +3,8 @@
 		<img alt="Quartz" src="./assets/quartz.png" width="45%">
 	</picture>
 	<h1>Quartz</h1>
-	<p>A compiler for <a href="https://github.com/empitrix/8bitcpu">Amethyst</a></p>
+	<!-- <p>A compiler for <a href="https://github.com/empitrix/8bitcpu">Amethyst</a></p> -->
+	<p>Quartz is a cross-platform compiler for the PIC10F200 microcontroller that utilizes <a href="https://github.com/empitrix/assembler">assembler</a> as a linker to generate assembly code tailored for this type of microcontroller.</p>
 </div>
 
 ## Build
@@ -234,5 +235,126 @@ a = a >> 1;  // Move value of 'a' to right by 1 (store in 'a')
 Left Shift (`<<`):
 ```
 a = a << 1;  // Move value of 'a' to left by 1 (store in 'a')
+```
+
+
+## Examples
+
+Look at the following example:
+
+```c
+#define GPIO 0x06
+
+int i = 0;
+int j = 0;
+
+int putchar(int l){
+	`MOVF { l }, W`;
+	`MOVWF { GPIO }`;
+	`BSF { GPIO }, 7`;
+	`CLRF { GPIO }`;
+	return 0;
+}
+
+int main(){
+	for(i = 0; i <= 5; i++){
+		for(j = 0; j <= i; j++){
+			putchar('*');
+		}
+		putchar('\n');
+	}
+
+	putchar('\n');
+
+	// print letters
+	i = 'A'
+	while(i < 'K'){
+		putchar(i);
+		i++;
+	}
+
+	return 0;
+}
+
+```
+
+the output is looks like this:
+
+```text
+*
+**
+***
+****
+*****
+******
+
+ABCDEFGHIJ
+```
+
+
+---
+
+
+Another example to see the conditions for loops:
+
+```c
+#define GPIO 0x06
+
+int i = 0;
+int j = 0;
+
+int putchar(int l){
+	`MOVF { l }, W`;
+	`MOVWF { GPIO }`;
+	`BSF { GPIO }, 7`;
+	`CLRF { GPIO }`;
+	return 0;
+}
+
+int main(){
+
+	// ABCDEFGHIJ
+	i = 'A'
+	while(i < 'K'){
+		putchar(i);
+		i++;
+	}
+	putchar('\n');
+
+	// ABCDEFGHIJK
+	i = 'A'
+	while(i <= 'K'){
+		putchar(i);
+		i++;
+	}
+	putchar('\n');
+
+	// KJIHGFEDCBA
+	i = 'K'
+	while(i <= 'A'){
+		putchar(i);
+		i--;
+	}
+	putchar('\n');
+
+	// KJIHGFEDCB
+	i = 'K'
+	while(i < 'A'){
+		putchar(i);
+		i--;
+	}
+
+
+	return 0;
+}
+```
+
+And the expected output is something like this:
+
+```text
+ABCDEFGHIJ
+ABCDEFGHIJK
+KJIHGFEDCBA
+KJIHGFEDCB
 ```
 
