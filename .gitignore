@@ -20,5 +20,7 @@
 /qtzc
 /qtz
 /out
-/assembler
 /linker
+
+/asm_out.bin
+/asm_out

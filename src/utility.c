@@ -611,6 +611,7 @@ const char *tknstr(token_t *t){
 		case BACKTICK_SIGN:    return "BACKTICK_SIGN";
 		case UNKNOWN:          return "UNKNOWN";
 	}
+	return "UNKNOWN";
 }
 
 
