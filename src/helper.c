@@ -736,9 +736,14 @@ void compiler_clean(void){
 	}
 
 
+	// Labels
 	clear_labels();
 
-
+	// Ast
 	qast_idx = 0;
+
+	// Args
+	memset(arg_names, 0, sizeof(arg_names));
+	arg_name_idx = 0;
 
 }
