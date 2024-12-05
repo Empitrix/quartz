@@ -24,3 +24,5 @@
 
 /asm_out.bin
 /asm_out
+
+/cpu_state.txt

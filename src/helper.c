@@ -716,3 +716,29 @@ int const_type(qvar_t t){
 	return 0;
 }
 
+
+
+void compiler_clean(void){
+
+	// colector
+	global_q_idx = 0;
+	local_q_idx = 0;
+	qfunc_idx = 0;
+
+	// tree (asm)
+	tree_idx = 0;
+	memset(tree, 0, sizeof(tree));
+
+	// init 'RAM'
+	int stack_buff[MAX_RAM + 1] = {0xA, 0xB, 0xC, 0xD, 0xE, 0xF, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, /*compiler reserved: 0x19,*/ 0x00};
+	for(int i = 0; i < MAX_RAM + 1; ++i){
+		ram_stack[i] = stack_buff[i];
+	}
+
+
+	clear_labels();
+
+
+	qast_idx = 0;
+
+}

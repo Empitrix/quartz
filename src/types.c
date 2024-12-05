@@ -286,5 +286,6 @@ Qast *empty_ast(){
 	ast->refer = AST_NO_STATEMENT;
 	ast->depth = 0;
 	ast->children = 0;
+	memset(ast->rasm, 0, sizeof(ast->rasm));
 	return ast;
 }
