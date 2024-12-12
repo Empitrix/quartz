@@ -18,7 +18,10 @@ int pop_ram(){
 	}
 	if(out == 0){
 		printf("Too many variable definition (out of ram)\n");
-		exit(0);
+		set_err_buff("Too many variable definition (out of ram)\n");
+		if(get_one_diag_exit){
+			exit(0);
+		}
 	}
 	return out;
 }

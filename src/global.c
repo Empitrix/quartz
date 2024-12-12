@@ -146,3 +146,33 @@ int func_exists(const char *name){
 	return 0;
 }
 
+
+
+
+
+
+//* ERR *//
+
+static char err_msg_buffer[MAXSIZ] = { 0 };
+
+
+void clr_err_buff(void){
+	memset(err_msg_buffer, 0, sizeof(err_msg_buffer));
+}
+
+void set_err_buff(const char *msg){
+	clr_err_buff();
+	strcpy(err_msg_buffer, msg);
+}
+
+char *get_err_buff(void){
+	return err_msg_buffer;
+}
+
+
+int compiling_failed(char *buff){
+	strcpy(buff, get_err_buff());
+	return strcmp(get_err_buff(), "") != 0;
+}
+
+

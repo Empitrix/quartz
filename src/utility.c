@@ -5,8 +5,14 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include "types.h"
+#include "global.h"
 #include "rules.h"
 
+static int get_one_diag_exit = 1;
+
+void set_compiler_diag_exit(int v){
+	get_one_diag_exit = v;
+}
 
 /* lower_str: make a char* to a lower case char* */
 void lower_str(char buff[]){
@@ -157,8 +163,8 @@ void get_token_line(TKNS *tkns, int *new_start, char line[]){
 /* throw_err: show error message with line/line number and underlined invalid token */
 void throw_err(TKNS *tkns, const char *msg, const char *expected){
 	int new_start = 0;
-	char line[MAXSIZ];
-	char obj[MAXSIZ];
+	char line[MAXSIZ] = { 0 };
+	char obj[MAXSIZ] = { 0 };
 	memset(obj, '\0', sizeof(obj));
 	memset(line, '\0', sizeof(line));
 	char output[MAXSIZ];
@@ -167,7 +173,9 @@ void throw_err(TKNS *tkns, const char *msg, const char *expected){
 	int i;
 	int occurred = new_start;
 	int tok_len = tkns->tokens[occurred].col;
-	strcat(obj, "\033[38;2;230;81;0m");
+	if(get_one_diag_exit){
+		strcat(obj, "\033[38;2;230;81;0m");
+	}
 	for(i = 0; i < tok_len; ++i){
 		if(i == tok_len - 1){
 			strcat(obj, "^");
@@ -175,14 +183,21 @@ void throw_err(TKNS *tkns, const char *msg, const char *expected){
 			strcat(obj, "~");
 		}
 	}
-	strcat(obj, "\033[0m");
+	if(get_one_diag_exit){
+		strcat(obj, "\033[0m");
+	}
 	if(expected != NULL && strcmp(expected, "") != 0){
 		sprintf(output, "%s, expected (%s) in", msg, expected);
 	} else {
 		sprintf(output, "%s", msg);
 	}
-	printf("Err: %s:\n\n%-3d|%s\n   |%s\n   |\n\n", output, tkns->tokens[occurred].row, line, obj);
-	exit(0);
+	char out[MAXSIZ] = { 0 };
+	sprintf(out, "Err: %s:\n\n%-3d|%s\n   |%s\n   |\n\n", output, tkns->tokens[occurred].row, line, obj);
+	set_err_buff(out);
+	fprintf(stderr, "%s", out);
+	if(get_one_diag_exit){
+		exit(0);
+	}
 }
 
 
@@ -215,7 +230,6 @@ int get_string(TKNS *tkns, char src[]){
 		++tkns->idx;
 	} else {
 		throw_err(tkns, "Invalid syntax", "\"");
-		exit(0);
 	}
 
 	do {
@@ -226,7 +240,6 @@ int get_string(TKNS *tkns, char src[]){
 		++tkns->idx;
 		if(tkns->tokens[tkns->idx].type == NEWLINE){
 			throw_err(tkns, "Invalid syntax", "\"");
-			exit(0);
 		}
 	} while(1);
 
@@ -244,7 +257,6 @@ int get_char_value(TKNS *tkns, char *value){
 		tkns->idx++;
 	} else {
 		throw_err(tkns, "Invalid syntax", "'");
-		exit(0);
 	}
 
 	int escape = 0;
@@ -270,7 +282,6 @@ int get_char_value(TKNS *tkns, char *value){
 			tkns->idx++;
 		} else {
 			throw_err(tkns, "Invalid escape letter", "\\n, \\t, \\\\");
-			exit(0);
 		}
 	}
 

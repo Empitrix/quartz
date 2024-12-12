@@ -5,6 +5,8 @@
 
 
 int main(int argc, char *argv[]){
+	set_compiler_diag_exit(1);
+
 	GFLAG gflag;
 	update_glfag(&gflag, argc, argv);
 

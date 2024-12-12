@@ -22,4 +22,7 @@ void strcatf(char* dst, const char * frmt, ...);
 
 void compiler_clean(void);
 
+void set_compiler_diag_exit(int);
+int compiling_failed(char *buff);
+
 #endif
